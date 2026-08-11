@@ -443,3 +443,200 @@ body.camera-mode .live-filter-strip{
     width:62px;max-width:62px;
   }
 }
+
+
+/* === BUILD 9.2: CAMERA UI POLISH FIX === */
+body.camera-mode main{
+  overflow:hidden;
+}
+body.camera-mode .clean-camera-screen{
+  grid-template-rows:minmax(0,1fr) 120px 92px;
+  gap:6px;
+  padding-top:4px;
+  padding-bottom:4px;
+}
+body.camera-mode .camera-stage{
+  border-radius:18px!important;
+}
+body.camera-mode .camera-look-section{
+  background:rgba(255,250,246,.98);
+  border-top:1px solid rgba(96,64,66,.08);
+  border-bottom:1px solid rgba(96,64,66,.06);
+  border-radius:18px;
+  padding:8px 8px 6px;
+  margin-top:0;
+  display:grid;
+  grid-template-rows:auto auto 1fr;
+  gap:4px;
+}
+body.camera-mode .camera-look-heading{
+  height:auto;
+  min-height:20px;
+  padding:0;
+  align-items:flex-end;
+}
+body.camera-mode .camera-look-heading strong{
+  font-size:13px;
+  line-height:1;
+}
+body.camera-mode .camera-look-heading small{
+  display:none;
+}
+body.camera-mode #cameraControlsBtn{
+  padding:7px 11px;
+  font-size:8px;
+}
+body.camera-mode .camera-category-row{
+  min-height:30px;
+  padding:0;
+  gap:6px;
+}
+body.camera-mode .camera-category-row .chip{
+  padding:6px 11px;
+  min-height:28px;
+  font-size:8.5px;
+  border-radius:999px;
+  white-space:nowrap;
+}
+body.camera-mode .live-filter-strip{
+  height:66px;
+  min-height:66px;
+  padding:1px 0 0;
+  gap:8px;
+}
+body.camera-mode .live-filter-strip .preset-card{
+  flex:0 0 68px;
+  width:68px;
+  min-width:68px;
+  height:64px;
+  grid-template-rows:45px 15px;
+  gap:3px;
+}
+body.camera-mode .live-filter-strip .preset-thumb{
+  width:68px!important;
+  height:45px!important;
+  min-height:45px;
+  border-radius:11px;
+}
+body.camera-mode .live-filter-strip .preset-card span{
+  width:68px;
+  max-width:68px;
+  font-size:8.2px;
+  line-height:14px;
+}
+body.camera-mode .clean-camera-actions{
+  height:92px;
+  padding:23px 12px calc(2px + env(safe-area-inset-bottom));
+  grid-template-columns:1fr 72px 1fr;
+  gap:12px;
+  align-items:end;
+}
+body.camera-mode .capture-mode-switch{
+  top:2px;
+  padding:2px;
+}
+body.camera-mode .capture-mode-switch button{
+  padding:4px 12px;
+  font-size:7.5px;
+}
+body.camera-mode .clean-camera-actions .round-label-btn{
+  min-height:54px;
+  align-self:end;
+  gap:3px;
+  padding-bottom:2px;
+}
+body.camera-mode .clean-camera-actions .round-label-btn span{
+  font-size:22px;
+}
+body.camera-mode .clean-camera-actions .shutter{
+  width:62px;
+  height:62px;
+}
+body.camera-mode .live-filter-name{
+  bottom:10px;
+  font-size:9px;
+}
+body.camera-mode .camera-advanced-panel{
+  bottom:96px;
+}
+@media (max-width:390px){
+  body.camera-mode .clean-camera-screen{
+    grid-template-rows:minmax(0,1fr) 114px 88px;
+    gap:5px;
+  }
+  body.camera-mode .camera-look-section{
+    padding:7px 7px 5px;
+  }
+  body.camera-mode .camera-category-row .chip{
+    padding:5px 10px;
+    font-size:8px;
+  }
+  body.camera-mode .live-filter-strip{
+    height:62px;
+    min-height:62px;
+    gap:7px;
+  }
+  body.camera-mode .live-filter-strip .preset-card{
+    flex-basis:64px;
+    width:64px;
+    min-width:64px;
+    height:60px;
+    grid-template-rows:42px 14px;
+  }
+  body.camera-mode .live-filter-strip .preset-thumb{
+    width:64px!important;
+    height:42px!important;
+    min-height:42px;
+  }
+  body.camera-mode .live-filter-strip .preset-card span{
+    width:64px;
+    max-width:64px;
+    font-size:8px;
+    line-height:13px;
+  }
+  body.camera-mode .clean-camera-actions{
+    height:88px;
+    padding-top:21px;
+  }
+}
+@media (max-height:760px){
+  body.camera-mode .clean-camera-screen{
+    grid-template-rows:minmax(0,1fr) 108px 84px;
+    gap:4px;
+  }
+  body.camera-mode .camera-look-section{
+    padding:6px 7px 4px;
+  }
+  body.camera-mode .camera-look-heading{
+    min-height:18px;
+  }
+  body.camera-mode .live-filter-strip{
+    height:58px;
+    min-height:58px;
+  }
+  body.camera-mode .live-filter-strip .preset-card{
+    flex-basis:60px;
+    width:60px;
+    min-width:60px;
+    height:55px;
+    grid-template-rows:38px 13px;
+  }
+  body.camera-mode .live-filter-strip .preset-thumb{
+    width:60px!important;
+    height:38px!important;
+    min-height:38px;
+  }
+  body.camera-mode .live-filter-strip .preset-card span{
+    width:60px;
+    max-width:60px;
+    line-height:12px;
+  }
+  body.camera-mode .clean-camera-actions{
+    height:84px;
+    padding-top:19px;
+  }
+  body.camera-mode .clean-camera-actions .shutter{
+    width:58px;
+    height:58px;
+  }
+}
