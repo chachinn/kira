@@ -1,5 +1,5 @@
-const CACHE='kira-build2-v1-20260811';
-const SHELL=['./','./index.html','./style.css','./app.js','./manifest.json','./icons/kira-icon-32-b2.png','./icons/kira-icon-96-b2.png','./icons/kira-icon-180-b2.png','./icons/kira-icon-192-b2.png','./icons/kira-icon-512-b2.png','./icons/kira-icon-192-maskable-b2.png','./icons/kira-icon-512-maskable-b2.png'];
+const CACHE='kira-build3-v1-20260811';
+const SHELL=['./','./index.html','./style.css','./app.js','./manifest.json','./icons/kira-icon-32-b3.png','./icons/kira-icon-96-b3.png','./icons/kira-icon-180-b3.png','./icons/kira-icon-192-b3.png','./icons/kira-icon-512-b3.png','./icons/kira-icon-192-maskable-b3.png','./icons/kira-icon-512-maskable-b3.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
 self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET')return;const u=new URL(r.url);if(u.origin!==self.location.origin)return;if(r.mode==='navigate'){e.respondWith(fetch(r).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put('./index.html',copy));return res}).catch(()=>caches.match('./index.html')));return}e.respondWith(caches.match(r,{ignoreSearch:true}).then(hit=>hit||fetch(r).then(res=>{if(res&&res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(r,copy))}return res})))})

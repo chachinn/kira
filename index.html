@@ -8,19 +8,19 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=2.0.0" />
-  <link rel="apple-touch-icon" sizes="180x180" href="./icons/kira-icon-180-b2.png" />
-  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/kira-icon-180-b2.png" />
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/kira-icon-192-b2.png" />
-  <link rel="shortcut icon" type="image/png" href="./icons/kira-icon-32-b2.png" />
-  <link rel="stylesheet" href="./style.css?v=2.0.0" />
+  <link rel="manifest" href="./manifest.json?v=3.0.0" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/kira-icon-180-b3.png" />
+  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/kira-icon-180-b3.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/kira-icon-192-b3.png" />
+  <link rel="shortcut icon" type="image/png" href="./icons/kira-icon-32-b3.png" />
+  <link rel="stylesheet" href="./style.css?v=3.0.0" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <div class="brand-wrap">
-        <img src="./icons/kira-icon-96-b2.png" alt="" class="brand-icon" />
+        <img src="./icons/kira-icon-96-b3.png" alt="" class="brand-icon" />
         <div>
           <div class="brand">kira</div>
           <div class="tagline">make every moment feel like film.</div>
@@ -33,7 +33,7 @@
       <section class="screen active" id="screen-camera" data-screen="camera">
         <div class="camera-stage" id="cameraStage">
           <div class="camera-empty" id="cameraEmpty">
-            <img src="./icons/kira-icon-192-b2.png" alt="Kira camera icon" />
+            <img src="./icons/kira-icon-192-b3.png" alt="Kira camera icon" />
             <h1>shoot it like film.</h1>
             <p>Take a photo or choose one from your library.</p>
           </div>
@@ -72,6 +72,9 @@
           </div>
         </div>
 
+        <div class="filter-search-wrap">
+          <input id="filterSearch" class="filter-search-input" type="search" placeholder="Search filters and recipes" />
+        </div>
         <div class="category-row" id="filterCategories"></div>
         <div class="filter-row" id="filterRow"></div>
 
@@ -80,12 +83,13 @@
           <input type="range" id="filterIntensity" min="0" max="100" value="70" />
         </div>
 
-        <div class="tool-tabs">
+        <div class="tool-tabs tool-tabs-6">
           <button class="tool-tab active" data-tool="adjust">Adjust</button>
           <button class="tool-tab" data-tool="effects">Effects</button>
           <button class="tool-tab" data-tool="frame">Frame</button>
           <button class="tool-tab" data-tool="date">Date</button>
           <button class="tool-tab" data-tool="compare">Before/After</button>
+          <button class="tool-tab" data-tool="film-lab">Film Lab</button>
         </div>
 
         <div class="tool-panel active" id="tool-adjust"></div>
@@ -93,6 +97,7 @@
         <div class="tool-panel" id="tool-frame"></div>
         <div class="tool-panel" id="tool-date"></div>
         <div class="tool-panel" id="tool-compare"></div>
+        <div class="tool-panel" id="tool-film-lab"></div>
 
         <div class="export-quality-card">
           <span>Export quality</span>
@@ -158,12 +163,13 @@
         <div class="settings-card">
           <h3>Storage</h3>
           <div class="setting-row"><span>Photos stored in Kira</span><b id="storedCount">0</b></div>
+          <div class="setting-row"><span>Saved recipes</span><b id="recipeCount">0</b></div>
           <button class="danger-btn" id="clearKiraBtn">Clear Kira local photos</button>
         </div>
 
         <div class="about-card">
-          <img src="./icons/kira-icon-96-b2.png" alt="" />
-          <div><strong>kira</strong><small>Build 2 • filters & film effects</small></div>
+          <img src="./icons/kira-icon-96-b3.png" alt="" />
+          <div><strong>kira</strong><small>Build 3 • Film Lab & recipes</small></div>
         </div>
       </section>
     </main>
@@ -180,6 +186,6 @@
   <input type="file" id="galleryInput" accept="image/*" hidden />
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=2.0.0"></script>
+  <script src="./app.js?v=3.0.0"></script>
 </body>
 </html>
