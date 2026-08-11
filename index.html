@@ -8,12 +8,12 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=7.0.0" />
+  <link rel="manifest" href="./manifest.json?v=8.0.0" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=7.0.0" />
+  <link rel="stylesheet" href="./style.css?v=8.0.0" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -36,6 +36,7 @@
           <div id="liveToneOverlay" class="live-overlay live-tone-overlay"></div>
           <div id="liveFadeOverlay" class="live-overlay live-fade-overlay"></div>
           <div id="liveVignetteOverlay" class="live-overlay live-vignette-overlay"></div>
+          <div id="liveFrameOverlay" class="live-frame-overlay hidden" aria-hidden="true"></div>
           <div class="camera-empty" id="cameraEmpty">
             <img src="./icons/icon-192.png" alt="Kira camera icon" />
             <h1 id="cameraEmptyTitle">opening camera…</h1>
@@ -55,7 +56,7 @@
 
         <div class="camera-look-section">
           <div class="camera-look-heading">
-            <div><strong>Choose a look</strong><small>preview it before you shoot</small></div>
+            <div><strong>Looks</strong><small>tap a look before you shoot</small></div>
             <button class="soft-icon-btn" id="cameraControlsBtn" aria-expanded="false">Controls⌄</button>
           </div>
           <div class="camera-category-row" id="cameraCategories"></div>
@@ -237,7 +238,7 @@
 
         <div class="about-card clean-about-card">
           <img src="./icons/icon-96.png" alt="" />
-          <div><strong>kira</strong><small>Build 7 • UI cleanup & organization</small></div>
+          <div><strong>kira</strong><small>Build 8 • stable camera & vintage packs</small></div>
         </div>
       </section>
     </main>
@@ -300,6 +301,6 @@
 
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=7.0.0"></script>
+  <script src="./app.js?v=8.0.0"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Kira — Retro Film Camera",
   "short_name": "Kira",
-  "description": "A clean, local-first retro camera with live vintage filters, dated camera looks, film recipes, named rolls and contact sheets.",
+  "description": "A smooth local-first retro camera with live instant frames, compact-camera packs, dated looks, film recipes, rolls and contact sheets.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
