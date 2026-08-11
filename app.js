@@ -1,430 +1,169 @@
 (() => {
   'use strict';
+  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const today=()=>new Date().toISOString().slice(0,10);
 
-  const $ = (sel, root=document) => root.querySelector(sel);
-  const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
-
-  const state = {
-    image: null,
-    imageName: 'kira-photo',
-    activeFilter: 'Old Rose',
-    activeCategory: 'All',
-    filterIntensity: 70,
-    adjustments: { exposure:0, brightness:0, contrast:0, saturation:0, warmth:0, fade:0, grain:8, vignette:8 },
-    effects: { bloom:0, dust:0, leak:0 },
-    frame: 'None',
-    frameTone: '#fff8f1',
-    caption: '',
-    dateEnabled: true,
-    dateStyle: 'Classic',
-    dateValue: new Date().toISOString().slice(0,10),
-    compare: false,
-    favoriteFilters: new Set(JSON.parse(localStorage.getItem('kira.favoriteFilters') || '[]')),
-    settings: Object.assign({
-      grid:false,
-      haptics:true,
-      rememberFilter:true,
-      keepOriginal:true,
-      autoSave:true
-    }, JSON.parse(localStorage.getItem('kira.settings') || '{}')),
-    rolls: [],
-    deferredInstallPrompt: null,
-    activeRollFilter: 'all'
+  const defaultAdjust=()=>({exposure:0,brightness:0,contrast:0,highlights:0,shadows:0,saturation:0,warmth:0,tint:0,fade:0,sharpness:0,vignette:8});
+  const defaultEffects=()=>({grain:10,grainType:'Classic',bloom:0,bloomType:'Soft',dust:0,scratches:0,leak:0,leakType:'Pink',rgbSplit:0,noise:0});
+  const state={
+    image:null,imageName:'kira-photo',activeFilter:'Old Rose',activeCategory:'All',filterIntensity:70,
+    adjustments:defaultAdjust(),effects:defaultEffects(),frame:'None',frameTone:'#fff8f1',frameWidth:8,frameCorner:8,caption:'',
+    dateEnabled:true,dateStyle:'Classic',dateValue:today(),compare:false,exportQuality:'High',
+    favoriteFilters:new Set(JSON.parse(localStorage.getItem('kira.favoriteFilters')||'[]')),
+    settings:Object.assign({grid:false,haptics:true,rememberFilter:true,keepOriginal:true,autoSave:true},JSON.parse(localStorage.getItem('kira.settings')||'{}')),
+    rolls:[],deferredInstallPrompt:null,activeRollFilter:'all',history:[],future:[],pendingSnapshot:null
   };
 
-  const filters = [
-    {name:'Kira Original',cat:'Kira',thumb:'linear-gradient(135deg,#9f7473,#dec2b0)',p:{}},
-    {name:'Old Rose',cat:'Kira',thumb:'linear-gradient(135deg,#ad6d79,#e8c2b4)',p:{brightness:5,contrast:-8,saturation:-8,warmth:10,fade:10,grain:8}},
-    {name:'First Love',cat:'Kira',thumb:'linear-gradient(135deg,#e8c5c7,#f6e5da)',p:{brightness:10,contrast:-12,saturation:-6,warmth:7,fade:14,bloom:10}},
-    {name:'Sunday',cat:'Kira',thumb:'linear-gradient(135deg,#c99678,#f0d9bc)',p:{brightness:5,contrast:-4,saturation:4,warmth:14,fade:6}},
-    {name:'Diary',cat:'Kira',thumb:'linear-gradient(135deg,#8c6e62,#d5b29e)',p:{contrast:-12,saturation:-12,warmth:7,fade:18,grain:12,dust:8}},
-    {name:'Film 100',cat:'Film',thumb:'linear-gradient(135deg,#8f7e70,#cdbca8)',p:{contrast:7,saturation:-3,warmth:5,grain:6}},
-    {name:'Disposable',cat:'Film',thumb:'linear-gradient(135deg,#72574b,#c69268)',p:{brightness:2,contrast:16,saturation:8,warmth:15,fade:5,grain:18,vignette:12}},
-    {name:'Film 400',cat:'Film',thumb:'linear-gradient(135deg,#5b4f47,#b49a83)',p:{contrast:12,saturation:-4,warmth:7,grain:22,vignette:9}},
-    {name:'Faded Film',cat:'Film',thumb:'linear-gradient(135deg,#a8907b,#d8c6b0)',p:{brightness:6,contrast:-18,saturation:-14,warmth:8,fade:26,grain:10}},
-    {name:'CCD 2003',cat:'CCD',thumb:'linear-gradient(135deg,#4f667b,#b0bcc9)',p:{contrast:10,saturation:3,warmth:-16,grain:8,bloom:6}},
-    {name:'Pink CCD',cat:'CCD',thumb:'linear-gradient(135deg,#81657b,#dfa3b7)',p:{brightness:5,contrast:8,saturation:9,warmth:-5,fade:5,bloom:7}},
-    {name:'Cool CCD',cat:'CCD',thumb:'linear-gradient(135deg,#42596f,#7fa1b0)',p:{contrast:9,saturation:-4,warmth:-22,grain:10}},
-    {name:'Flash CCD',cat:'CCD',thumb:'linear-gradient(135deg,#81797f,#f2e8e8)',p:{brightness:13,contrast:18,saturation:-2,warmth:-12,bloom:15}},
-    {name:'Bubblegum',cat:'Y2K',thumb:'linear-gradient(135deg,#e0739c,#8a73bd)',p:{brightness:7,contrast:12,saturation:22,warmth:-4,fade:4}},
-    {name:'Angel',cat:'Y2K',thumb:'linear-gradient(135deg,#d5d5e8,#f2dbe7)',p:{brightness:16,contrast:-10,saturation:-6,warmth:-8,fade:13,bloom:15}},
-    {name:'Baby Pink',cat:'Y2K',thumb:'linear-gradient(135deg,#f0b9c7,#f7e2df)',p:{brightness:8,contrast:-7,saturation:4,warmth:7,fade:8}},
-    {name:'Peach Milk',cat:'Dream',thumb:'linear-gradient(135deg,#e5ab8e,#f6e2ce)',p:{brightness:12,contrast:-15,saturation:-5,warmth:14,fade:12,bloom:12}},
-    {name:'Bloom',cat:'Dream',thumb:'linear-gradient(135deg,#c6b3be,#f4e8dd)',p:{brightness:7,contrast:-9,saturation:-7,warmth:2,fade:10,bloom:20}},
-    {name:'Haze',cat:'Dream',thumb:'linear-gradient(135deg,#9e9794,#ded5ca)',p:{brightness:9,contrast:-22,saturation:-15,warmth:3,fade:24,bloom:9}},
-    {name:'Lavender',cat:'Dream',thumb:'linear-gradient(135deg,#877a99,#d7cadf)',p:{brightness:6,contrast:-10,saturation:-5,warmth:-12,fade:10,bloom:8}},
-    {name:'Tokyo AM',cat:'Japan',thumb:'linear-gradient(135deg,#6c7d83,#c9c1b1)',p:{brightness:3,contrast:8,saturation:-10,warmth:-8,fade:5,grain:8}},
-    {name:'Tokyo PM',cat:'Japan',thumb:'linear-gradient(135deg,#55444e,#d08b73)',p:{contrast:17,saturation:4,warmth:12,grain:14,bloom:8,vignette:8}},
-    {name:'Kissaten',cat:'Japan',thumb:'linear-gradient(135deg,#5c4336,#aa7655)',p:{brightness:-3,contrast:12,saturation:-5,warmth:20,fade:8,grain:12}},
-    {name:'Kamakura',cat:'Japan',thumb:'linear-gradient(135deg,#5d7d7a,#b7c6bd)',p:{brightness:3,contrast:6,saturation:-5,warmth:-10,fade:8,grain:7}},
-    {name:'Kyoto',cat:'Japan',thumb:'linear-gradient(135deg,#745f4f,#b78f6f)',p:{contrast:8,saturation:-8,warmth:14,fade:6,grain:10}}
+  const filters=[
+    ['Kira Original','Kira','#9f7473,#dec2b0',{}],
+    ['Old Rose','Kira','#ad6d79,#e8c2b4',{brightness:5,contrast:-8,saturation:-8,warmth:10,fade:10,grain:8,grainType:'Fine'}],
+    ['First Love','Kira','#e8c5c7,#f6e5da',{brightness:10,contrast:-12,saturation:-6,warmth:7,fade:14,bloom:10,bloomType:'Dream'}],
+    ['Sunday','Kira','#c99678,#f0d9bc',{brightness:5,contrast:-4,saturation:4,warmth:14,fade:6}],
+    ['Diary','Kira','#8c6e62,#d5b29e',{contrast:-12,saturation:-12,warmth:7,fade:18,grain:12,dust:8}],
+    ['After School','Kira','#af8179,#e4b596',{brightness:3,contrast:4,warmth:9,tint:5,fade:8,grain:9}],
+    ['Rose Flash','Kira','#b96c80,#f4cad0',{brightness:13,contrast:7,saturation:4,tint:12,bloom:12,bloomType:'Flash'}],
+    ['Film 100','Film','#8f7e70,#cdbca8',{contrast:7,saturation:-3,warmth:5,grain:6,grainType:'Fine'}],
+    ['Film 200','Film','#7e7064,#c3ab94',{contrast:8,saturation:1,warmth:7,grain:10,grainType:'Fine'}],
+    ['Film 400','Film','#5b4f47,#b49a83',{contrast:12,saturation:-4,warmth:7,grain:20,grainType:'Classic',vignette:9}],
+    ['Disposable','Film','#72574b,#c69268',{brightness:2,contrast:16,saturation:8,warmth:15,fade:5,grain:25,grainType:'Rough',vignette:12}],
+    ['Faded Film','Film','#a8907b,#d8c6b0',{brightness:6,contrast:-18,saturation:-14,warmth:8,fade:26,grain:10}],
+    ['Warm Negative','Film','#704c3e,#c88e67',{contrast:8,saturation:3,warmth:22,highlights:-7,grain:14}],
+    ['Portra Soft','Film','#a47e6e,#e0b99f',{brightness:7,contrast:-8,saturation:-4,warmth:11,shadows:8,grain:6,grainType:'Fine'}],
+    ['Green 35','Film','#627162,#aeb69e',{contrast:6,saturation:-8,warmth:-2,tint:-10,fade:7,grain:12}],
+    ['CCD 2003','CCD','#4f667b,#b0bcc9',{contrast:10,saturation:3,warmth:-16,grain:8,noise:8,bloom:6}],
+    ['Pink CCD','CCD','#81657b,#dfa3b7',{brightness:5,contrast:8,saturation:9,warmth:-5,tint:12,fade:5,bloom:7}],
+    ['Cool CCD','CCD','#42596f,#7fa1b0',{contrast:9,saturation:-4,warmth:-22,grain:8,noise:12}],
+    ['Night CCD','CCD','#28384e,#8b7080',{brightness:-4,contrast:20,saturation:7,warmth:-18,noise:18,bloom:9,vignette:13}],
+    ['Flash CCD','CCD','#81797f,#f2e8e8',{brightness:13,contrast:18,saturation:-2,warmth:-12,bloom:18,bloomType:'Flash',noise:8}],
+    ['MiniDV','CCD','#5f6d70,#b8b9b0',{contrast:5,saturation:-8,warmth:-10,fade:8,noise:15,rgbSplit:3}],
+    ['Silver Digicam','CCD','#65646a,#c7c5c7',{brightness:8,contrast:14,saturation:-15,warmth:-8,noise:10,sharpness:8}],
+    ['Bubblegum','Y2K','#e0739c,#8a73bd',{brightness:7,contrast:12,saturation:22,warmth:-4,tint:14,rgbSplit:4}],
+    ['Angel','Y2K','#d5d5e8,#f2dbe7',{brightness:16,contrast:-10,saturation:-6,warmth:-8,fade:13,bloom:17,bloomType:'Dream'}],
+    ['Baby Pink','Y2K','#f0b9c7,#f7e2df',{brightness:8,contrast:-7,saturation:4,warmth:7,tint:9,fade:8}],
+    ['Chrome','Y2K','#6f7890,#d6b3cf',{contrast:22,saturation:-3,warmth:-15,tint:8,rgbSplit:7,sharpness:10}],
+    ['2004 Flash','Y2K','#856c75,#f3d4cf',{brightness:16,contrast:19,saturation:9,warmth:-5,tint:8,bloom:15,bloomType:'Flash',noise:10}],
+    ['Cyber Pink','Y2K','#7d4c78,#f177b8',{contrast:18,saturation:30,warmth:-13,tint:22,rgbSplit:8}],
+    ['Peach Milk','Dream','#e5ab8e,#f6e2ce',{brightness:12,contrast:-15,saturation:-5,warmth:14,fade:12,bloom:12,bloomType:'Dream'}],
+    ['Bloom','Dream','#c6b3be,#f4e8dd',{brightness:7,contrast:-9,saturation:-7,warmth:2,fade:10,bloom:23,bloomType:'Soft'}],
+    ['Haze','Dream','#9e9794,#ded5ca',{brightness:9,contrast:-22,saturation:-15,warmth:3,fade:24,bloom:9}],
+    ['Lavender','Dream','#877a99,#d7cadf',{brightness:6,contrast:-10,saturation:-5,warmth:-12,tint:12,fade:10,bloom:8}],
+    ['Milk Glass','Dream','#b9aaa8,#f0e6db',{brightness:13,contrast:-20,highlights:-6,shadows:15,saturation:-11,fade:18,bloom:8}],
+    ['Blue Dream','Dream','#677d96,#c6ccda',{brightness:7,contrast:-12,warmth:-20,tint:5,fade:13,bloom:12}],
+    ['Tokyo AM','Japan','#6c7d83,#c9c1b1',{brightness:3,contrast:8,saturation:-10,warmth:-8,fade:5,grain:8}],
+    ['Tokyo PM','Japan','#55444e,#d08b73',{contrast:17,saturation:4,warmth:12,grain:14,bloom:8,vignette:8}],
+    ['Kissaten','Japan','#5c4336,#aa7655',{brightness:-3,contrast:12,saturation:-5,warmth:20,fade:8,grain:12}],
+    ['Kamakura','Japan','#5d7d7a,#b7c6bd',{brightness:3,contrast:6,saturation:-5,warmth:-10,tint:-5,fade:8,grain:7}],
+    ['Kyoto','Japan','#745f4f,#b78f6f',{contrast:8,saturation:-8,warmth:14,fade:6,grain:10}],
+    ['Harajuku','Japan','#ae6e8d,#81a4bd',{brightness:7,contrast:14,saturation:18,warmth:-5,tint:10,rgbSplit:4}],
+    ['Convenience Store','Japan','#456776,#e0bc7d',{contrast:17,saturation:10,warmth:-8,highlights:-8,noise:7}],
+    ['Rainy Shibuya','Japan','#3f5262,#8d7b86',{brightness:-3,contrast:10,saturation:-14,warmth:-16,fade:6,grain:10,bloom:9}]
+  ].map(([name,cat,c,p])=>({name,cat,thumb:`linear-gradient(135deg,${c})`,p}));
+
+  if(state.settings.rememberFilter){const sf=localStorage.getItem('kira.lastFilter');if(sf&&filters.some(f=>f.name===sf))state.activeFilter=sf;}
+
+  const adjustmentDefs=[
+    ['exposure','Exposure',-30,30],['brightness','Brightness',-40,40],['contrast','Contrast',-40,40],['highlights','Highlights',-40,40],['shadows','Shadows',-40,40],['saturation','Saturation',-50,50],['warmth','Warmth',-40,40],['tint','Tint',-40,40],['fade','Fade',0,40],['sharpness','Sharpness',0,30],['vignette','Vignette',0,40]
   ];
+  const effectDefs=[['grain','◌','Grain'],['bloom','✦','Bloom'],['dust','⠿','Dust'],['scratches','╱','Scratches'],['leak','◒','Light Leak'],['rgbSplit','RGB','RGB Split'],['noise','▦','CCD Noise']];
 
-  if (state.settings.rememberFilter) {
-    const savedFilter = localStorage.getItem('kira.lastFilter');
-    if (savedFilter && filters.some(f => f.name === savedFilter)) state.activeFilter = savedFilter;
-  }
+  function haptic(ms=10){if(state.settings.haptics&&navigator.vibrate)navigator.vibrate(ms)}
+  function toast(msg){const e=$('#toast');e.textContent=msg;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),2300)}
+  function saveSettings(){localStorage.setItem('kira.settings',JSON.stringify(state.settings));localStorage.setItem('kira.favoriteFilters',JSON.stringify([...state.favoriteFilters]));if(state.settings.rememberFilter)localStorage.setItem('kira.lastFilter',state.activeFilter)}
+  function editSnapshot(){return JSON.parse(JSON.stringify({activeFilter:state.activeFilter,filterIntensity:state.filterIntensity,adjustments:state.adjustments,effects:state.effects,frame:state.frame,frameTone:state.frameTone,frameWidth:state.frameWidth,frameCorner:state.frameCorner,caption:state.caption,dateEnabled:state.dateEnabled,dateStyle:state.dateStyle,dateValue:state.dateValue}))}
+  function applySnapshot(s){Object.assign(state,s);$('#filterIntensity').value=state.filterIntensity;$('#intensityValue').textContent=state.filterIntensity;renderAllPanels();renderPhoto();updateHistoryButtons()}
+  function commit(){state.history.push(editSnapshot());if(state.history.length>30)state.history.shift();state.future=[];updateHistoryButtons()}
+  function undo(){if(!state.history.length)return;state.future.push(editSnapshot());applySnapshot(state.history.pop());toast('Undo')}
+  function redo(){if(!state.future.length)return;state.history.push(editSnapshot());applySnapshot(state.future.pop());toast('Redo')}
+  function updateHistoryButtons(){if($('#undoBtn'))$('#undoBtn').disabled=!state.history.length;if($('#redoBtn'))$('#redoBtn').disabled=!state.future.length}
+  function startRangeHistory(){if(!state.pendingSnapshot)state.pendingSnapshot=editSnapshot()}
+  function finishRangeHistory(){if(state.pendingSnapshot){state.history.push(state.pendingSnapshot);if(state.history.length>30)state.history.shift();state.pendingSnapshot=null;state.future=[];updateHistoryButtons()}}
 
-  const adjustmentDefs = [
-    ['exposure','Exposure',-30,30,1],
-    ['brightness','Brightness',-40,40,1],
-    ['contrast','Contrast',-40,40,1],
-    ['saturation','Saturation',-50,50,1],
-    ['warmth','Warmth',-40,40,1],
-    ['fade','Fade',0,40,1],
-    ['grain','Grain',0,40,1],
-    ['vignette','Vignette',0,40,1]
-  ];
+  function switchScreen(name){$$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));$$('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.target===name));window.scrollTo({top:0,behavior:'smooth'});if(name==='rolls')renderRolls()}
+  function renderCategories(){const cats=['All','Favorites','Kira','Film','CCD','Y2K','Dream','Japan'];$('#filterCategories').innerHTML=cats.map(c=>`<button class="chip ${state.activeCategory===c?'active':''}" data-cat="${c}">${c}</button>`).join('');$('#cameraStrip').innerHTML=filters.slice(0,8).map(filterCard).join('');$('#filterCategories').onclick=e=>{const b=e.target.closest('[data-cat]');if(!b)return;state.activeCategory=b.dataset.cat;renderCategories();renderFilters();haptic()};$$('#cameraStrip .preset-card').forEach(btn=>btn.onclick=()=>{selectFilter(btn.dataset.filter);switchScreen('develop')})}
+  function filterCard(f){const fav=state.favoriteFilters.has(f.name);return `<button class="preset-card ${state.activeFilter===f.name?'active':''}" data-filter="${f.name}"><div class="preset-thumb" style="background:${f.thumb}"></div><span>${f.name}${fav?' <i class="favorite-star">♥</i>':''}</span></button>`}
+  function visibleFilters(){if(state.activeCategory==='All')return filters;if(state.activeCategory==='Favorites')return filters.filter(f=>state.favoriteFilters.has(f.name));return filters.filter(f=>f.cat===state.activeCategory)}
+  function renderFilters(){const list=visibleFilters();$('#filterRow').innerHTML=list.length?list.map(filterCard).join(''):'<div class="notice">No favorite filters yet. Long-press a filter to favorite it.</div>';$$('#filterRow .preset-card').forEach(btn=>{btn.onclick=()=>selectFilter(btn.dataset.filter);let t;btn.addEventListener('pointerdown',()=>t=setTimeout(()=>toggleFavorite(btn.dataset.filter),650));['pointerup','pointercancel','pointerleave'].forEach(x=>btn.addEventListener(x,()=>clearTimeout(t)))})}
+  function selectFilter(name){if(name===state.activeFilter)return;commit();state.activeFilter=name;if(state.settings.rememberFilter)localStorage.setItem('kira.lastFilter',name);renderCategories();renderFilters();renderPhoto();haptic()}
+  function toggleFavorite(name){state.favoriteFilters.has(name)?state.favoriteFilters.delete(name):state.favoriteFilters.add(name);saveSettings();renderCategories();renderFilters();toast(state.favoriteFilters.has(name)?'Saved to favorites ♥':'Removed from favorites');haptic(20)}
 
-  function haptic(ms=10){ if(state.settings.haptics && navigator.vibrate) navigator.vibrate(ms); }
-  function toast(msg){ const el=$('#toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('show'),2300); }
-
-  function saveSettings(){
-    localStorage.setItem('kira.settings', JSON.stringify(state.settings));
-    localStorage.setItem('kira.favoriteFilters', JSON.stringify([...state.favoriteFilters]));
-    if(state.settings.rememberFilter) localStorage.setItem('kira.lastFilter', state.activeFilter);
-  }
-
-  function switchScreen(name){
-    $$('.screen').forEach(s => s.classList.toggle('active', s.dataset.screen===name));
-    $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.target===name));
-    window.scrollTo({top:0,behavior:'smooth'});
-    if(name==='rolls') renderRolls();
-  }
-
-  function renderCategories(){
-    const cats=['All','Favorites','Kira','Film','CCD','Y2K','Dream','Japan'];
-    $('#filterCategories').innerHTML=cats.map(c=>`<button class="chip ${state.activeCategory===c?'active':''}" data-cat="${c}">${c}</button>`).join('');
-    $('#cameraStrip').innerHTML=filters.slice(0,8).map(filterCard).join('');
-    $('#filterCategories').onclick=e=>{
-      const b=e.target.closest('[data-cat]'); if(!b)return;
-      state.activeCategory=b.dataset.cat; renderCategories(); renderFilters(); haptic();
-    };
-  }
-
-  function filterCard(f){
-    const fav=state.favoriteFilters.has(f.name);
-    return `<button class="preset-card ${state.activeFilter===f.name?'active':''}" data-filter="${f.name}" title="${f.name}"><div class="preset-thumb" style="background:${f.thumb}"></div><span>${f.name}${fav?' <i class="favorite-star">♥</i>':''}</span></button>`;
-  }
-
-  function visibleFilters(){
-    if(state.activeCategory==='All') return filters;
-    if(state.activeCategory==='Favorites') return filters.filter(f=>state.favoriteFilters.has(f.name));
-    return filters.filter(f=>f.cat===state.activeCategory);
-  }
-
-  function renderFilters(){
-    const list=visibleFilters();
-    $('#filterRow').innerHTML=list.length ? list.map(filterCard).join('') : '<div class="notice">No favorite filters yet. Long-press or double-tap a filter to favorite it.</div>';
-    $$('.preset-card').forEach(btn=>{
-      btn.addEventListener('click',()=>{ selectFilter(btn.dataset.filter); });
-      btn.addEventListener('dblclick',(ev)=>{ ev.preventDefault(); toggleFavorite(btn.dataset.filter); });
-      let pressTimer;
-      btn.addEventListener('pointerdown',()=>{ pressTimer=setTimeout(()=>toggleFavorite(btn.dataset.filter),600); });
-      ['pointerup','pointercancel','pointerleave'].forEach(evt=>btn.addEventListener(evt,()=>clearTimeout(pressTimer)));
-    });
-    $$('#cameraStrip .preset-card').forEach(btn=>btn.onclick=()=>{ selectFilter(btn.dataset.filter); switchScreen('develop'); });
-  }
-
-  function selectFilter(name){
-    state.activeFilter=name; if(state.settings.rememberFilter) localStorage.setItem('kira.lastFilter',name);
-    renderCategories(); renderFilters(); renderPhoto(); haptic();
-  }
-
-  function toggleFavorite(name){
-    state.favoriteFilters.has(name)?state.favoriteFilters.delete(name):state.favoriteFilters.add(name);
-    saveSettings(); renderCategories(); renderFilters(); toast(state.favoriteFilters.has(name)?'Saved to favorites ♥':'Removed from favorites'); haptic(20);
-  }
-
+  function rangeHistory(inp){inp.addEventListener('pointerdown',startRangeHistory);inp.addEventListener('focus',startRangeHistory);inp.addEventListener('change',finishRangeHistory)}
   function renderAdjustmentPanel(){
-    $('#tool-adjust').innerHTML=`<div class="slider-list">${adjustmentDefs.map(([key,label,min,max,step])=>`<div class="slider-row"><label for="adj-${key}">${label}</label><input id="adj-${key}" data-adj="${key}" type="range" min="${min}" max="${max}" step="${step}" value="${state.adjustments[key]}"><output id="out-${key}">${state.adjustments[key]}</output></div>`).join('')}<button class="secondary-btn" id="resetAdjustBtn">Reset adjustments</button></div>`;
-    $$('[data-adj]').forEach(inp=>inp.oninput=()=>{ state.adjustments[inp.dataset.adj]=Number(inp.value); $('#out-'+inp.dataset.adj).textContent=inp.value; renderPhoto(); });
-    $('#resetAdjustBtn').onclick=()=>{ state.adjustments={exposure:0,brightness:0,contrast:0,saturation:0,warmth:0,fade:0,grain:8,vignette:8}; renderAdjustmentPanel(); renderPhoto(); };
+    $('#tool-adjust').innerHTML=`<div class="slider-list">${adjustmentDefs.map(([k,l,min,max])=>`<div class="slider-row"><label>${l}</label><input data-adj="${k}" type="range" min="${min}" max="${max}" value="${state.adjustments[k]}"><output id="out-${k}">${state.adjustments[k]}</output></div>`).join('')}<button class="secondary-btn" id="resetAdjustBtn">Reset adjustments</button></div>`;
+    $$('[data-adj]').forEach(inp=>{rangeHistory(inp);inp.oninput=()=>{state.adjustments[inp.dataset.adj]=Number(inp.value);$('#out-'+inp.dataset.adj).textContent=inp.value;scheduleRender()}});
+    $('#resetAdjustBtn').onclick=()=>{commit();state.adjustments=defaultAdjust();renderAdjustmentPanel();renderPhoto()};
   }
 
   function renderEffectsPanel(){
-    const defs=[['bloom','✦','Bloom'],['dust','⠿','Dust'],['leak','◒','Light Leak']];
-    $('#tool-effects').innerHTML=`<div class="effect-grid">${defs.map(([k,ic,l])=>`<button class="effect-btn ${state.effects[k]>0?'active':''}" data-effect="${k}"><b>${ic}</b>${l}<small style="display:block;margin-top:5px">${state.effects[k]}%</small></button>`).join('')}</div><div class="control-card"><div class="control-head"><span>Selected effect strength</span><b id="effectValue">0</b></div><input id="effectStrength" type="range" min="0" max="40" value="0"></div>`;
-    let selected='bloom';
-    const sync=()=>{ $('#effectStrength').value=state.effects[selected]; $('#effectValue').textContent=state.effects[selected]; };
-    $$('.effect-btn').forEach(b=>b.onclick=()=>{ selected=b.dataset.effect; sync(); });
-    $('#effectStrength').oninput=e=>{ state.effects[selected]=Number(e.target.value); $('#effectValue').textContent=e.target.value; renderEffectsPanel(); renderPhoto(); };
+    $('#tool-effects').innerHTML=`<div class="effect-grid">${effectDefs.map(([k,ic,l])=>`<button class="effect-btn ${state.effects[k]>0?'active':''}" data-effect="${k}"><b>${ic}</b>${l}<small style="display:block;margin-top:5px">${state.effects[k]}%</small></button>`).join('')}</div>
+      <div class="sub-control"><div class="control-head"><span id="selectedEffectLabel">Grain strength</span><b id="effectValue">${state.effects.grain}</b></div><input id="effectStrength" type="range" min="0" max="45" value="${state.effects.grain}"><div id="effectVariantArea"></div></div>`;
+    let selected='grain';
+    const sync=()=>{const v=state.effects[selected];$('#effectStrength').value=v;$('#effectValue').textContent=v;$('#selectedEffectLabel').textContent=(effectDefs.find(x=>x[0]===selected)?.[2]||selected)+' strength';renderEffectVariants(selected)};
+    $$('.effect-btn').forEach(b=>b.onclick=()=>{selected=b.dataset.effect;sync()});
+    const slider=$('#effectStrength');rangeHistory(slider);slider.oninput=e=>{state.effects[selected]=Number(e.target.value);$('#effectValue').textContent=e.target.value;scheduleRender()};slider.onchange=()=>{finishRangeHistory();renderEffectsPanel()};sync();
   }
+  function renderEffectVariants(selected){const area=$('#effectVariantArea');if(!area)return;let label='',opts=[],key='';if(selected==='grain'){label='Grain type';opts=['Fine','Classic','Rough'];key='grainType'}else if(selected==='bloom'){label='Glow style';opts=['Soft','Dream','Flash'];key='bloomType'}else if(selected==='leak'){label='Leak color';opts=['Red','Orange','Pink'];key='leakType'}else{area.innerHTML='';return}area.innerHTML=`<div class="effect-control-title">${label}</div><div class="effect-options">${opts.map(o=>`<button class="option-chip ${state.effects[key]===o?'active':''}" data-variant="${o}" data-key="${key}">${o}</button>`).join('')}</div>`;$$('[data-variant]',area).forEach(b=>b.onclick=()=>{commit();state.effects[b.dataset.key]=b.dataset.variant;renderEffectsPanel();renderPhoto()})}
 
-  function renderFramePanel(){
-    const frames=[['None','◻'],['Classic','▣'],['Polaroid','▤'],['35mm','▥'],['Film Strip','▦']];
-    $('#tool-frame').innerHTML=`<div class="frame-grid">${frames.map(([n,i])=>`<button class="frame-btn ${state.frame===n?'active':''}" data-frame="${n}"><b>${i}</b>${n}</button>`).join('')}</div><div class="control-card"><label class="control-head"><span>Caption</span></label><input class="caption-input" id="captionInput" maxlength="32" placeholder="good days ♡" value="${escapeHtml(state.caption)}"></div>`;
-    $$('.frame-btn').forEach(b=>b.onclick=()=>{ state.frame=b.dataset.frame; renderFramePanel(); renderPhoto(); haptic(); });
-    $('#captionInput').oninput=e=>{state.caption=e.target.value; renderPhoto();};
-  }
+  function renderFramePanel(){const frames=[['None','◻'],['Classic','▣'],['Polaroid','▤'],['35mm','▥'],['Film Strip','▦']];const tones=['#fff8f1','#f0dfce','#e6c5aa','#d6a7a5','#201b1b'];$('#tool-frame').innerHTML=`<div class="frame-grid">${frames.map(([n,i])=>`<button class="frame-btn ${state.frame===n?'active':''}" data-frame="${n}"><b>${i}</b>${n}</button>`).join('')}</div><div class="frame-controls"><div class="sub-control"><div class="control-head"><span>Border width</span><b>${state.frameWidth}</b></div><input id="frameWidth" type="range" min="2" max="20" value="${state.frameWidth}"></div><div class="sub-control"><div class="control-head"><span>Corner</span><b>${state.frameCorner}</b></div><input id="frameCorner" type="range" min="0" max="24" value="${state.frameCorner}"></div><div class="sub-control"><div class="control-head"><span>Paper tone</span></div><div class="tone-options">${tones.map(t=>`<button class="color-dot ${state.frameTone===t?'active':''}" data-tone="${t}" style="background:${t}"></button>`).join('')}</div></div><div class="control-card"><label class="control-head"><span>Caption</span></label><input class="caption-input" id="captionInput" maxlength="32" placeholder="good days ♡" value="${escapeHtml(state.caption)}"></div></div>`;$$('.frame-btn').forEach(b=>b.onclick=()=>{commit();state.frame=b.dataset.frame;renderFramePanel();renderPhoto();haptic()});$$('[data-tone]').forEach(b=>b.onclick=()=>{commit();state.frameTone=b.dataset.tone;renderFramePanel();renderPhoto()});[['#frameWidth','frameWidth'],['#frameCorner','frameCorner']].forEach(([s,k])=>{const e=$(s);rangeHistory(e);e.oninput=()=>{state[k]=Number(e.value);scheduleRender()};e.onchange=()=>{finishRangeHistory();renderFramePanel()}});$('#captionInput').addEventListener('focus',startRangeHistory);$('#captionInput').oninput=e=>{state.caption=e.target.value;scheduleRender()};$('#captionInput').onchange=finishRangeHistory}
+  function renderDatePanel(){$('#tool-date').innerHTML=`<div class="date-grid control-card"><label class="setting-row"><span>Show date stamp</span><input type="checkbox" id="dateEnabled" ${state.dateEnabled?'checked':''}></label><label>Style<select id="dateStyle"><option ${state.dateStyle==='Classic'?'selected':''}>Classic</option><option ${state.dateStyle==='2000s'?'selected':''}>2000s</option><option ${state.dateStyle==='Japanese'?'selected':''}>Japanese</option><option ${state.dateStyle==='Film Lab'?'selected':''}>Film Lab</option></select></label><label>Date<input type="date" id="dateValue" value="${state.dateValue}"></label></div>`;$('#dateEnabled').onchange=e=>{commit();state.dateEnabled=e.target.checked;renderPhoto()};$('#dateStyle').onchange=e=>{commit();state.dateStyle=e.target.value;renderPhoto()};$('#dateValue').onchange=e=>{commit();state.dateValue=e.target.value;renderPhoto()}}
+  function renderComparePanel(){$('#tool-compare').innerHTML='<div class="compare-card"><div class="compare-preview">Press and hold below to see the untouched original.<br><button class="secondary-btn" id="compareHoldBtn">Hold for Original</button></div></div>';const b=$('#compareHoldBtn'),on=()=>{state.compare=true;renderPhoto()},off=()=>{state.compare=false;renderPhoto()};b.addEventListener('pointerdown',on);['pointerup','pointercancel','pointerleave'].forEach(x=>b.addEventListener(x,off))}
+  function renderAllPanels(){renderCategories();renderFilters();renderAdjustmentPanel();renderEffectsPanel();renderFramePanel();renderDatePanel();renderComparePanel()}
+  function setupToolTabs(){$$('.tool-tab').forEach(btn=>btn.onclick=()=>{$$('.tool-tab').forEach(b=>b.classList.toggle('active',b===btn));$$('.tool-panel').forEach(p=>p.classList.remove('active'));$('#tool-'+btn.dataset.tool).classList.add('active');haptic()})}
 
-  function renderDatePanel(){
-    $('#tool-date').innerHTML=`<div class="date-grid control-card"><label class="setting-row"><span>Show date stamp</span><input type="checkbox" id="dateEnabled" ${state.dateEnabled?'checked':''}></label><label>Style<select id="dateStyle"><option ${state.dateStyle==='Classic'?'selected':''}>Classic</option><option ${state.dateStyle==='2000s'?'selected':''}>2000s</option><option ${state.dateStyle==='Japanese'?'selected':''}>Japanese</option><option ${state.dateStyle==='Film Lab'?'selected':''}>Film Lab</option></select></label><label>Date<input type="date" id="dateValue" value="${state.dateValue}"></label></div>`;
-    $('#dateEnabled').onchange=e=>{state.dateEnabled=e.target.checked;renderPhoto();};
-    $('#dateStyle').onchange=e=>{state.dateStyle=e.target.value;renderPhoto();};
-    $('#dateValue').onchange=e=>{state.dateValue=e.target.value;renderPhoto();};
-  }
+  async function loadFile(file,source='gallery'){if(!file||!file.type.startsWith('image/')){toast('Please choose an image.');return}try{const url=URL.createObjectURL(file),img=new Image();img.onload=async()=>{URL.revokeObjectURL(url);state.image=img;state.imageName=(file.name||'kira-photo').replace(/\.[^.]+$/,'');state.history=[];state.future=[];updateHistoryButtons();$('#emptyEditor').classList.add('hidden');$('#cameraEmpty').classList.add('hidden');$('#cameraCanvas').classList.remove('hidden');fitCanvases(img);renderPhoto();switchScreen('develop');if(state.settings.keepOriginal){try{await storeRollPhoto(file,{kind:'original',name:state.imageName,filter:'Original',favorite:false})}catch(e){}}toast(source==='camera'?'Photo ready to develop 🎞️':'Photo imported 🎞️');haptic(20)};img.onerror=()=>toast('Kira could not open that photo. Try JPG or PNG.');img.src=url}catch(e){console.error(e);toast('Could not load photo.')}}
+  function fitCanvases(img){const max=1600,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight)),w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));[$('#editCanvas'),$('#cameraCanvas')].forEach(c=>{c.width=w;c.height=h})}
+  function filterParams(){const f=filters.find(x=>x.name===state.activeFilter)||filters[0],mix=state.compare?0:state.filterIntensity/100,get=k=>(Number(f.p[k]||0)*mix)+(state.compare?0:Number(state.adjustments[k]||0));return {exposure:get('exposure'),brightness:get('brightness'),contrast:get('contrast'),highlights:get('highlights'),shadows:get('shadows'),saturation:get('saturation'),warmth:get('warmth'),tint:get('tint'),fade:get('fade'),sharpness:get('sharpness'),vignette:get('vignette'),grain:state.compare?0:(Number(f.p.grain||0)*mix+state.effects.grain),grainType:state.effects.grainType||f.p.grainType||'Classic',bloom:state.compare?0:(Number(f.p.bloom||0)*mix+state.effects.bloom),bloomType:state.effects.bloomType||f.p.bloomType||'Soft',dust:state.compare?0:(Number(f.p.dust||0)*mix+state.effects.dust),scratches:state.compare?0:(Number(f.p.scratches||0)*mix+state.effects.scratches),leak:state.compare?0:(Number(f.p.leak||0)*mix+state.effects.leak),leakType:state.effects.leakType,rgbSplit:state.compare?0:(Number(f.p.rgbSplit||0)*mix+state.effects.rgbSplit),noise:state.compare?0:(Number(f.p.noise||0)*mix+state.effects.noise)}}
+  let raf=0;function scheduleRender(){cancelAnimationFrame(raf);raf=requestAnimationFrame(renderPhoto)}
+  function renderPhoto(){if(!state.image)return;const p=filterParams();drawEdited($('#editCanvas'),p,true);drawEdited($('#cameraCanvas'),p,false)}
 
-  function renderComparePanel(){
-    $('#tool-compare').innerHTML=`<div class="compare-card"><div class="compare-preview">Press and hold the button below to see your original photo.<br><button class="secondary-btn" id="compareHoldBtn">Hold for Original</button></div></div>`;
-    const btn=$('#compareHoldBtn');
-    const on=()=>{state.compare=true;renderPhoto();}; const off=()=>{state.compare=false;renderPhoto();};
-    ['pointerdown','touchstart'].forEach(ev=>btn.addEventListener(ev,on,{passive:true}));
-    ['pointerup','pointercancel','pointerleave','touchend'].forEach(ev=>btn.addEventListener(ev,off,{passive:true}));
-  }
+  function drawEdited(canvas,p,decorate=true){const ctx=canvas.getContext('2d',{alpha:false}),w=canvas.width,h=canvas.height;ctx.save();ctx.clearRect(0,0,w,h);ctx.fillStyle='#171414';ctx.fillRect(0,0,w,h);const br=100+p.brightness+p.exposure*1.7,co=100+p.contrast,sa=100+p.saturation;ctx.filter=`brightness(${Math.max(10,br)}%) contrast(${Math.max(10,co)}%) saturate(${Math.max(0,sa)}%)`;ctx.drawImage(state.image,0,0,w,h);ctx.filter='none';
+    if(p.shadows||p.highlights||p.tint)applyTonePixels(ctx,w,h,p);
+    if(p.warmth){ctx.globalCompositeOperation='soft-light';ctx.globalAlpha=Math.min(.34,Math.abs(p.warmth)/105);ctx.fillStyle=p.warmth>0?'#ff995e':'#4d94c2';ctx.fillRect(0,0,w,h);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1}
+    if(p.fade>0){ctx.globalAlpha=Math.min(.38,p.fade/95);ctx.fillStyle='#ead9c9';ctx.fillRect(0,0,w,h);ctx.globalAlpha=1}
+    if(p.bloom>0)applyBloom(ctx,canvas,w,h,p.bloom,p.bloomType);
+    if(p.rgbSplit>0)applyRGBSplit(ctx,canvas,w,h,p.rgbSplit);
+    if(p.leak>0)applyLeak(ctx,w,h,p.leak,p.leakType);
+    if(p.noise>0)applyNoise(ctx,w,h,p.noise);
+    if(p.grain>0)applyGrain(ctx,w,h,p.grain,p.grainType);
+    if(p.dust>0)applyDust(ctx,w,h,p.dust);
+    if(p.scratches>0)applyScratches(ctx,w,h,p.scratches);
+    if(p.sharpness>0)applySharpness(ctx,w,h,p.sharpness);
+    if(p.vignette>0){const g=ctx.createRadialGradient(w/2,h/2,Math.min(w,h)*.2,w/2,h/2,Math.max(w,h)*.72);g.addColorStop(.45,'rgba(0,0,0,0)');g.addColorStop(1,`rgba(20,8,8,${Math.min(.52,p.vignette/80)})`);ctx.fillStyle=g;ctx.fillRect(0,0,w,h)}
+    if(decorate&&!state.compare){if(state.frame!=='None')drawFrame(ctx,w,h);if(state.dateEnabled)drawDate(ctx,w,h)}ctx.restore()}
+  function applyTonePixels(ctx,w,h,p){try{const im=ctx.getImageData(0,0,w,h),d=im.data,sh=p.shadows/100,hi=p.highlights/100,ti=p.tint/100;for(let i=0;i<d.length;i+=4){const lum=(d[i]+d[i+1]+d[i+2])/765,sm=(1-lum)*(1-lum),hm=lum*lum,sv=sh*48*sm,hv=hi*46*hm;d[i]=clamp(d[i]+sv+hv+ti*26,0,255);d[i+1]=clamp(d[i+1]+sv+hv-ti*15,0,255);d[i+2]=clamp(d[i+2]+sv+hv+ti*20,0,255)}ctx.putImageData(im,0,0)}catch(e){}}
+  function applyBloom(ctx,canvas,w,h,s,type){ctx.save();ctx.globalCompositeOperation='screen';const mult=type==='Flash'?1.45:type==='Dream'?1.15:1;ctx.globalAlpha=Math.min(.34,s/100*mult);ctx.filter=`blur(${Math.max(2,w/(type==='Dream'?220:320))}px) brightness(${type==='Flash'?135:118}%)`;ctx.drawImage(canvas,0,0);ctx.restore()}
+  function applyRGBSplit(ctx,canvas,w,h,s){const px=Math.max(1,Math.round(w*s/850));ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=Math.min(.22,s/40);ctx.drawImage(canvas,px,0,w,h);ctx.globalCompositeOperation='multiply';ctx.globalAlpha=Math.min(.12,s/55);ctx.drawImage(canvas,-px,0,w,h);ctx.restore()}
+  function applyLeak(ctx,w,h,s,type){const c=type==='Red'?'255,62,56':type==='Orange'?'255,145,64':'255,93,147',x=type==='Orange'?w*.9:w*.05;ctx.save();const g=ctx.createRadialGradient(x,h*.42,0,x,h*.42,w*.7);g.addColorStop(0,`rgba(${c},${Math.min(.48,s/90)})`);g.addColorStop(.5,`rgba(${c},${Math.min(.18,s/180)})`);g.addColorStop(1,`rgba(${c},0)`);ctx.fillStyle=g;ctx.fillRect(0,0,w,h);ctx.restore()}
+  function seeded(i){const x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
+  function applyGrain(ctx,w,h,s,type){const density=Math.min(18000,Math.round(w*h/(type==='Fine'?380:type==='Rough'?180:260))),size=type==='Fine'?.8:type==='Rough'?1.9:1.15,alpha=Math.min(type==='Rough'?.22:.17,s/150);ctx.save();ctx.globalAlpha=alpha;for(let i=0;i<density;i++){const v=seeded(i*3)>.5?255:0;ctx.fillStyle=`rgb(${v},${v},${v})`;ctx.fillRect(seeded(i*3+1)*w,seeded(i*3+2)*h,size,size)}ctx.restore()}
+  function applyNoise(ctx,w,h,s){const n=Math.min(9000,Math.round(w*h/350));ctx.save();ctx.globalAlpha=Math.min(.12,s/180);for(let i=0;i<n;i++){const v=120+Math.floor(seeded(i+700)*135);ctx.fillStyle=`rgb(${v},${v},${v})`;ctx.fillRect(seeded(i+1700)*w,seeded(i+2700)*h,1.3,1.3)}ctx.restore()}
+  function applyDust(ctx,w,h,s){ctx.save();ctx.globalAlpha=Math.min(.28,s/100);ctx.fillStyle='#fff6ea';for(let i=0;i<Math.round(s*1.4);i++){const r=seeded(i+5)*2.8+.5;ctx.beginPath();ctx.arc(seeded(i+105)*w,seeded(i+205)*h,r,0,Math.PI*2);ctx.fill()}ctx.restore()}
+  function applyScratches(ctx,w,h,s){ctx.save();ctx.globalAlpha=Math.min(.25,s/100);ctx.strokeStyle='#fff4e5';ctx.lineWidth=Math.max(.5,w/1500);for(let i=0;i<Math.round(s/3);i++){const x=seeded(i+40)*w,y=seeded(i+80)*h,len=h*(.08+seeded(i+120)*.42);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+(seeded(i+150)-.5)*6,y+len);ctx.stroke()}ctx.restore()}
+  function applySharpness(ctx,w,h,s){if(s<3)return;ctx.save();ctx.globalCompositeOperation='overlay';ctx.globalAlpha=Math.min(.16,s/190);ctx.filter='contrast(145%)';ctx.drawImage(ctx.canvas,0,0,w,h);ctx.restore()}
+  function roundPath(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+  function drawFrame(ctx,w,h){const m=Math.round(Math.min(w,h)*(state.frameWidth/110)),corner=Math.round(Math.min(w,h)*(state.frameCorner/500));if(state.frame==='Classic'||state.frame==='Polaroid'){ctx.save();ctx.strokeStyle=state.frameTone;ctx.lineWidth=m*2;roundPath(ctx,m/2,m/2,w-m,h-m,corner);ctx.stroke();if(state.frame==='Polaroid'){const footer=Math.round(h*(.08+state.frameWidth/180));ctx.fillStyle=state.frameTone;ctx.fillRect(0,h-footer,w,footer);if(state.caption){ctx.fillStyle='#6a4d4e';ctx.textAlign='center';ctx.font=`italic ${Math.max(18,Math.round(w*.036))}px Georgia`;ctx.fillText(state.caption,w/2,h-footer*.35)}}ctx.restore()}else if(state.frame==='35mm'){ctx.save();ctx.fillStyle='#151313';const band=Math.round(h*(.045+state.frameWidth/210));ctx.fillRect(0,0,w,band);ctx.fillRect(0,h-band,w,band);ctx.fillStyle='#f0c777';ctx.font=`${Math.max(14,Math.round(w*.023))}px monospace`;ctx.fillText('KIRA 400',band*.25,band*.67);ctx.fillText('24 EXP',w-band*1.8,h-band*.3);ctx.restore()}else if(state.frame==='Film Strip'){ctx.save();ctx.fillStyle='#111';const side=Math.round(w*(.045+state.frameWidth/230));ctx.fillRect(0,0,side,h);ctx.fillRect(w-side,0,side,h);ctx.fillStyle='#e8d9c8';const hole=Math.max(4,Math.round(side*.25));for(let y=hole;y<h;y+=hole*2.2){ctx.fillRect(side*.25,y,hole,hole*.7);ctx.fillRect(w-side*.7,y,hole,hole*.7)}ctx.restore()}}
+  function drawDate(ctx,w,h){const d=new Date(state.dateValue+'T12:00:00');if(Number.isNaN(d.getTime()))return;const yy=String(d.getFullYear()).slice(-2),mm=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');let text=`'${yy} ${mm} ${dd}`;if(state.dateStyle==='2000s')text=`${mm} ${dd} '${yy}`;if(state.dateStyle==='Japanese')text=`${yy}.${mm}.${dd}`;if(state.dateStyle==='Film Lab')text=`KIRA 400 • ${yy} ${mm} ${dd}`;ctx.save();ctx.textAlign='right';ctx.textBaseline='bottom';ctx.font=`bold ${Math.max(16,Math.round(w*.034))}px ui-monospace,monospace`;ctx.shadowColor='rgba(80,30,10,.35)';ctx.shadowBlur=2;ctx.fillStyle='#ff983e';ctx.fillText(text,w*.95,h*.94);ctx.restore()}
 
-  function setupToolTabs(){
-    $$('.tool-tab').forEach(btn=>btn.onclick=()=>{
-      $$('.tool-tab').forEach(b=>b.classList.toggle('active',b===btn));
-      $$('.tool-panel').forEach(p=>p.classList.remove('active'));
-      $('#tool-'+btn.dataset.tool).classList.add('active'); haptic();
-    });
-  }
+  function exportDimensions(){const iw=state.image.naturalWidth,ih=state.image.naturalHeight,max=state.exportQuality==='Original'?4096:state.exportQuality==='High'?2560:1440,sc=Math.min(1,max/Math.max(iw,ih));return [Math.max(1,Math.round(iw*sc)),Math.max(1,Math.round(ih*sc))]}
+  function currentBlob(type='image/jpeg',quality=.94){return new Promise(resolve=>{const [w,h]=exportDimensions(),c=document.createElement('canvas');c.width=w;c.height=h;drawEdited(c,filterParams(),true);c.toBlob(resolve,type,state.exportQuality==='Social'?.9:quality)})}
+  async function saveEdited(){if(!state.image){toast('Take or import a photo first.');return}const blob=await currentBlob();if(!blob){toast('Could not create photo.');return}await storeRollPhoto(blob,{kind:'edited',name:state.imageName,filter:state.activeFilter,favorite:false});if(state.settings.autoSave)downloadBlob(blob,`${state.imageName}-kira.jpg`);toast(isIOS()?'Photo prepared. If iOS does not save it automatically, use Share / Save to Photos.':'Saved to your device and Kira Rolls ♥');haptic(25)}
+  function downloadBlob(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2500)}
+  async function shareEdited(){if(!state.image){toast('Take or import a photo first.');return}const blob=await currentBlob(),file=new File([blob],`${state.imageName}-kira.jpg`,{type:'image/jpeg'});if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){try{await navigator.share({files:[file],title:'Kira photo'});return}catch(e){if(e.name==='AbortError')return}}downloadBlob(blob,file.name);toast('Photo downloaded.')}
+  function isIOS(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
 
-  async function loadFile(file, source='gallery'){
-    if(!file || !file.type.startsWith('image/')){ toast('Please choose an image.'); return; }
-    try{
-      const url=URL.createObjectURL(file);
-      const img=new Image();
-      img.onload=async()=>{
-        URL.revokeObjectURL(url);
-        state.image=img;
-        state.imageName=(file.name||'kira-photo').replace(/\.[^.]+$/,'');
-        $('#emptyEditor').classList.add('hidden');
-        $('#cameraEmpty').classList.add('hidden');
-        $('#cameraCanvas').classList.remove('hidden');
-        fitCanvases(img);
-        renderPhoto();
-        switchScreen('develop');
-        if(state.settings.keepOriginal){
-          try { await storeRollPhoto(file, {kind:'original',name:state.imageName,filter:'Original',favorite:false}); } catch(e){}
-        }
-        toast(source==='camera'?'Photo ready to develop 🎞️':'Photo imported 🎞️'); haptic(20);
-      };
-      img.onerror=()=>toast('Kira could not open that photo. Try JPG or PNG.');
-      img.src=url;
-    }catch(err){ console.error(err); toast('Could not load photo.'); }
-  }
+  function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open('kira-db',1);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('photos'))db.createObjectStore('photos',{keyPath:'id',autoIncrement:true})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+  async function storeRollPhoto(blob,meta){const db=await openDB(),item={blob,createdAt:Date.now(),...meta};await new Promise((res,rej)=>{const tx=db.transaction('photos','readwrite');tx.objectStore('photos').add(item);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close();await refreshRolls()}
+  async function refreshRolls(){try{const db=await openDB();state.rolls=await new Promise((res,rej)=>{const r=db.transaction('photos').objectStore('photos').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)});db.close();$('#storedCount').textContent=state.rolls.length;renderRolls()}catch(e){console.warn(e)}}
+  async function updateRollItem(item){const db=await openDB();await new Promise((res,rej)=>{const tx=db.transaction('photos','readwrite');tx.objectStore('photos').put(item);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close();refreshRolls()}
+  async function clearRolls(){const db=await openDB();await new Promise((res,rej)=>{const tx=db.transaction('photos','readwrite');tx.objectStore('photos').clear();tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close();refreshRolls()}
+  function renderRolls(){if(!$('#rollGrid'))return;const items=state.rolls.slice().reverse().filter(x=>state.activeRollFilter==='all'||(state.activeRollFilter==='favorites'&&x.favorite)||(state.activeRollFilter==='edited'&&x.kind==='edited'));$('#emptyRolls').classList.toggle('hidden',items.length>0);$('#rollGrid').classList.toggle('hidden',items.length===0);$('#rollGrid').innerHTML=items.map(x=>{const u=URL.createObjectURL(x.blob);setTimeout(()=>URL.revokeObjectURL(u),10000);return `<article class="roll-photo"><img src="${u}" alt="Kira photo"><span class="roll-badge">${x.kind==='edited'?escapeHtml(x.filter||'Edited'):'Original'}</span><button class="fav-toggle" data-id="${x.id}">${x.favorite?'♥':'♡'}</button></article>`}).join('');$$('.fav-toggle').forEach(b=>b.onclick=()=>{const it=state.rolls.find(x=>String(x.id)===b.dataset.id);if(it){it.favorite=!it.favorite;updateRollItem(it)}})}
+  function escapeHtml(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
-  function fitCanvases(img){
-    const max=1800;
-    const scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
-    const w=Math.max(1,Math.round(img.naturalWidth*scale));
-    const h=Math.max(1,Math.round(img.naturalHeight*scale));
-    [$('#editCanvas'),$('#cameraCanvas')].forEach(c=>{c.width=w;c.height=h;});
-  }
-
-  function combinedParams(){
-    const f=filters.find(x=>x.name===state.activeFilter) || filters[0];
-    const mix=state.compare?0:state.filterIntensity/100;
-    const get=(k)=>((f.p[k]||0)*mix)+(state.compare?0:(state.adjustments[k]||0));
-    return {
-      exposure:get('exposure'),brightness:get('brightness'),contrast:get('contrast'),saturation:get('saturation'),warmth:get('warmth'),fade:get('fade'),grain:get('grain'),vignette:get('vignette'),
-      bloom:state.compare?0:((f.p.bloom||0)*mix+state.effects.bloom),
-      dust:state.compare?0:((f.p.dust||0)*mix+state.effects.dust),
-      leak:state.compare?0:state.effects.leak
-    };
-  }
-
-  function renderPhoto(){
-    if(!state.image) return;
-    const p=combinedParams();
-    drawEdited($('#editCanvas'),p,true);
-    drawEdited($('#cameraCanvas'),p,false);
-  }
-
-  function drawEdited(canvas,p,decorate=true){
-    const ctx=canvas.getContext('2d',{alpha:false});
-    const w=canvas.width,h=canvas.height;
-    ctx.save(); ctx.clearRect(0,0,w,h); ctx.fillStyle='#171414'; ctx.fillRect(0,0,w,h);
-    const brightness=100 + p.brightness + p.exposure*1.6;
-    const contrast=100+p.contrast;
-    const saturation=100+p.saturation;
-    ctx.filter=`brightness(${Math.max(10,brightness)}%) contrast(${Math.max(10,contrast)}%) saturate(${Math.max(0,saturation)}%)`;
-    ctx.drawImage(state.image,0,0,w,h); ctx.filter='none';
-
-    if(p.warmth!==0){ ctx.globalCompositeOperation='soft-light'; ctx.globalAlpha=Math.min(.32,Math.abs(p.warmth)/110); ctx.fillStyle=p.warmth>0?'#ff9b5e':'#559bcb'; ctx.fillRect(0,0,w,h); ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1; }
-    if(p.fade>0){ ctx.globalAlpha=Math.min(.35,p.fade/100); ctx.fillStyle='#e8d8c9'; ctx.fillRect(0,0,w,h); ctx.globalAlpha=1; }
-    if(p.bloom>0){ ctx.globalCompositeOperation='screen'; ctx.globalAlpha=Math.min(.25,p.bloom/100); ctx.filter=`blur(${Math.max(2,w/350)}px) brightness(115%)`; ctx.drawImage(canvas,0,0); ctx.filter='none'; ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1; }
-    if(p.leak>0){ const g=ctx.createRadialGradient(w*.04,h*.48,0,w*.04,h*.48,w*.65); g.addColorStop(0,`rgba(255,94,77,${Math.min(.38,p.leak/100)})`); g.addColorStop(1,'rgba(255,94,77,0)'); ctx.fillStyle=g; ctx.fillRect(0,0,w,h); }
-    if(p.grain>0) applyGrain(ctx,w,h,p.grain);
-    if(p.dust>0) applyDust(ctx,w,h,p.dust);
-    if(p.vignette>0){ const g=ctx.createRadialGradient(w/2,h/2,Math.min(w,h)*.2,w/2,h/2,Math.max(w,h)*.72); g.addColorStop(.45,'rgba(0,0,0,0)'); g.addColorStop(1,`rgba(20,8,8,${Math.min(.52,p.vignette/80)})`); ctx.fillStyle=g; ctx.fillRect(0,0,w,h); }
-    if(decorate && !state.compare){ if(state.frame!=='None') drawFrame(ctx,w,h); if(state.dateEnabled) drawDate(ctx,w,h); }
-    ctx.restore();
-  }
-
-  function applyGrain(ctx,w,h,strength){
-    const density=Math.min(12000,Math.round(w*h/250));
-    ctx.save(); ctx.globalAlpha=Math.min(.19,strength/160);
-    for(let i=0;i<density;i++){
-      const v=Math.random()>.5?255:0; ctx.fillStyle=`rgb(${v},${v},${v})`; ctx.fillRect(Math.random()*w,Math.random()*h,1.1,1.1);
-    }
-    ctx.restore();
-  }
-
-  function applyDust(ctx,w,h,strength){
-    ctx.save(); ctx.globalAlpha=Math.min(.25,strength/100); ctx.fillStyle='#f8efe5';
-    const count=Math.round(strength*1.3);
-    for(let i=0;i<count;i++){ const r=Math.random()*2.4+0.5; ctx.beginPath();ctx.arc(Math.random()*w,Math.random()*h,r,0,Math.PI*2);ctx.fill(); }
-    ctx.restore();
-  }
-
-  function drawFrame(ctx,w,h){
-    const m=Math.round(Math.min(w,h)*.055);
-    if(state.frame==='Classic' || state.frame==='Polaroid'){
-      ctx.save(); ctx.strokeStyle=state.frameTone; ctx.lineWidth=m*2; ctx.strokeRect(m/2,m/2,w-m,h-m);
-      if(state.frame==='Polaroid'){
-        ctx.fillStyle=state.frameTone; const footer=Math.round(h*.12); ctx.fillRect(0,h-footer,w,footer);
-        if(state.caption){ ctx.fillStyle='#6a4d4e';ctx.textAlign='center';ctx.font=`italic ${Math.max(18,Math.round(w*.036))}px Georgia`;ctx.fillText(state.caption,w/2,h-footer*.34); }
-      }
-      ctx.restore();
-    } else if(state.frame==='35mm'){
-      ctx.save(); ctx.fillStyle='#151313'; const band=Math.round(h*.07); ctx.fillRect(0,0,w,band);ctx.fillRect(0,h-band,w,band);ctx.fillStyle='#f0c777';ctx.font=`${Math.max(14,Math.round(w*.023))}px monospace`;ctx.fillText('KIRA 400',band*.25,band*.67);ctx.fillText('24 EXP',w-band*1.8,h-band*.3);ctx.restore();
-    } else if(state.frame==='Film Strip'){
-      ctx.save(); ctx.fillStyle='#111'; const side=Math.round(w*.075);ctx.fillRect(0,0,side,h);ctx.fillRect(w-side,0,side,h);ctx.fillStyle='#e8d9c8';const hole=Math.max(4,Math.round(side*.25));for(let y=hole;y<h;y+=hole*2.2){ctx.fillRect(side*.25,y,hole,hole*.7);ctx.fillRect(w-side*.7,y,hole,hole*.7);}ctx.restore();
-    }
-  }
-
-  function drawDate(ctx,w,h){
-    const d=new Date(state.dateValue+'T12:00:00'); if(Number.isNaN(d.getTime())) return;
-    const yy=String(d.getFullYear()).slice(-2), mm=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
-    let text=`'${yy} ${mm} ${dd}`;
-    if(state.dateStyle==='2000s') text=`${mm} ${dd} '${yy}`;
-    if(state.dateStyle==='Japanese') text=`${yy}.${mm}.${dd}`;
-    if(state.dateStyle==='Film Lab') text=`KIRA 400 • ${yy} ${mm} ${dd}`;
-    ctx.save(); ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.font=`bold ${Math.max(16,Math.round(w*.034))}px ui-monospace, monospace`;ctx.shadowColor='rgba(80,30,10,.35)';ctx.shadowBlur=2;ctx.fillStyle='#ff983e';ctx.fillText(text,w*.95,h*.94);ctx.restore();
-  }
-
-  function currentBlob(type='image/jpeg',quality=.94){
-    return new Promise(resolve=>$('#editCanvas').toBlob(resolve,type,quality));
-  }
-
-  async function saveEdited(){
-    if(!state.image){toast('Take or import a photo first.');return;}
-    const blob=await currentBlob(); if(!blob){toast('Could not create photo.');return;}
-    await storeRollPhoto(blob,{kind:'edited',name:state.imageName,filter:state.activeFilter,favorite:false});
-    if(state.settings.autoSave) downloadBlob(blob,`${state.imageName}-kira.jpg`);
-    toast(isIOS()?'Kira prepared your photo. Use Share / Save to Photos if it did not enter Photos automatically.':'Saved to your device and Kira Rolls ♥');
-    haptic(25);
-  }
-
-  function downloadBlob(blob,name){
-    const url=URL.createObjectURL(blob); const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500);
-  }
-
-  async function shareEdited(){
-    if(!state.image){toast('Take or import a photo first.');return;}
-    const blob=await currentBlob(); const file=new File([blob],`${state.imageName}-kira.jpg`,{type:'image/jpeg'});
-    if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
-      try{await navigator.share({files:[file],title:'Kira photo'});return;}catch(e){if(e.name==='AbortError')return;}
-    }
-    downloadBlob(blob,file.name); toast('Photo downloaded.');
-  }
-
-  function isIOS(){ return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1); }
-
-  // IndexedDB rolls
-  function openDB(){
-    return new Promise((resolve,reject)=>{
-      const req=indexedDB.open('kira-db',1);
-      req.onupgradeneeded=()=>{ const db=req.result; if(!db.objectStoreNames.contains('photos')) db.createObjectStore('photos',{keyPath:'id',autoIncrement:true}); };
-      req.onsuccess=()=>resolve(req.result); req.onerror=()=>reject(req.error);
-    });
-  }
-
-  async function storeRollPhoto(blob,meta){
-    const db=await openDB();
-    const item={blob,createdAt:Date.now(),...meta};
-    await new Promise((resolve,reject)=>{const tx=db.transaction('photos','readwrite');tx.objectStore('photos').add(item);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});
-    db.close(); await refreshRolls();
-  }
-
-  async function refreshRolls(){
-    try{
-      const db=await openDB();
-      state.rolls=await new Promise((resolve,reject)=>{const req=db.transaction('photos').objectStore('photos').getAll();req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error);});
-      db.close(); $('#storedCount').textContent=state.rolls.length; renderRolls();
-    }catch(e){console.warn(e);}
-  }
-
-  async function updateRollItem(item){
-    const db=await openDB(); await new Promise((resolve,reject)=>{const tx=db.transaction('photos','readwrite');tx.objectStore('photos').put(item);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});db.close();refreshRolls();
-  }
-
-  async function clearRolls(){
-    const db=await openDB(); await new Promise((resolve,reject)=>{const tx=db.transaction('photos','readwrite');tx.objectStore('photos').clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});db.close();refreshRolls();
-  }
-
-  function renderRolls(){
-    if(!$('#rollGrid'))return;
-    const items=state.rolls.slice().reverse().filter(x=>state.activeRollFilter==='all' || (state.activeRollFilter==='favorites'&&x.favorite) || (state.activeRollFilter==='edited'&&x.kind==='edited'));
-    $('#emptyRolls').classList.toggle('hidden',items.length>0); $('#rollGrid').classList.toggle('hidden',items.length===0);
-    $('#rollGrid').innerHTML=items.map((x,i)=>{const url=URL.createObjectURL(x.blob);setTimeout(()=>URL.revokeObjectURL(url),10000);return `<article class="roll-photo"><img src="${url}" alt="Kira photo"><span class="roll-badge">${x.kind==='edited'?escapeHtml(x.filter||'Edited'):'Original'}</span><button class="fav-toggle" data-id="${x.id}">${x.favorite?'♥':'♡'}</button></article>`}).join('');
-    $$('.fav-toggle').forEach(b=>b.onclick=()=>{const item=state.rolls.find(x=>String(x.id)===b.dataset.id);if(item){item.favorite=!item.favorite;updateRollItem(item);}});
-  }
-
-  function escapeHtml(s=''){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-
-  function bindInputs(){
-    $('#galleryBtn').onclick=()=>$('#galleryInput').click();
-    $('#shutterBtn').onclick=()=>$('#cameraInput').click();
-    $('#cameraBtn').onclick=()=>$('#cameraInput').click();
-    $('#galleryInput').onchange=e=>loadFile(e.target.files?.[0],'gallery');
-    $('#cameraInput').onchange=e=>loadFile(e.target.files?.[0],'camera');
-    $('#savePhotoBtn').onclick=saveEdited; $('#saveTopBtn').onclick=saveEdited; $('#sharePhotoBtn').onclick=shareEdited;
-    $('#filterIntensity').oninput=e=>{state.filterIntensity=Number(e.target.value);$('#intensityValue').textContent=e.target.value;renderPhoto();};
-    $('#gridBtn').onclick=()=>{state.settings.grid=!state.settings.grid;applySettings();saveSettings();};
-    $$('.nav-btn').forEach(b=>b.onclick=()=>switchScreen(b.dataset.target));
-    $$('.roll-tabs .chip').forEach(b=>b.onclick=()=>{state.activeRollFilter=b.dataset.rollFilter;$$('.roll-tabs .chip').forEach(x=>x.classList.toggle('active',x===b));renderRolls();});
-    $('#newRollBtn').onclick=()=>toast('Named rolls arrive in Build 4 — edited photos already save locally here.');
-  }
-
-  function bindSettings(){
-    const map={settingGrid:'grid',settingHaptics:'haptics',settingRememberFilter:'rememberFilter',settingKeepOriginal:'keepOriginal',settingAutoSave:'autoSave'};
-    Object.entries(map).forEach(([id,key])=>{const el=$('#'+id);el.checked=!!state.settings[key];el.onchange=()=>{state.settings[key]=el.checked;applySettings();saveSettings();};});
-    $('#clearKiraBtn').onclick=async()=>{if(confirm('Clear all photos stored inside Kira on this device? This does not delete photos already saved in your phone library.')){await clearRolls();toast('Kira local photos cleared.');}};
-  }
-
-  function applySettings(){ document.body.classList.toggle('grid-on',state.settings.grid); $('#settingGrid').checked=state.settings.grid; }
-
-  function setupInstall(){
-    window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.deferredInstallPrompt=e;$('#installBtn').hidden=false;});
-    $('#installBtn').onclick=async()=>{if(!state.deferredInstallPrompt)return;state.deferredInstallPrompt.prompt();await state.deferredInstallPrompt.userChoice;state.deferredInstallPrompt=null;$('#installBtn').hidden=true;};
-  }
-
-  function preventZoom(){
-    const stopGesture = e => e.preventDefault();
-
-    // iOS Safari / installed PWA pinch gestures.
-    ['gesturestart','gesturechange','gestureend'].forEach(type => {
-      document.addEventListener(type, stopGesture, {passive:false});
-    });
-
-    // Block two-finger pinch while still allowing normal one-finger scrolling.
-    document.addEventListener('touchmove', e => {
-      if (e.touches && e.touches.length > 1) e.preventDefault();
-    }, {passive:false});
-
-    // Block Safari's double-tap-to-zoom gesture.
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', e => {
-      const now = Date.now();
-      if (now - lastTouchEnd <= 320) e.preventDefault();
-      lastTouchEnd = now;
-    }, {passive:false});
-
-    // Desktop / trackpad safety while testing Kira in a browser.
-    document.addEventListener('dblclick', stopGesture, {passive:false});
-    document.addEventListener('wheel', e => {
-      if (e.ctrlKey) e.preventDefault();
-    }, {passive:false});
-  }
-
-  function init(){
-    renderCategories(); renderFilters(); renderAdjustmentPanel(); renderEffectsPanel(); renderFramePanel(); renderDatePanel(); renderComparePanel(); setupToolTabs(); bindInputs(); bindSettings(); applySettings(); setupInstall(); preventZoom(); refreshRolls();
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(console.warn);
-  }
-
+  function bindInputs(){$('#galleryBtn').onclick=()=>$('#galleryInput').click();$('#shutterBtn').onclick=()=>$('#cameraInput').click();$('#cameraBtn').onclick=()=>$('#cameraInput').click();$('#galleryInput').onchange=e=>loadFile(e.target.files?.[0],'gallery');$('#cameraInput').onchange=e=>loadFile(e.target.files?.[0],'camera');$('#savePhotoBtn').onclick=saveEdited;$('#saveTopBtn').onclick=saveEdited;$('#sharePhotoBtn').onclick=shareEdited;$('#undoBtn').onclick=undo;$('#redoBtn').onclick=redo;const fi=$('#filterIntensity');rangeHistory(fi);fi.oninput=e=>{state.filterIntensity=Number(e.target.value);$('#intensityValue').textContent=e.target.value;scheduleRender()};$('#gridBtn').onclick=()=>{state.settings.grid=!state.settings.grid;applySettings();saveSettings()};$$('.nav-btn').forEach(b=>b.onclick=()=>switchScreen(b.dataset.target));$$('.roll-tabs .chip').forEach(b=>b.onclick=()=>{state.activeRollFilter=b.dataset.rollFilter;$$('.roll-tabs .chip').forEach(x=>x.classList.toggle('active',x===b));renderRolls()});$('#newRollBtn').onclick=()=>toast('Named rolls arrive in Build 4 — your edited photos already save here.');$$('#exportQuality button').forEach(b=>b.onclick=()=>{state.exportQuality=b.dataset.quality;$$('#exportQuality button').forEach(x=>x.classList.toggle('active',x===b));toast(`${state.exportQuality} export selected`)})}
+  function bindSettings(){const map={settingGrid:'grid',settingHaptics:'haptics',settingRememberFilter:'rememberFilter',settingKeepOriginal:'keepOriginal',settingAutoSave:'autoSave'};Object.entries(map).forEach(([id,key])=>{const e=$('#'+id);e.checked=!!state.settings[key];e.onchange=()=>{state.settings[key]=e.checked;applySettings();saveSettings()}});$('#clearKiraBtn').onclick=async()=>{if(confirm('Clear all photos stored inside Kira on this device? This does not delete photos already saved in your phone library.')){await clearRolls();toast('Kira local photos cleared.')}}}
+  function applySettings(){document.body.classList.toggle('grid-on',state.settings.grid);$('#settingGrid').checked=state.settings.grid}
+  function setupInstall(){window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.deferredInstallPrompt=e;$('#installBtn').hidden=false});$('#installBtn').onclick=async()=>{if(!state.deferredInstallPrompt){toast(isIOS()?'On iPhone: Share → Add to Home Screen':'Use your browser menu → Install app');return}state.deferredInstallPrompt.prompt();await state.deferredInstallPrompt.userChoice;state.deferredInstallPrompt=null;$('#installBtn').hidden=true}}
+  function preventZoom(){const stop=e=>e.preventDefault();['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,stop,{passive:false}));document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});let last=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-last<=320)e.preventDefault();last=n},{passive:false});document.addEventListener('dblclick',stop,{passive:false});document.addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault()},{passive:false})}
+  function init(){renderAllPanels();setupToolTabs();bindInputs();bindSettings();applySettings();setupInstall();preventZoom();refreshRolls();updateHistoryButtons();if('serviceWorker'in navigator)navigator.serviceWorker.register('./service-worker.js?v=2.0.0').catch(console.warn)}
   init();
 })();
