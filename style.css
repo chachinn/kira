@@ -862,3 +862,17 @@ body.camera-mode .camera-advanced-panel{bottom:101px!important}
   body.camera-mode .live-filter-strip .preset-thumb{width:64px!important}
   body.camera-mode .live-filter-strip .preset-card span{width:64px!important;max-width:64px!important;font-size:8px!important}
 }
+
+
+/* === BUILD 10: CONTINUOUS CAMERA === */
+.camera-heading-actions{display:flex;align-items:center;gap:6px;flex:none}
+.photos-queue-btn{border:1px solid rgba(183,110,121,.22);background:#fff7f3;color:var(--rose-dark);border-radius:999px;padding:7px 10px;font-size:8px;font-weight:700;white-space:nowrap}
+.photos-queue-btn b{display:inline-grid;place-items:center;min-width:17px;height:17px;margin-left:3px;padding:0 4px;border-radius:999px;background:var(--rose);color:#fff;font-size:8px}
+.photos-queue-btn.has-items{animation:queueNudge .28s ease-out}
+@keyframes queueNudge{50%{transform:scale(1.06)}}
+.camera-shot-flash{position:absolute;z-index:30;inset:0;background:#fff;opacity:0;pointer-events:none}
+.camera-shot-flash.flash{animation:kiraShotFlash .17s ease-out}
+@keyframes kiraShotFlash{0%{opacity:.82}100%{opacity:0}}
+.shutter.saving{opacity:.72}
+.camera-save-status{position:absolute;z-index:22;left:50%;bottom:42px;transform:translateX(-50%);background:rgba(27,21,21,.72);color:#fff;padding:5px 9px;border-radius:999px;font-size:8px;font-weight:700;pointer-events:none}
+@media(max-width:390px){.photos-queue-btn{padding:6px 8px;font-size:7.5px}.camera-heading-actions{gap:4px}}

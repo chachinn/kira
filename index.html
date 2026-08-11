@@ -8,12 +8,12 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=9.3.0" />
+  <link rel="manifest" href="./manifest.json?v=10.0.0" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=9.3.0" />
+  <link rel="stylesheet" href="./style.css?v=10.0.0" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -58,7 +58,10 @@
         <div class="camera-look-section">
           <div class="camera-look-heading">
             <div><strong>Looks</strong><small>tap a look before you shoot</small></div>
-            <button class="soft-icon-btn" id="cameraControlsBtn" aria-expanded="false">Controls⌄</button>
+            <div class="camera-heading-actions">
+              <button class="photos-queue-btn hidden" id="photosQueueBtn" title="Save captured photos to iPhone Photos">Photos <b id="photosQueueCount">0</b></button>
+              <button class="soft-icon-btn" id="cameraControlsBtn" aria-expanded="false">Controls⌄</button>
+            </div>
           </div>
           <div class="camera-category-row" id="cameraCategories"></div>
           <div class="camera-strip live-filter-strip" id="cameraStrip"></div>
@@ -236,8 +239,9 @@
           <summary><span>Saving</span><small>exports & Photos</small></summary>
           <div class="settings-group-body">
             <label class="setting-row"><span>Auto-download when Save is tapped</span><input type="checkbox" id="settingAutoSave" checked /></label>
-            <label class="setting-row"><span>After capture, offer Save to Photos</span><input type="checkbox" id="settingAutoPhotos" /></label>
-            <div class="notice">iPhone does not let a web app silently write into Photos. When this is on, Kira will try to open the iPhone save/share flow after a photo or video. If iOS requires a fresh tap, Kira shows a one-tap Save to Photos prompt.</div>
+            <label class="setting-row"><span>Continuous shooting — stay on Camera</span><input type="checkbox" id="settingContinuousShoot" checked /></label>
+            <label class="setting-row"><span>Queue new captures for iPhone Photos</span><input type="checkbox" id="settingAutoPhotos" checked /></label>
+            <div class="notice">Kira saves each shot immediately to Kira Rolls and keeps the camera open. iPhone does not allow a web app to silently insert files into Photos, so queued shots can be sent to Photos together with one tap on the Photos button in Camera.</div>
           </div>
         </details>
 
@@ -253,7 +257,7 @@
 
         <div class="about-card clean-about-card">
           <img src="./icons/icon-96.png" alt="" />
-          <div><strong>kira</strong><small>Build 9.3 • UI & stability fix</small></div>
+          <div><strong>kira</strong><small>Build 10 • UI & stability fix</small></div>
         </div>
       </section>
     </main>
@@ -322,6 +326,6 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=9.3.0"></script>
+  <script src="./app.js?v=10.0.0"></script>
 </body>
 </html>
