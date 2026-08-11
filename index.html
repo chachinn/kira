@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#B76E79" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Kira" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="apple-touch-icon-precomposed" href="icons/icon-180.png" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+  <title>Kira — Retro Film Camera</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-wrap">
+        <img src="icons/icon-96.png" alt="" class="brand-icon" />
+        <div>
+          <div class="brand">kira</div>
+          <div class="tagline">make every moment feel like film.</div>
+        </div>
+      </div>
+      <button class="icon-btn" id="installBtn" title="Install Kira" hidden>＋</button>
+    </header>
+
+    <main>
+      <section class="screen active" id="screen-camera" data-screen="camera">
+        <div class="camera-stage" id="cameraStage">
+          <div class="camera-empty" id="cameraEmpty">
+            <img src="icons/icon-192.png" alt="Kira camera icon" />
+            <h1>shoot it like film.</h1>
+            <p>Take a photo or choose one from your library.</p>
+          </div>
+          <canvas id="cameraCanvas" class="photo-canvas hidden"></canvas>
+          <div class="camera-overlay top-overlay">
+            <button class="mini-pill" id="flashHint">⚡ Auto</button>
+            <button class="mini-pill">3:4</button>
+            <button class="mini-pill" id="gridBtn"># Grid</button>
+          </div>
+        </div>
+
+        <div class="camera-strip" id="cameraStrip"></div>
+
+        <div class="camera-actions">
+          <button class="round-label-btn" id="galleryBtn"><span>▧</span>Gallery</button>
+          <button class="shutter" id="shutterBtn" aria-label="Take photo"></button>
+          <button class="round-label-btn" id="cameraBtn"><span>◉</span>Camera</button>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-develop" data-screen="develop">
+        <div class="section-title-row">
+          <div>
+            <h2>Develop</h2>
+            <p>turn ordinary photos into memories.</p>
+          </div>
+          <button class="text-btn" id="saveTopBtn">Save</button>
+        </div>
+
+        <div class="editor-card">
+          <canvas id="editCanvas" class="photo-canvas"></canvas>
+          <div class="empty-editor" id="emptyEditor">
+            <span>🎞️</span>
+            <strong>No photo yet</strong>
+            <small>Take or import a photo first.</small>
+          </div>
+        </div>
+
+        <div class="category-row" id="filterCategories"></div>
+        <div class="filter-row" id="filterRow"></div>
+
+        <div class="control-card compact">
+          <div class="control-head"><span>Filter intensity</span><b id="intensityValue">70</b></div>
+          <input type="range" id="filterIntensity" min="0" max="100" value="70" />
+        </div>
+
+        <div class="tool-tabs">
+          <button class="tool-tab active" data-tool="adjust">Adjust</button>
+          <button class="tool-tab" data-tool="effects">Effects</button>
+          <button class="tool-tab" data-tool="frame">Frame</button>
+          <button class="tool-tab" data-tool="date">Date</button>
+          <button class="tool-tab" data-tool="compare">Before/After</button>
+        </div>
+
+        <div class="tool-panel active" id="tool-adjust"></div>
+        <div class="tool-panel" id="tool-effects"></div>
+        <div class="tool-panel" id="tool-frame"></div>
+        <div class="tool-panel" id="tool-date"></div>
+        <div class="tool-panel" id="tool-compare"></div>
+
+        <div class="save-actions">
+          <button class="primary-btn" id="savePhotoBtn">Save Photo</button>
+          <button class="secondary-btn" id="sharePhotoBtn">Share / Save to Photos</button>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-rolls" data-screen="rolls">
+        <div class="section-title-row">
+          <div>
+            <h2>Rolls</h2>
+            <p>your little rolls of film.</p>
+          </div>
+          <button class="icon-btn" id="newRollBtn">＋</button>
+        </div>
+        <div class="roll-tabs">
+          <button class="chip active" data-roll-filter="all">All</button>
+          <button class="chip" data-roll-filter="favorites">Favorites</button>
+          <button class="chip" data-roll-filter="edited">Edited</button>
+        </div>
+        <div class="roll-grid" id="rollGrid"></div>
+        <div class="empty-rolls" id="emptyRolls">
+          <div>🎞️</div>
+          <h3>Your roll is empty</h3>
+          <p>Photos you edit in Kira can be kept here locally on this device.</p>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-settings" data-screen="settings">
+        <div class="section-title-row">
+          <div>
+            <h2>Settings</h2>
+            <p>your camera, your way.</p>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <h3>Camera</h3>
+          <label class="setting-row"><span>Grid overlay</span><input type="checkbox" id="settingGrid" /></label>
+          <label class="setting-row"><span>Haptic feedback</span><input type="checkbox" id="settingHaptics" checked /></label>
+        </div>
+
+        <div class="settings-card">
+          <h3>Editing</h3>
+          <label class="setting-row"><span>Remember last filter</span><input type="checkbox" id="settingRememberFilter" checked /></label>
+          <label class="setting-row"><span>Keep originals in Kira Rolls</span><input type="checkbox" id="settingKeepOriginal" checked /></label>
+        </div>
+
+        <div class="settings-card">
+          <h3>Saving</h3>
+          <label class="setting-row"><span>Auto-download when Save is tapped</span><input type="checkbox" id="settingAutoSave" checked /></label>
+          <div class="notice">On iPhone, a web app cannot silently place photos directly into the Photos library. Kira will prepare the image and open the native save/share flow when needed.</div>
+        </div>
+
+        <div class="settings-card">
+          <h3>Storage</h3>
+          <div class="setting-row"><span>Photos stored in Kira</span><b id="storedCount">0</b></div>
+          <button class="danger-btn" id="clearKiraBtn">Clear Kira local photos</button>
+        </div>
+
+        <div class="about-card">
+          <img src="icons/icon-96.png" alt="" />
+          <div><strong>kira</strong><small>Build 1 • local-first retro film camera</small></div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-target="camera"><span>▣</span>Camera</button>
+      <button class="nav-btn" data-target="develop"><span>♨</span>Develop</button>
+      <button class="nav-btn" data-target="rolls"><span>▤</span>Rolls</button>
+      <button class="nav-btn" data-target="settings"><span>⚙</span>Settings</button>
+    </nav>
+  </div>
+
+  <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden />
+  <input type="file" id="galleryInput" accept="image/*" hidden />
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
