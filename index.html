@@ -8,12 +8,12 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=5.0.0" />
+  <link rel="manifest" href="./manifest.json?v=7.0.0" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=5.0.0" />
+  <link rel="stylesheet" href="./style.css?v=7.0.0" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -30,7 +30,7 @@
     </header>
 
     <main>
-      <section class="screen active" id="screen-camera" data-screen="camera">
+      <section class="screen active clean-camera-screen" id="screen-camera" data-screen="camera">
         <div class="camera-stage" id="cameraStage">
           <video id="cameraVideo" class="live-video" autoplay muted playsinline></video>
           <div id="liveToneOverlay" class="live-overlay live-tone-overlay"></div>
@@ -43,51 +43,60 @@
             <button class="camera-permission-btn" id="startCameraBtn">Start Camera</button>
           </div>
           <canvas id="cameraCanvas" class="photo-canvas hidden"></canvas>
-          <div class="camera-overlay top-overlay">
+          <div class="camera-overlay top-overlay camera-top-tools">
             <button class="mini-pill" id="timerBtn">Timer Off</button>
             <button class="mini-pill" id="ratioBtn">3:4</button>
-            <button class="mini-pill" id="gridBtn"># Grid</button>
+            <button class="mini-pill" id="gridBtn">Grid</button>
           </div>
           <div class="live-filter-name" id="liveFilterName">Old Rose</div>
           <div class="live-date-stamp hidden" id="liveDateStamp"></div>
           <div class="camera-countdown hidden" id="cameraCountdown">3</div>
         </div>
 
-        <div class="camera-category-row" id="cameraCategories"></div>
-        <div class="camera-strip live-filter-strip" id="cameraStrip"></div>
-
-        <div class="live-camera-controls">
-          <button class="camera-heart-btn" id="cameraFavoriteBtn" title="Favorite active filter">♡</button>
-          <div class="live-intensity-control">
-            <div class="control-head"><span>Live filter</span><b id="liveIntensityValue">70</b></div>
-            <input id="liveFilterIntensity" type="range" min="0" max="100" value="70">
+        <div class="camera-look-section">
+          <div class="camera-look-heading">
+            <div><strong>Choose a look</strong><small>preview it before you shoot</small></div>
+            <button class="soft-icon-btn" id="cameraControlsBtn" aria-expanded="false">Controls⌄</button>
           </div>
-          <select id="cameraRollSelect" class="mini-select" aria-label="Active roll"></select>
+          <div class="camera-category-row" id="cameraCategories"></div>
+          <div class="camera-strip live-filter-strip" id="cameraStrip"></div>
         </div>
-        <div class="camera-film-counter"><span id="cameraRollBadge">Kira Roll</span><b id="cameraRollCount">0 / 36</b></div>
 
-        <div class="camera-actions">
+        <div class="camera-advanced-panel hidden" id="cameraAdvancedPanel">
+          <div class="advanced-panel-head"><strong>Camera controls</strong><span>optional</span></div>
+          <div class="live-camera-controls cleaned">
+            <button class="camera-heart-btn" id="cameraFavoriteBtn" title="Favorite active filter">♡</button>
+            <div class="live-intensity-control">
+              <div class="control-head"><span>Filter strength</span><b id="liveIntensityValue">70</b></div>
+              <input id="liveFilterIntensity" type="range" min="0" max="100" value="70">
+            </div>
+          </div>
+          <label class="camera-roll-control"><span>Shooting into</span><select id="cameraRollSelect" class="mini-select" aria-label="Active roll"></select></label>
+          <div class="camera-film-counter"><span id="cameraRollBadge">Kira Roll</span><b id="cameraRollCount">0 / 36</b></div>
+        </div>
+
+        <div class="camera-actions clean-camera-actions">
           <button class="round-label-btn" id="galleryBtn"><span>▧</span>Gallery</button>
           <button class="shutter" id="shutterBtn" aria-label="Take photo"></button>
           <button class="round-label-btn" id="flipCameraBtn"><span>↻</span>Flip</button>
         </div>
       </section>
 
-      <section class="screen" id="screen-develop" data-screen="develop">
-        <div class="section-title-row">
+      <section class="screen clean-develop-screen" id="screen-develop" data-screen="develop">
+        <div class="section-title-row cleaner-title-row">
           <div>
             <h2>Develop</h2>
-            <p>turn ordinary photos into memories.</p>
+            <p>fine-tune your photo without the clutter.</p>
           </div>
           <div class="header-actions"><button class="history-btn" id="undoBtn" title="Undo">↶</button><button class="history-btn" id="redoBtn" title="Redo">↷</button><button class="text-btn" id="saveTopBtn">Save</button></div>
         </div>
 
-        <div class="develop-roll-row">
-          <span>Save edits to</span>
-          <select id="developRollSelect" class="mini-select"></select>
+        <div class="develop-quickbar">
+          <label><span>Roll</span><select id="developRollSelect" class="mini-select"></select></label>
+          <button class="compare-quick-btn" id="compareQuickBtn">Hold Original</button>
         </div>
 
-        <div class="editor-card">
+        <div class="editor-card clean-editor-card">
           <canvas id="editCanvas" class="photo-canvas"></canvas>
           <div class="empty-editor" id="emptyEditor">
             <span>🎞️</span>
@@ -96,68 +105,78 @@
           </div>
         </div>
 
-        <div class="filter-search-wrap">
-          <input id="filterSearch" class="filter-search-input" type="search" placeholder="Search filters and recipes" />
-        </div>
-        <div class="category-row" id="filterCategories"></div>
-        <div class="filter-row" id="filterRow"></div>
-
-        <div class="control-card compact">
-          <div class="control-head"><span>Filter intensity</span><b id="intensityValue">70</b></div>
-          <input type="range" id="filterIntensity" min="0" max="100" value="70" />
+        <div class="active-look-summary">
+          <div><small>Current look</small><strong id="activeLookSummary">Old Rose</strong></div>
+          <span id="activeLookIntensity">70%</span>
         </div>
 
-        <div class="tool-tabs tool-tabs-6">
-          <button class="tool-tab active" data-tool="adjust">Adjust</button>
+        <div class="tool-tabs clean-tool-tabs">
+          <button class="tool-tab active" data-tool="filter">Looks</button>
+          <button class="tool-tab" data-tool="adjust">Adjust</button>
           <button class="tool-tab" data-tool="effects">Effects</button>
-          <button class="tool-tab" data-tool="frame">Frame</button>
+          <button class="tool-tab" data-tool="frame">Frames</button>
           <button class="tool-tab" data-tool="date">Date</button>
-          <button class="tool-tab" data-tool="compare">Before/After</button>
           <button class="tool-tab" data-tool="film-lab">Film Lab</button>
         </div>
 
-        <div class="tool-panel active" id="tool-adjust"></div>
+        <div class="tool-panel active" id="tool-filter">
+          <div class="filter-browser-card">
+            <div class="filter-search-wrap"><input id="filterSearch" class="filter-search-input" type="search" placeholder="Search looks" /></div>
+            <div class="category-row" id="filterCategories"></div>
+            <div class="filter-row" id="filterRow"></div>
+            <div class="filter-strength-row">
+              <div class="control-head"><span>Strength</span><b id="intensityValue">70</b></div>
+              <input type="range" id="filterIntensity" min="0" max="100" value="70" />
+            </div>
+          </div>
+        </div>
+        <div class="tool-panel" id="tool-adjust"></div>
         <div class="tool-panel" id="tool-effects"></div>
         <div class="tool-panel" id="tool-frame"></div>
         <div class="tool-panel" id="tool-date"></div>
-        <div class="tool-panel" id="tool-compare"></div>
+        <div class="tool-panel hidden-utility-panel" id="tool-compare"></div>
         <div class="tool-panel" id="tool-film-lab"></div>
 
-        <div class="export-quality-card">
-          <span>Export quality</span>
-          <div class="segmented" id="exportQuality">
-            <button data-quality="Original">Original</button>
-            <button class="active" data-quality="High">High</button>
-            <button data-quality="Social">Social</button>
+        <details class="export-details">
+          <summary><span>Export options</span><small id="exportSummary">High quality</small></summary>
+          <div class="export-quality-card inside-details">
+            <span>Export quality</span>
+            <div class="segmented" id="exportQuality">
+              <button data-quality="Original">Original</button>
+              <button class="active" data-quality="High">High</button>
+              <button data-quality="Social">Social</button>
+            </div>
           </div>
-        </div>
-        <div class="save-actions">
+        </details>
+        <div class="save-actions clean-save-actions">
           <button class="primary-btn" id="savePhotoBtn">Save Photo</button>
           <button class="secondary-btn" id="sharePhotoBtn">Share / Save to Photos</button>
         </div>
       </section>
 
-      <section class="screen" id="screen-rolls" data-screen="rolls">
-        <div class="section-title-row">
+      <section class="screen clean-rolls-screen" id="screen-rolls" data-screen="rolls">
+        <div class="section-title-row cleaner-title-row">
           <div>
             <h2>Rolls</h2>
-            <p>your little rolls of film.</p>
+            <p>your photos, grouped like rolls of film.</p>
           </div>
-          <div class="header-actions">
-            <button class="text-btn" id="importToRollBtn">Import</button>
-            <button class="icon-btn" id="newRollBtn">＋</button>
-          </div>
+          <button class="icon-btn" id="newRollBtn" title="New roll">＋</button>
         </div>
 
         <div class="roll-collection-bar" id="rollCollectionBar"></div>
 
-        <div class="roll-toolbar">
-          <div class="roll-tabs">
+        <div class="roll-library-head">
+          <div class="roll-tabs compact-roll-tabs">
             <button class="chip active" data-roll-filter="all">All</button>
             <button class="chip" data-roll-filter="favorites">Favorites</button>
             <button class="chip" data-roll-filter="edited">Edited</button>
           </div>
-          <button class="secondary-btn compact-btn" id="contactSheetBtn">Contact Sheet</button>
+          <button class="soft-icon-btn" id="rollActionsBtn" aria-expanded="false">Actions⌄</button>
+        </div>
+
+        <div class="roll-utility-panel hidden" id="rollUtilityPanel">
+          <button class="secondary-btn compact-btn" id="importToRollBtn">Import Photos</button>
+          <button class="secondary-btn compact-btn" id="contactSheetBtn">Make Contact Sheet</button>
         </div>
 
         <div class="contact-mode-bar hidden" id="contactModeBar">
@@ -172,48 +191,53 @@
         <div class="roll-grid" id="rollGrid"></div>
         <div class="empty-rolls" id="emptyRolls">
           <div>🎞️</div>
-          <h3>Your roll is empty</h3>
-          <p>Take photos with Kira or import photos into this roll.</p>
+          <h3>This roll is empty</h3>
+          <p>Take a photo or use Actions → Import Photos.</p>
         </div>
       </section>
 
-      <section class="screen" id="screen-settings" data-screen="settings">
-        <div class="section-title-row">
-          <div>
-            <h2>Settings</h2>
-            <p>your camera, your way.</p>
+      <section class="screen clean-settings-screen" id="screen-settings" data-screen="settings">
+        <div class="section-title-row cleaner-title-row">
+          <div><h2>Settings</h2><p>only the practical stuff.</p></div>
+        </div>
+
+        <details class="settings-group" open>
+          <summary><span>Camera</span><small>shooting preferences</small></summary>
+          <div class="settings-group-body">
+            <label class="setting-row"><span>Grid overlay</span><input type="checkbox" id="settingGrid" /></label>
+            <label class="setting-row"><span>Haptic feedback</span><input type="checkbox" id="settingHaptics" checked /></label>
           </div>
-        </div>
+        </details>
 
-        <div class="settings-card">
-          <h3>Camera</h3>
-          <label class="setting-row"><span>Grid overlay</span><input type="checkbox" id="settingGrid" /></label>
-          <label class="setting-row"><span>Haptic feedback</span><input type="checkbox" id="settingHaptics" checked /></label>
-        </div>
+        <details class="settings-group">
+          <summary><span>Editing</span><small>remember your workflow</small></summary>
+          <div class="settings-group-body">
+            <label class="setting-row"><span>Remember last filter</span><input type="checkbox" id="settingRememberFilter" checked /></label>
+            <label class="setting-row"><span>Keep originals in Kira Rolls</span><input type="checkbox" id="settingKeepOriginal" checked /></label>
+          </div>
+        </details>
 
-        <div class="settings-card">
-          <h3>Editing</h3>
-          <label class="setting-row"><span>Remember last filter</span><input type="checkbox" id="settingRememberFilter" checked /></label>
-          <label class="setting-row"><span>Keep originals in Kira Rolls</span><input type="checkbox" id="settingKeepOriginal" checked /></label>
-        </div>
+        <details class="settings-group">
+          <summary><span>Saving</span><small>exports & Photos</small></summary>
+          <div class="settings-group-body">
+            <label class="setting-row"><span>Auto-download when Save is tapped</span><input type="checkbox" id="settingAutoSave" checked /></label>
+            <div class="notice">On iPhone, Kira cannot silently place images in Photos. Use the native Save/Share flow when prompted.</div>
+          </div>
+        </details>
 
-        <div class="settings-card">
-          <h3>Saving</h3>
-          <label class="setting-row"><span>Auto-download when Save is tapped</span><input type="checkbox" id="settingAutoSave" checked /></label>
-          <div class="notice">On iPhone, a web app cannot silently place photos directly into the Photos library. Kira will prepare the image and open the native save/share flow when needed.</div>
-        </div>
+        <details class="settings-group">
+          <summary><span>Storage</span><small>local Kira data</small></summary>
+          <div class="settings-group-body">
+            <div class="setting-row"><span>Photos stored in Kira</span><b id="storedCount">0</b></div>
+            <div class="setting-row"><span>Saved recipes</span><b id="recipeCount">0</b></div>
+            <div class="setting-row"><span>Named film rolls</span><b id="namedRollCount">1</b></div>
+            <button class="danger-btn" id="clearKiraBtn">Clear Kira local photos</button>
+          </div>
+        </details>
 
-        <div class="settings-card">
-          <h3>Storage</h3>
-          <div class="setting-row"><span>Photos stored in Kira</span><b id="storedCount">0</b></div>
-          <div class="setting-row"><span>Saved recipes</span><b id="recipeCount">0</b></div>
-          <div class="setting-row"><span>Named film rolls</span><b id="namedRollCount">1</b></div>
-          <button class="danger-btn" id="clearKiraBtn">Clear Kira local photos</button>
-        </div>
-
-        <div class="about-card">
+        <div class="about-card clean-about-card">
           <img src="./icons/icon-96.png" alt="" />
-          <div><strong>kira</strong><small>Build 5 • vintage camera packs</small></div>
+          <div><strong>kira</strong><small>Build 7 • UI cleanup & organization</small></div>
         </div>
       </section>
     </main>
@@ -276,6 +300,6 @@
 
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=5.0.0"></script>
+  <script src="./app.js?v=7.0.0"></script>
 </body>
 </html>

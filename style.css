@@ -137,3 +137,54 @@ body.grid-on .camera-stage:after{content:"";position:absolute;inset:0;pointer-ev
 
 /* === BUILD 5: VINTAGE CAMERA PACKS === */
 .live-date-stamp{position:absolute;z-index:9;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800;font-size:13px;letter-spacing:.05em;text-shadow:0 1px 2px rgba(40,15,6,.75);pointer-events:none}.live-date-stamp.date-bottom-right{right:14px;bottom:48px}.live-date-stamp.date-bottom-left{left:14px;bottom:48px}.live-date-stamp.date-top-right{right:14px;top:55px}.live-date-stamp.date-top-left{left:14px;top:55px}.live-date-stamp.datecolor-orange{color:#ff9b40}.live-date-stamp.datecolor-red{color:#f2675e}.live-date-stamp.datecolor-white{color:#fff7e8}.live-date-stamp.datecolor-green{color:#72d48c}
+
+/* === BUILD 6: DEEP VINTAGE + DATE CAMERAS === */
+.live-date-stamp.date-bottom-center{left:50%;bottom:48px;transform:translateX(-50%)}
+.live-date-stamp.date-top-center{left:50%;top:55px;transform:translateX(-50%)}
+.live-date-stamp.datecolor-blue{color:#72b6ff}.live-date-stamp.datecolor-yellow{color:#ffd75d}.live-date-stamp.datecolor-pink{color:#ff91bf}
+.frame-btn[data-frame="Instant Square"],.frame-btn[data-frame="Instant Wide"],.frame-btn[data-frame="Instant Mini"],.frame-btn[data-frame="Instant Black"]{background-image:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,0))}
+
+
+/* === BUILD 7: UI CLEANUP & REORGANIZATION === */
+:root{--soft-surface:rgba(255,250,246,.74);--soft-surface-2:rgba(248,239,232,.78);--hairline:rgba(96,64,66,.10)}
+main{padding-top:8px}.screen{padding-left:15px;padding-right:15px}
+.topbar{padding-left:16px;padding-right:16px;border-bottom-color:rgba(96,64,66,.08)}
+.tagline{opacity:.72}.cleaner-title-row{padding-top:5px;padding-bottom:14px}.cleaner-title-row h2{font-size:27px}.cleaner-title-row p{font-size:10px;letter-spacing:.01em}
+
+/* Camera: visual priority is preview -> looks -> shutter. */
+.clean-camera-screen{padding-top:8px}.clean-camera-screen .camera-stage{box-shadow:0 14px 32px rgba(49,31,32,.13);border-radius:25px}
+.camera-top-tools{gap:6px}.camera-top-tools .mini-pill{background:rgba(31,24,24,.48);border-color:rgba(255,255,255,.18);padding:7px 10px;font-size:9px}
+.camera-look-section{margin-top:13px}.camera-look-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 2px 2px}.camera-look-heading strong{display:block;font-family:Georgia,serif;font-size:15px;color:var(--rose-dark)}.camera-look-heading small{display:block;font-size:9px;color:#9a7b7d;margin-top:1px}
+.soft-icon-btn{border:1px solid var(--hairline);background:var(--soft-surface);color:var(--rose-dark);border-radius:999px;padding:8px 11px;font-size:9px;font-weight:700;white-space:nowrap}
+.camera-category-row{padding-top:9px}.camera-category-row .chip,.category-row .chip{background:transparent;border-color:rgba(96,64,66,.12);padding:6px 10px}.camera-category-row .chip.active,.category-row .chip.active{background:var(--rose);border-color:var(--rose)}
+.live-filter-strip{padding-top:9px;padding-bottom:3px}.live-filter-strip .preset-card{min-width:68px}.live-filter-strip .preset-thumb{height:68px;border-radius:16px}.live-filter-strip .preset-card span{font-size:9px}
+.camera-advanced-panel{background:var(--soft-surface);border:1px solid var(--hairline);border-radius:20px;padding:12px;margin-top:11px;box-shadow:0 6px 18px rgba(61,39,41,.035)}.advanced-panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.advanced-panel-head strong{font-size:11px;color:var(--rose-dark)}.advanced-panel-head span{font-size:9px;color:#a08284}
+.live-camera-controls.cleaned{margin:0;padding:0;background:transparent;border:0;box-shadow:none;grid-template-columns:42px 1fr}.camera-roll-control{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--hairline);margin-top:9px;padding-top:9px;font-size:10px;color:#8d7071}.camera-roll-control .mini-select{max-width:58%}.camera-film-counter{padding:7px 0 0}
+.clean-camera-actions{padding-top:14px;padding-bottom:3px}.clean-camera-actions .round-label-btn{font-size:9px}.clean-camera-actions .shutter{box-shadow:0 0 0 4px #fff8f4,0 0 0 6px rgba(183,110,121,.42),0 7px 18px rgba(70,43,46,.12)}
+
+/* Develop: one tool family visible at a time. */
+.develop-quickbar{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-bottom:10px}.develop-quickbar label{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--soft-surface);border:1px solid var(--hairline);border-radius:14px;padding:7px 9px;font-size:9px;color:#8d7071}.develop-quickbar select{max-width:70%}
+.compare-quick-btn{border:1px solid var(--hairline);background:var(--soft-surface);color:var(--rose-dark);border-radius:14px;padding:10px 11px;font-size:9px;font-weight:700}.compare-quick-btn:active{background:var(--paper)}
+.clean-editor-card{border-radius:22px;min-height:300px;box-shadow:0 12px 28px rgba(47,30,31,.11)}
+.active-look-summary{display:flex;justify-content:space-between;align-items:center;padding:9px 3px 6px}.active-look-summary small{display:block;font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:#a18485}.active-look-summary strong{display:block;font-family:Georgia,serif;color:var(--rose-dark);font-size:15px}.active-look-summary>span{font-size:10px;color:#8c6f71;background:var(--paper);border-radius:999px;padding:5px 8px}
+.clean-tool-tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;padding:4px;background:rgba(239,226,212,.72);border-radius:16px;margin:7px 0 10px;position:sticky;top:72px;z-index:22;backdrop-filter:blur(14px)}.clean-tool-tabs .tool-tab{border-radius:12px;padding:8px 2px;font-size:9px}.clean-tool-tabs .tool-tab.active{background:#fff9f5;box-shadow:0 2px 9px rgba(65,43,44,.08)}
+.filter-browser-card{background:var(--soft-surface);border:1px solid var(--hairline);border-radius:20px;padding:11px}.filter-search-wrap{margin-top:0}.filter-search-input{box-shadow:none;background:rgba(255,255,255,.52)}
+.filter-browser-card .category-row{padding-top:9px}.filter-browser-card .filter-row{padding-top:9px}.filter-strength-row{border-top:1px solid var(--hairline);padding-top:10px;margin-top:8px}.filter-strength-row .control-head{margin-bottom:4px}
+.hidden-utility-panel{display:none!important}.tool-panel.active{animation:kiraToolIn .16s ease}@keyframes kiraToolIn{from{opacity:.35;transform:translateY(3px)}to{opacity:1;transform:none}}
+.slider-list,.sub-control,.control-card{box-shadow:none;border-color:var(--hairline)}.slider-list{background:var(--soft-surface);padding:12px}.effect-grid,.frame-grid{gap:7px}.effect-btn,.frame-btn{background:var(--soft-surface);border-color:var(--hairline);min-height:68px;padding:11px 6px}.effect-btn b,.frame-btn b{font-size:18px}
+.export-details{margin-top:13px;background:var(--soft-surface);border:1px solid var(--hairline);border-radius:17px;overflow:hidden}.export-details summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 13px;cursor:pointer;font-size:10px;font-weight:700;color:var(--rose-dark)}.export-details summary::-webkit-details-marker{display:none}.export-details summary:after{content:'⌄';color:#a17e80}.export-details[open] summary:after{content:'⌃'}.export-details summary small{margin-left:auto;font-weight:500;color:#9a7a7c}.export-quality-card.inside-details{margin:0;border:0;border-top:1px solid var(--hairline);border-radius:0;background:transparent;box-shadow:none}.clean-save-actions{grid-template-columns:1fr 1fr}.clean-save-actions button{min-height:45px;font-size:11px}
+
+/* Film Lab hierarchy. */
+.film-lab-current{background:linear-gradient(135deg,rgba(235,201,200,.42),rgba(255,250,246,.84));border:1px solid var(--hairline);border-radius:20px;padding:13px}.film-lab-eyebrow{font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:#a07d80}.film-lab-current h3{font-family:Georgia,serif;color:var(--rose-dark);font-size:20px;margin:3px 0 4px}.film-lab-current p{font-size:9px;color:#927477;margin:0 0 10px}.film-lab-section-head{display:flex;justify-content:space-between;align-items:end;margin:15px 2px 8px}.film-lab-section-head strong{font-family:Georgia,serif;color:var(--rose-dark);font-size:16px}.film-lab-section-head small{font-size:9px;color:#a08385}.recipe-list{margin-top:0}.recipe-card{box-shadow:none;border-color:var(--hairline);background:var(--soft-surface)}
+
+/* Rolls: library first, utilities second. */
+.roll-collection-bar{padding-bottom:13px}.roll-album-card{flex-basis:130px;height:88px;box-shadow:0 8px 20px rgba(50,32,33,.08);border-width:2px}.roll-album-main{padding:9px}.roll-library-head{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--hairline);padding-top:10px}.compact-roll-tabs{padding:0;flex:1}.compact-roll-tabs .chip{padding:6px 10px}.roll-utility-panel{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--soft-surface);border:1px solid var(--hairline);border-radius:16px;padding:9px;margin-top:9px}.roll-utility-panel .compact-btn{margin:0;width:100%;background:rgba(255,255,255,.42)}
+.roll-grid{gap:8px}.roll-photo{border-radius:15px;box-shadow:0 5px 15px rgba(55,35,36,.06)}.photo-menu-btn{width:28px;height:28px}.roll-badge{font-size:8px;padding:4px 7px}.empty-rolls{padding-top:55px}
+
+/* Settings are now calm disclosure groups. */
+.settings-group{background:var(--soft-surface);border:1px solid var(--hairline);border-radius:18px;margin-bottom:9px;overflow:hidden}.settings-group summary{list-style:none;display:flex;align-items:center;justify-content:space-between;padding:14px;cursor:pointer}.settings-group summary::-webkit-details-marker{display:none}.settings-group summary span{font-family:Georgia,serif;color:var(--rose-dark);font-size:16px}.settings-group summary small{font-size:9px;color:#a08384;margin-left:auto;margin-right:10px}.settings-group summary:after{content:'⌄';font-size:12px;color:#9f7b7d}.settings-group[open] summary:after{content:'⌃'}.settings-group-body{padding:0 14px 13px;border-top:1px solid var(--hairline)}.settings-group-body .setting-row{padding:12px 0;border-bottom:1px solid rgba(96,64,66,.07)}.settings-group-body .setting-row:last-of-type{border-bottom:0}.clean-about-card{margin-top:14px;box-shadow:none;border-color:var(--hairline);background:transparent}
+
+/* Bottom nav: fewer visual competing elements. */
+.bottom-nav{padding-top:7px;background:rgba(255,250,246,.94);border-top-color:rgba(96,64,66,.09)}.nav-btn{gap:1px;opacity:.72}.nav-btn.active{opacity:1}.nav-btn span{font-size:18px}
+
+@media(max-width:420px){.clean-tool-tabs{grid-template-columns:repeat(3,1fr);position:relative;top:auto}.clean-save-actions{grid-template-columns:1fr}.develop-quickbar{grid-template-columns:1fr auto}.roll-utility-panel{grid-template-columns:1fr}.camera-look-heading small{display:none}}
