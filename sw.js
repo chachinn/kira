@@ -1,4 +1,4 @@
-const CACHE='kira-app-cache-v8-stability-camera-packs-20260811';
+const CACHE='kira-app-cache-v8-1-bugfix-20260811';
 const SHELL=['./','./index.html','./style.css','./app.js','./manifest.json','./icons/icon-32.png','./icons/icon-96.png','./icons/icon-180.png','./icons/icon-192.png','./icons/icon-512.png','./icons/icon-192-maskable.png','./icons/icon-512-maskable.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
