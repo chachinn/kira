@@ -8,12 +8,12 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=8.1.0" />
+  <link rel="manifest" href="./manifest.json?v=9.0.0" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=8.1.0" />
+  <link rel="stylesheet" href="./style.css?v=9.0.0" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -52,6 +52,7 @@
           <div class="live-filter-name" id="liveFilterName">Old Rose</div>
           <div class="live-date-stamp hidden" id="liveDateStamp"></div>
           <div class="camera-countdown hidden" id="cameraCountdown">3</div>
+          <div class="recording-hud hidden" id="recordingHud"><span></span><b id="recordTime">00:00</b></div>
         </div>
 
         <div class="camera-look-section">
@@ -80,6 +81,10 @@
           <button class="round-label-btn" id="galleryBtn"><span>▧</span>Gallery</button>
           <button class="shutter" id="shutterBtn" aria-label="Take photo"></button>
           <button class="round-label-btn" id="flipCameraBtn"><span>↻</span>Flip</button>
+          <div class="capture-mode-switch" id="captureModeSwitch">
+            <button class="active" data-capture-mode="photo">Photo</button>
+            <button data-capture-mode="video">Video</button>
+          </div>
         </div>
       </section>
 
@@ -171,6 +176,7 @@
             <button class="chip active" data-roll-filter="all">All</button>
             <button class="chip" data-roll-filter="favorites">Favorites</button>
             <button class="chip" data-roll-filter="edited">Edited</button>
+            <button class="chip" data-roll-filter="videos">Videos</button>
           </div>
           <button class="soft-icon-btn" id="rollActionsBtn" aria-expanded="false">Actions⌄</button>
         </div>
@@ -207,6 +213,14 @@
           <div class="settings-group-body">
             <label class="setting-row"><span>Grid overlay</span><input type="checkbox" id="settingGrid" /></label>
             <label class="setting-row"><span>Haptic feedback</span><input type="checkbox" id="settingHaptics" checked /></label>
+            <label class="setting-row"><span>Record sound with video</span><input type="checkbox" id="settingVideoAudio" checked /></label>
+            <label class="setting-row setting-select-row"><span>Video quality</span>
+              <select id="settingVideoQuality" class="mini-select">
+                <option value="smooth">Smooth • recommended</option>
+                <option value="high">High quality</option>
+              </select>
+            </label>
+            <div class="notice">Smooth mode uses a lower video bitrate and is the recommended setting for iPhone. Kira records the original camera stream for video so recording stays responsive.</div>
           </div>
         </details>
 
@@ -222,14 +236,15 @@
           <summary><span>Saving</span><small>exports & Photos</small></summary>
           <div class="settings-group-body">
             <label class="setting-row"><span>Auto-download when Save is tapped</span><input type="checkbox" id="settingAutoSave" checked /></label>
-            <div class="notice">On iPhone, Kira cannot silently place images in Photos. Use the native Save/Share flow when prompted.</div>
+            <label class="setting-row"><span>After capture, offer Save to Photos</span><input type="checkbox" id="settingAutoPhotos" /></label>
+            <div class="notice">iPhone does not let a web app silently write into Photos. When this is on, Kira will try to open the iPhone save/share flow after a photo or video. If iOS requires a fresh tap, Kira shows a one-tap Save to Photos prompt.</div>
           </div>
         </details>
 
         <details class="settings-group">
           <summary><span>Storage</span><small>local Kira data</small></summary>
           <div class="settings-group-body">
-            <div class="setting-row"><span>Photos stored in Kira</span><b id="storedCount">0</b></div>
+            <div class="setting-row"><span>Media stored in Kira</span><b id="storedCount">0</b></div>
             <div class="setting-row"><span>Saved recipes</span><b id="recipeCount">0</b></div>
             <div class="setting-row"><span>Named film rolls</span><b id="namedRollCount">1</b></div>
             <button class="danger-btn" id="clearKiraBtn">Clear Kira local photos</button>
@@ -238,7 +253,7 @@
 
         <div class="about-card clean-about-card">
           <img src="./icons/icon-96.png" alt="" />
-          <div><strong>kira</strong><small>Build 8.1 • stable camera & vintage packs</small></div>
+          <div><strong>kira</strong><small>Build 9 • smooth video & Photos handoff</small></div>
         </div>
       </section>
     </main>
@@ -268,14 +283,15 @@
 
   <div class="modal-backdrop hidden" id="photoModal">
     <div class="modal-card photo-detail-card">
-      <div class="modal-title-row"><h3>Photo Details</h3><button class="modal-close" data-close-modal="photoModal">×</button></div>
+      <div class="modal-title-row"><h3>Media Details</h3><button class="modal-close" data-close-modal="photoModal">×</button></div>
       <img id="photoModalImage" class="photo-detail-image" alt="Kira photo">
+      <video id="photoModalVideo" class="photo-detail-image hidden" controls playsinline preload="metadata"></video>
       <div class="photo-detail-meta" id="photoDetailMeta"></div>
       <label class="modal-label">Move to roll<select id="photoRollSelect" class="mini-select full"></select></label>
       <div class="modal-actions grid-2">
         <button class="secondary-btn" id="photoUseLookBtn">Use This Look</button>
         <button class="secondary-btn" id="photoFavoriteBtn">♡ Favorite</button>
-        <button class="danger-btn" id="photoDeleteBtn">Delete Photo</button>
+        <button class="danger-btn" id="photoDeleteBtn">Delete from Kira</button>
       </div>
     </div>
   </div>
@@ -299,8 +315,13 @@
     </div>
   </div>
 
+  <div class="save-photos-prompt hidden" id="savePhotosPrompt">
+    <div><strong>Ready for Photos</strong><small id="savePhotosPromptText">iPhone needs one tap to continue.</small></div>
+    <button id="savePhotosPromptBtn">Save to Photos</button>
+    <button class="save-photos-dismiss" id="savePhotosDismissBtn" aria-label="Dismiss">×</button>
+  </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=8.1.0"></script>
+  <script src="./app.js?v=9.0.0"></script>
 </body>
 </html>
