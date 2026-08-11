@@ -640,3 +640,225 @@ body.camera-mode .camera-advanced-panel{
     height:58px;
   }
 }
+
+
+/* === BUILD 9.3 FINAL CAMERA LAYOUT OVERRIDES === */
+/* One-screen camera: viewfinder + fully visible Looks tray + capture controls. */
+body.camera-mode .clean-camera-screen{
+  grid-template-rows:minmax(0,1fr) 150px 96px!important;
+  gap:6px!important;
+  padding:4px 10px 4px!important;
+}
+body.camera-mode .camera-stage{
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  border-radius:18px!important;
+}
+
+/* Looks tray has explicit rows so filter names cannot get clipped. */
+body.camera-mode .camera-look-section{
+  height:150px!important;
+  min-height:150px!important;
+  max-height:150px!important;
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-rows:25px 32px 77px!important;
+  gap:4px!important;
+  overflow:hidden!important;
+  margin:0!important;
+  padding:6px 8px!important;
+  border:1px solid rgba(96,64,66,.09)!important;
+  border-radius:18px!important;
+  background:#fffaf6!important;
+  contain:layout paint style!important;
+}
+body.camera-mode .camera-look-heading{
+  height:25px!important;
+  min-height:25px!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  overflow:visible!important;
+}
+body.camera-mode .camera-look-heading strong{
+  font-size:14px!important;
+  line-height:1!important;
+}
+body.camera-mode .camera-look-heading small{display:none!important}
+body.camera-mode #cameraControlsBtn{
+  position:static!important;
+  flex:none!important;
+  min-height:25px!important;
+  padding:5px 10px!important;
+  font-size:8px!important;
+  line-height:1!important;
+  border-radius:999px!important;
+}
+
+body.camera-mode .camera-category-row{
+  width:100%!important;
+  height:32px!important;
+  min-height:32px!important;
+  padding:1px 0!important;
+  margin:0!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  scroll-snap-type:x proximity!important;
+  scrollbar-width:none!important;
+  contain:layout style!important;
+}
+body.camera-mode .camera-category-row::-webkit-scrollbar{display:none!important}
+body.camera-mode .camera-category-row .chip{
+  flex:0 0 auto!important;
+  height:29px!important;
+  min-height:29px!important;
+  padding:0 11px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  font-size:8.5px!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  scroll-snap-align:start!important;
+}
+
+body.camera-mode .live-filter-strip{
+  width:100%!important;
+  height:77px!important;
+  min-height:77px!important;
+  max-height:77px!important;
+  box-sizing:border-box!important;
+  padding:2px 0 0!important;
+  margin:0!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  gap:8px!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  scroll-snap-type:x proximity!important;
+  scrollbar-width:none!important;
+  touch-action:pan-x!important;
+  contain:layout paint style!important;
+}
+body.camera-mode .live-filter-strip::-webkit-scrollbar{display:none!important}
+body.camera-mode .live-filter-strip .preset-card{
+  flex:0 0 70px!important;
+  width:70px!important;
+  min-width:70px!important;
+  max-width:70px!important;
+  height:72px!important;
+  min-height:72px!important;
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-rows:52px 16px!important;
+  gap:3px!important;
+  padding:0!important;
+  margin:0!important;
+  overflow:visible!important;
+  background:transparent!important;
+  scroll-snap-align:start!important;
+}
+body.camera-mode .live-filter-strip .preset-thumb{
+  display:block!important;
+  width:70px!important;
+  height:52px!important;
+  min-height:52px!important;
+  max-height:52px!important;
+  border-radius:11px!important;
+  box-sizing:border-box!important;
+}
+body.camera-mode .live-filter-strip .preset-card.active .preset-thumb{
+  border:2px solid var(--rose)!important;
+  box-shadow:0 0 0 2px rgba(183,110,121,.10)!important;
+}
+body.camera-mode .live-filter-strip .preset-card span{
+  display:block!important;
+  width:70px!important;
+  max-width:70px!important;
+  height:16px!important;
+  margin:0!important;
+  padding:0!important;
+  font-size:8.5px!important;
+  line-height:16px!important;
+  color:var(--ink)!important;
+  text-align:center!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+body.camera-mode .live-filter-strip .preset-card small{display:none!important}
+
+/* Capture mode is a real grid row now, never floating on top of Looks. */
+body.camera-mode .clean-camera-actions{
+  position:relative!important;
+  width:100%!important;
+  height:96px!important;
+  box-sizing:border-box!important;
+  padding:2px 10px calc(2px + env(safe-area-inset-bottom))!important;
+  display:grid!important;
+  grid-template-columns:1fr 72px 1fr!important;
+  grid-template-rows:27px 65px!important;
+  column-gap:12px!important;
+  row-gap:2px!important;
+  align-items:center!important;
+}
+body.camera-mode .capture-mode-switch{
+  position:static!important;
+  inset:auto!important;
+  transform:none!important;
+  grid-column:1 / -1!important;
+  grid-row:1!important;
+  justify-self:center!important;
+  align-self:center!important;
+  padding:2px!important;
+  margin:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+body.camera-mode .capture-mode-switch button{
+  padding:4px 13px!important;
+  font-size:7.5px!important;
+}
+body.camera-mode #galleryBtn{grid-column:1!important;grid-row:2!important}
+body.camera-mode #shutterBtn{grid-column:2!important;grid-row:2!important}
+body.camera-mode #flipCameraBtn{grid-column:3!important;grid-row:2!important}
+body.camera-mode .clean-camera-actions .shutter{
+  width:60px!important;
+  height:60px!important;
+  justify-self:center!important;
+  align-self:center!important;
+}
+body.camera-mode .clean-camera-actions .round-label-btn{
+  min-height:54px!important;
+  align-self:center!important;
+  justify-self:center!important;
+  padding:0!important;
+  font-size:8px!important;
+}
+body.camera-mode .camera-advanced-panel{bottom:101px!important}
+
+/* Compact phones: preserve labels rather than clipping cards. */
+@media(max-height:760px){
+  body.camera-mode .clean-camera-screen{grid-template-rows:minmax(0,1fr) 140px 90px!important;gap:4px!important}
+  body.camera-mode .camera-look-section{height:140px!important;min-height:140px!important;max-height:140px!important;grid-template-rows:23px 30px 72px!important;padding:5px 7px!important}
+  body.camera-mode .camera-look-heading{height:23px!important;min-height:23px!important}
+  body.camera-mode .camera-category-row{height:30px!important;min-height:30px!important}
+  body.camera-mode .camera-category-row .chip{height:27px!important;min-height:27px!important;padding:0 10px!important;font-size:8px!important}
+  body.camera-mode .live-filter-strip{height:72px!important;min-height:72px!important;max-height:72px!important}
+  body.camera-mode .live-filter-strip .preset-card{flex-basis:65px!important;width:65px!important;min-width:65px!important;max-width:65px!important;height:68px!important;grid-template-rows:48px 16px!important}
+  body.camera-mode .live-filter-strip .preset-thumb{width:65px!important;height:48px!important;min-height:48px!important;max-height:48px!important}
+  body.camera-mode .live-filter-strip .preset-card span{width:65px!important;max-width:65px!important}
+  body.camera-mode .clean-camera-actions{height:90px!important;grid-template-rows:25px 61px!important}
+  body.camera-mode .clean-camera-actions .shutter{width:56px!important;height:56px!important}
+}
+@media(max-width:390px){
+  body.camera-mode .clean-camera-screen{padding-left:7px!important;padding-right:7px!important}
+  body.camera-mode .live-filter-strip .preset-card{flex-basis:64px!important;width:64px!important;min-width:64px!important;max-width:64px!important}
+  body.camera-mode .live-filter-strip .preset-thumb{width:64px!important}
+  body.camera-mode .live-filter-strip .preset-card span{width:64px!important;max-width:64px!important;font-size:8px!important}
+}
