@@ -8,19 +8,19 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=4.0.0" />
-  <link rel="apple-touch-icon" sizes="180x180" href="./icons/kira-icon-180-b4.png" />
-  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/kira-icon-180-b4.png" />
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/kira-icon-192-b4.png" />
-  <link rel="shortcut icon" type="image/png" href="./icons/kira-icon-32-b4.png" />
-  <link rel="stylesheet" href="./style.css?v=4.0.0" />
+  <link rel="manifest" href="./manifest.json?v=5.0.0" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
+  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
+  <link rel="stylesheet" href="./style.css?v=5.0.0" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <div class="brand-wrap">
-        <img src="./icons/kira-icon-96-b4.png" alt="" class="brand-icon" />
+        <img src="./icons/icon-96.png" alt="" class="brand-icon" />
         <div>
           <div class="brand">kira</div>
           <div class="tagline">make every moment feel like film.</div>
@@ -37,7 +37,7 @@
           <div id="liveFadeOverlay" class="live-overlay live-fade-overlay"></div>
           <div id="liveVignetteOverlay" class="live-overlay live-vignette-overlay"></div>
           <div class="camera-empty" id="cameraEmpty">
-            <img src="./icons/kira-icon-192-b4.png" alt="Kira camera icon" />
+            <img src="./icons/icon-192.png" alt="Kira camera icon" />
             <h1 id="cameraEmptyTitle">opening camera…</h1>
             <p id="cameraEmptyText">Allow camera access so you can preview Kira filters live.</p>
             <button class="camera-permission-btn" id="startCameraBtn">Start Camera</button>
@@ -49,6 +49,7 @@
             <button class="mini-pill" id="gridBtn"># Grid</button>
           </div>
           <div class="live-filter-name" id="liveFilterName">Old Rose</div>
+          <div class="live-date-stamp hidden" id="liveDateStamp"></div>
           <div class="camera-countdown hidden" id="cameraCountdown">3</div>
         </div>
 
@@ -211,8 +212,8 @@
         </div>
 
         <div class="about-card">
-          <img src="./icons/kira-icon-96-b4.png" alt="" />
-          <div><strong>kira</strong><small>Build 4 • rolls, contact sheets & camera tools</small></div>
+          <img src="./icons/icon-96.png" alt="" />
+          <div><strong>kira</strong><small>Build 5 • vintage camera packs</small></div>
         </div>
       </section>
     </main>
@@ -275,6 +276,6 @@
 
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=4.0.0"></script>
+  <script src="./app.js?v=5.0.0"></script>
 </body>
 </html>
