@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Kira \u2014 Retro Film Camera",
   "short_name": "Kira",
-  "description": "A local-first retro film camera with live in-app filter previews, Film Lab recipes, frames and dreamy effects.",
+  "description": "A local-first retro film camera with live filters, custom film recipes, named rolls and contact sheets.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -19,67 +19,67 @@
   ],
   "icons": [
     {
-      "src": "./icons/kira-icon-72-b3.png",
+      "src": "./icons/kira-icon-72-b4.png",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/kira-icon-96-b3.png",
+      "src": "./icons/kira-icon-96-b4.png",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/kira-icon-128-b3.png",
+      "src": "./icons/kira-icon-128-b4.png",
       "sizes": "128x128",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/kira-icon-144-b3.png",
+      "src": "./icons/kira-icon-144-b4.png",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/kira-icon-152-b3.png",
+      "src": "./icons/kira-icon-152-b4.png",
       "sizes": "152x152",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/kira-icon-180-b3.png",
+      "src": "./icons/kira-icon-180-b4.png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/kira-icon-192-b3.png",
+      "src": "./icons/kira-icon-192-b4.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/kira-icon-384-b3.png",
+      "src": "./icons/kira-icon-384-b4.png",
       "sizes": "384x384",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/kira-icon-512-b3.png",
+      "src": "./icons/kira-icon-512-b4.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/kira-icon-192-maskable-b3.png",
+      "src": "./icons/kira-icon-192-maskable-b4.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "./icons/kira-icon-512-maskable-b3.png",
+      "src": "./icons/kira-icon-512-maskable-b4.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

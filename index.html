@@ -8,19 +8,19 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=3.1.0" />
-  <link rel="apple-touch-icon" sizes="180x180" href="./icons/kira-icon-180-b3.png" />
-  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/kira-icon-180-b3.png" />
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/kira-icon-192-b3.png" />
-  <link rel="shortcut icon" type="image/png" href="./icons/kira-icon-32-b3.png" />
-  <link rel="stylesheet" href="./style.css?v=3.1.0" />
+  <link rel="manifest" href="./manifest.json?v=4.0.0" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/kira-icon-180-b4.png" />
+  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/kira-icon-180-b4.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/kira-icon-192-b4.png" />
+  <link rel="shortcut icon" type="image/png" href="./icons/kira-icon-32-b4.png" />
+  <link rel="stylesheet" href="./style.css?v=4.0.0" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <div class="brand-wrap">
-        <img src="./icons/kira-icon-96-b3.png" alt="" class="brand-icon" />
+        <img src="./icons/kira-icon-96-b4.png" alt="" class="brand-icon" />
         <div>
           <div class="brand">kira</div>
           <div class="tagline">make every moment feel like film.</div>
@@ -37,21 +37,33 @@
           <div id="liveFadeOverlay" class="live-overlay live-fade-overlay"></div>
           <div id="liveVignetteOverlay" class="live-overlay live-vignette-overlay"></div>
           <div class="camera-empty" id="cameraEmpty">
-            <img src="./icons/kira-icon-192-b3.png" alt="Kira camera icon" />
+            <img src="./icons/kira-icon-192-b4.png" alt="Kira camera icon" />
             <h1 id="cameraEmptyTitle">opening camera…</h1>
             <p id="cameraEmptyText">Allow camera access so you can preview Kira filters live.</p>
             <button class="camera-permission-btn" id="startCameraBtn">Start Camera</button>
           </div>
           <canvas id="cameraCanvas" class="photo-canvas hidden"></canvas>
           <div class="camera-overlay top-overlay">
-            <button class="mini-pill" id="liveBadge">● LIVE</button>
-            <button class="mini-pill">3:4</button>
+            <button class="mini-pill" id="timerBtn">Timer Off</button>
+            <button class="mini-pill" id="ratioBtn">3:4</button>
             <button class="mini-pill" id="gridBtn"># Grid</button>
           </div>
+          <div class="live-filter-name" id="liveFilterName">Old Rose</div>
+          <div class="camera-countdown hidden" id="cameraCountdown">3</div>
         </div>
 
         <div class="camera-category-row" id="cameraCategories"></div>
         <div class="camera-strip live-filter-strip" id="cameraStrip"></div>
+
+        <div class="live-camera-controls">
+          <button class="camera-heart-btn" id="cameraFavoriteBtn" title="Favorite active filter">♡</button>
+          <div class="live-intensity-control">
+            <div class="control-head"><span>Live filter</span><b id="liveIntensityValue">70</b></div>
+            <input id="liveFilterIntensity" type="range" min="0" max="100" value="70">
+          </div>
+          <select id="cameraRollSelect" class="mini-select" aria-label="Active roll"></select>
+        </div>
+        <div class="camera-film-counter"><span id="cameraRollBadge">Kira Roll</span><b id="cameraRollCount">0 / 36</b></div>
 
         <div class="camera-actions">
           <button class="round-label-btn" id="galleryBtn"><span>▧</span>Gallery</button>
@@ -67,6 +79,11 @@
             <p>turn ordinary photos into memories.</p>
           </div>
           <div class="header-actions"><button class="history-btn" id="undoBtn" title="Undo">↶</button><button class="history-btn" id="redoBtn" title="Redo">↷</button><button class="text-btn" id="saveTopBtn">Save</button></div>
+        </div>
+
+        <div class="develop-roll-row">
+          <span>Save edits to</span>
+          <select id="developRollSelect" class="mini-select"></select>
         </div>
 
         <div class="editor-card">
@@ -125,18 +142,37 @@
             <h2>Rolls</h2>
             <p>your little rolls of film.</p>
           </div>
-          <button class="icon-btn" id="newRollBtn">＋</button>
+          <div class="header-actions">
+            <button class="text-btn" id="importToRollBtn">Import</button>
+            <button class="icon-btn" id="newRollBtn">＋</button>
+          </div>
         </div>
-        <div class="roll-tabs">
-          <button class="chip active" data-roll-filter="all">All</button>
-          <button class="chip" data-roll-filter="favorites">Favorites</button>
-          <button class="chip" data-roll-filter="edited">Edited</button>
+
+        <div class="roll-collection-bar" id="rollCollectionBar"></div>
+
+        <div class="roll-toolbar">
+          <div class="roll-tabs">
+            <button class="chip active" data-roll-filter="all">All</button>
+            <button class="chip" data-roll-filter="favorites">Favorites</button>
+            <button class="chip" data-roll-filter="edited">Edited</button>
+          </div>
+          <button class="secondary-btn compact-btn" id="contactSheetBtn">Contact Sheet</button>
         </div>
+
+        <div class="contact-mode-bar hidden" id="contactModeBar">
+          <span><b id="contactSelectedCount">0</b> selected</span>
+          <div>
+            <button class="tiny-btn" id="selectAllContactBtn">Select All</button>
+            <button class="tiny-btn rose" id="makeContactSheetBtn">Make Sheet</button>
+            <button class="tiny-btn" id="cancelContactBtn">Cancel</button>
+          </div>
+        </div>
+
         <div class="roll-grid" id="rollGrid"></div>
         <div class="empty-rolls" id="emptyRolls">
           <div>🎞️</div>
           <h3>Your roll is empty</h3>
-          <p>Photos you edit in Kira can be kept here locally on this device.</p>
+          <p>Take photos with Kira or import photos into this roll.</p>
         </div>
       </section>
 
@@ -170,12 +206,13 @@
           <h3>Storage</h3>
           <div class="setting-row"><span>Photos stored in Kira</span><b id="storedCount">0</b></div>
           <div class="setting-row"><span>Saved recipes</span><b id="recipeCount">0</b></div>
+          <div class="setting-row"><span>Named film rolls</span><b id="namedRollCount">1</b></div>
           <button class="danger-btn" id="clearKiraBtn">Clear Kira local photos</button>
         </div>
 
         <div class="about-card">
-          <img src="./icons/kira-icon-96-b3.png" alt="" />
-          <div><strong>kira</strong><small>Build 3.1 • live filter camera</small></div>
+          <img src="./icons/kira-icon-96-b4.png" alt="" />
+          <div><strong>kira</strong><small>Build 4 • rolls, contact sheets & camera tools</small></div>
         </div>
       </section>
     </main>
@@ -190,8 +227,54 @@
 
   <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden />
   <input type="file" id="galleryInput" accept="image/*" hidden />
+  <input type="file" id="rollImportInput" accept="image/*" multiple hidden />
+
+  <div class="modal-backdrop hidden" id="rollModal">
+    <div class="modal-card">
+      <div class="modal-title-row"><h3 id="rollModalTitle">New Film Roll</h3><button class="modal-close" data-close-modal="rollModal">×</button></div>
+      <label class="modal-label">Roll name<input id="rollNameInput" class="filter-search-input" maxlength="28" placeholder="Tokyo '26"></label>
+      <div class="modal-actions">
+        <button class="primary-btn" id="saveRollBtn">Save Roll</button>
+        <button class="danger-btn hidden" id="deleteRollBtn">Delete Roll</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="photoModal">
+    <div class="modal-card photo-detail-card">
+      <div class="modal-title-row"><h3>Photo Details</h3><button class="modal-close" data-close-modal="photoModal">×</button></div>
+      <img id="photoModalImage" class="photo-detail-image" alt="Kira photo">
+      <div class="photo-detail-meta" id="photoDetailMeta"></div>
+      <label class="modal-label">Move to roll<select id="photoRollSelect" class="mini-select full"></select></label>
+      <div class="modal-actions grid-2">
+        <button class="secondary-btn" id="photoUseLookBtn">Use This Look</button>
+        <button class="secondary-btn" id="photoFavoriteBtn">♡ Favorite</button>
+        <button class="danger-btn" id="photoDeleteBtn">Delete Photo</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="contactModal">
+    <div class="modal-card contact-modal-card">
+      <div class="modal-title-row"><h3>Contact Sheet</h3><button class="modal-close" data-close-modal="contactModal">×</button></div>
+      <div class="inline-grid-2">
+        <label class="modal-label">Layout<select id="contactLayout" class="mini-select full"><option>2x2</option><option selected>3x3</option><option>3x4</option><option>4x4</option></select></label>
+        <label class="modal-label">Paper<select id="contactTone" class="mini-select full"><option value="#F8F1E9">Cream</option><option value="#FFF9F5">White</option><option value="#E9C9C7">Old Rose</option><option value="#1C1919">Black</option></select></label>
+      </div>
+      <label class="modal-label">Film label<input id="contactLabel" class="filter-search-input" maxlength="32" value="KIRA FILM 400"></label>
+      <button class="primary-btn" id="generateContactBtn">Generate Contact Sheet</button>
+      <div class="contact-preview-wrap hidden" id="contactPreviewWrap">
+        <img id="contactPreview" alt="Generated contact sheet">
+        <div class="modal-actions grid-2">
+          <button class="primary-btn" id="saveContactBtn">Save Sheet</button>
+          <button class="secondary-btn" id="shareContactBtn">Share</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=3.1.0"></script>
+  <script src="./app.js?v=4.0.0"></script>
 </body>
 </html>
