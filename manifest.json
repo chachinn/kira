@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Kira \u2014 Retro Film Camera",
   "short_name": "Kira",
-  "description": "A local-first retro film photo editor with film lab recipes, filters, frames and dreamy effects.",
+  "description": "A local-first retro film camera with live in-app filter previews, Film Lab recipes, frames and dreamy effects.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

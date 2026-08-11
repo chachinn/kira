@@ -1,4 +1,4 @@
-const CACHE='kira-build3-v1-20260811';
+const CACHE='kira-build3-livecamera-v1-20260811';
 const SHELL=['./','./index.html','./style.css','./app.js','./manifest.json','./icons/kira-icon-32-b3.png','./icons/kira-icon-96-b3.png','./icons/kira-icon-180-b3.png','./icons/kira-icon-192-b3.png','./icons/kira-icon-512-b3.png','./icons/kira-icon-192-maskable-b3.png','./icons/kira-icon-512-maskable-b3.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});
