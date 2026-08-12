@@ -991,3 +991,7 @@ body.theme-lavender{--cream:#f6f1f7;--paper:#ece3ef;--white:#fcf8fc}body.theme-s
 
 @media(max-width:390px){.compact-brand .tagline{display:none}.compact-brand .brand{font-size:25px}.library-search-row{grid-template-columns:1fr 102px}.settings-button-grid{grid-template-columns:1fr}.camera-hardware-grid{grid-template-columns:1fr 1fr}}
 @media(min-width:700px){.app-drawer{left:calc(50% - 260px)}}
+
+
+/* Build 11.1 — Polaroid captions */
+.photo-caption-tools{margin-top:4px;padding:14px 14px 12px;border-radius:20px;background:rgba(240,227,215,.82);border:1px solid rgba(148,111,116,.12);display:grid;gap:10px}.caption-tools-head strong{display:block;color:var(--rose-dark);font-family:Georgia,serif;font-size:18px;line-height:1.1}.caption-tools-head small,.caption-tools-note{display:block;color:#8b7476;font-size:11px;line-height:1.45}.photo-caption-tools .mini-select{width:100%;min-height:48px;border-radius:16px;padding:0 14px;background:#fffaf7;border:1px solid rgba(148,111,116,.14);font-size:16px;color:#5f4c4e}

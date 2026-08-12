@@ -408,6 +408,15 @@
         <label class="modal-label">Title<input id="photoTitleInput" class="filter-search-input" maxlength="60" placeholder="Give this moment a title"></label>
         <label class="modal-label">Notes<textarea id="photoNotesInput" class="media-notes-input" maxlength="500" placeholder="A little memory, place, or story…"></textarea></label>
         <label class="modal-label">Tags<input id="photoTagsInput" class="filter-search-input" maxlength="160" placeholder="tokyo, friends, summer"></label>
+        <div class="photo-caption-tools hidden" id="photoCaptionTools">
+          <div class="caption-tools-head">
+            <strong>Polaroid Caption</strong>
+            <small>Works on instant / polaroid style framed photos.</small>
+          </div>
+          <label class="modal-label">Caption<input id="photoCaptionInput" class="filter-search-input" maxlength="32" placeholder="little memory ♡"></label>
+          <label class="modal-label">Caption font<select id="photoCaptionFontSelect" class="mini-select full"><option value="Classic Serif">Classic Serif</option><option value="1989 Sparkle">1989 Sparkle</option><option value="Typewriter">Typewriter</option><option value="Marker">Marker</option><option value="Mono Label">Mono Label</option></select></label>
+          <div class="caption-tools-note">“1989 Sparkle” is Kira’s 1989-inspired handwritten caption style.</div>
+        </div>
         <button class="secondary-btn" id="savePhotoDetailsBtn">Save Details</button>
       </div>
       <label class="modal-label">Move to roll<select id="photoRollSelect" class="mini-select full"></select></label>
