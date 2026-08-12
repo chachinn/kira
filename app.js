@@ -603,6 +603,81 @@
   async function importPhotosToRoll(files){const list=[...files].filter(f=>f.type.startsWith('image/'));if(!list.length)return;const db=await openDB();await new Promise((res,rej)=>{const tx=db.transaction('photos','readwrite'),store=tx.objectStore('photos');list.forEach(file=>store.add({blob:file,createdAt:Date.now(),rollId:state.activeNamedRollId,kind:'original',name:(file.name||'photo').replace(/\.[^.]+$/,''),filter:'Original',favorite:false}));tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close();await refreshRolls();toast(`${list.length} photo${list.length===1?'':'s'} imported to ${rollName(state.activeNamedRollId)}`)}
 
   function isVideoItem(x){return x?.mediaType==='video'||x?.kind==='video'||x?.blob?.type?.startsWith?.('video/')}
+  function modalCaptionFrame(item){
+    return item?.captionFrame || item?.snapshot?.frame || 'None';
+  }
+  function modalCaptionEnabled(item){
+    return !!item && !isVideoItem(item) && isInstantCaptionFrame(modalCaptionFrame(item));
+  }
+  function syncPhotoCaptionUi(item){
+    const wrap=$('#photoCaptionTools');
+    if(!wrap)return;
+    const enabled=modalCaptionEnabled(item);
+    wrap.classList.toggle('hidden',!enabled);
+    if(!enabled)return;
+    const captionInput=$('#photoCaptionInput');
+    const fontSelect=$('#photoCaptionFontSelect');
+    if(captionInput)captionInput.value=item.caption ?? item.snapshot?.caption ?? '';
+    if(fontSelect)fontSelect.value=item.captionFont || item.snapshot?.captionFont || 'Classic Serif';
+  }
+  async function renderInstantCaptionBlob(item){
+    const frame=modalCaptionFrame(item);
+    if(!modalCaptionEnabled(item) || !item?.blob)return item?.blob || null;
+
+    const source=await decodePhotoBlob(item.blob);
+    try{
+      const sw=source.width||source.naturalWidth;
+      const sh=source.height||source.naturalHeight;
+      if(!sw||!sh)throw new Error('Could not read photo dimensions.');
+
+      const canvas=document.createElement('canvas');
+      canvas.width=sw;
+      canvas.height=sh;
+      const ctx=canvas.getContext('2d',{alpha:false});
+      if(!ctx)throw new Error('Canvas is unavailable.');
+
+      ctx.drawImage(source,0,0,sw,sh);
+
+      let pct=.08;
+      if(frame==='Polaroid'||frame==='Instant Square')pct=.105;
+      if(frame==='Instant Wide')pct=.065;
+      if(frame==='Instant Mini')pct=.08;
+      if(frame==='Instant Black')pct=.10;
+
+      const frameWidth=Number(item.snapshot?.frameWidth||8);
+      const footer=Math.max(24,Math.round(sh*pct+frameWidth*1.4));
+      const black=frame==='Instant Black';
+      const tone=black?'#171414':(item.snapshot?.frameTone||'#fff8f1');
+
+      // Redraw only the instant-film footer. This lets captions be updated
+      // without reprocessing the entire filter stack.
+      ctx.fillStyle=tone;
+      ctx.fillRect(0,sh-footer,sw,footer);
+
+      const caption=String(item.caption||'').trim();
+      if(caption){
+        ctx.fillStyle=black?'#f8eee7':'#6a4d4e';
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.font=captionFontCss(item.captionFont||'Classic Serif',Math.max(15,Math.round(sw*.031)));
+
+        const maxWidth=sw*.82;
+        let text=caption;
+        if(ctx.measureText(text).width>maxWidth){
+          while(text.length>1 && ctx.measureText(text+'…').width>maxWidth)text=text.slice(0,-1);
+          text+='…';
+        }
+        ctx.fillText(text,sw/2,sh-footer*.36,maxWidth);
+      }
+
+      return await new Promise((resolve,reject)=>{
+        canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Could not save captioned photo.')),'image/jpeg',.92);
+      });
+    } finally {
+      if(source&&typeof source.close==='function')source.close();
+    }
+  }
+
   function currentRollItems(){let list=state.rolls.filter(x=>(state.rollViewId==='all'||x.rollId===state.rollViewId)&&(state.activeRollFilter==='all'||(state.activeRollFilter==='favorites'&&x.favorite)||(state.activeRollFilter==='edited'&&x.kind==='edited')||(state.activeRollFilter==='videos'&&isVideoItem(x))));const q=state.rollSearch.trim().toLowerCase();if(q)list=list.filter(x=>{const hay=[x.title,x.name,x.notes,x.filter,rollName(x.rollId),...(Array.isArray(x.tags)?x.tags:[])].filter(Boolean).join(' ').toLowerCase();return hay.includes(q)});if(state.rollSort==='oldest')list.sort((a,b)=>a.createdAt-b.createdAt);else if(state.rollSort==='favorites')list.sort((a,b)=>Number(!!b.favorite)-Number(!!a.favorite)||b.createdAt-a.createdAt);else list.sort((a,b)=>b.createdAt-a.createdAt);return list}
   function renderNamedRollBar(){const area=$('#rollCollectionBar');if(!area)return;const photoItems=state.rolls.filter(x=>!isVideoItem(x));const allCover=photoItems.slice().sort((a,b)=>b.createdAt-a.createdAt)[0];let html=`<div class="roll-album-card ${state.rollViewId==='all'?'active':''}" data-cover-id="${allCover?.id||''}"><button class="roll-album-main" data-roll-view="all"><strong>All Media</strong><small>${state.rolls.length} items</small></button></div>`;const unfiled=state.rolls.filter(x=>(x.rollId||'unfiled')==='unfiled');if(unfiled.length){const cover=unfiled.filter(x=>!isVideoItem(x)).sort((a,b)=>b.createdAt-a.createdAt)[0];html+=`<div class="roll-album-card ${state.rollViewId==='unfiled'?'active':''}" data-cover-id="${cover?.id||''}"><button class="roll-album-main" data-roll-view="unfiled"><strong>Unfiled</strong><small>${unfiled.length} items</small></button></div>`}html+=state.namedRolls.map(r=>{const items=state.rolls.filter(x=>x.rollId===r.id),cover=items.filter(x=>!isVideoItem(x)).sort((a,b)=>b.createdAt-a.createdAt)[0];return `<div class="roll-album-card ${state.rollViewId===r.id?'active':''}" data-cover-id="${cover?.id||''}"><button class="roll-album-main" data-roll-view="${r.id}"><strong>${escapeHtml(r.name)}</strong><small>${items.length} items</small></button><button class="roll-menu-btn" data-roll-menu="${r.id}">⋯</button></div>`}).join('');area.innerHTML=html;hydrateRollCovers();$$('[data-roll-view]',area).forEach(b=>b.onclick=()=>{state.rollViewId=b.dataset.rollView;if(state.rollViewId!=='all')setActiveRoll(state.rollViewId);else{renderNamedRollBar();renderRolls()}});$$('[data-roll-menu]',area).forEach(b=>b.onclick=e=>{e.stopPropagation();openRollModal(b.dataset.rollMenu)})}
   async function hydrateRollCovers(){for(const card of $$('[data-cover-id]',$('#rollCollectionBar'))){const id=card.dataset.coverId;if(!id)continue;const item=state.rolls.find(x=>String(x.id)===String(id));if(!item?.blob)continue;const u=URL.createObjectURL(item.blob);card.style.backgroundImage=`url('${u}')`;card.style.backgroundSize='cover';card.style.backgroundPosition='center';setTimeout(()=>URL.revokeObjectURL(u),12000)}}
@@ -614,6 +689,40 @@
 
   function renderRolls(){if(!$('#rollGrid'))return;const items=currentRollItems();$('#emptyRolls').classList.toggle('hidden',items.length>0);$('#rollGrid').classList.toggle('hidden',items.length===0);$('#contactModeBar').classList.toggle('hidden',!state.contactMode);$('#bulkSelectBar').classList.toggle('hidden',!state.bulkSelectMode);$('#contactSelectedCount').textContent=state.selectedPhotoIds.size;$('#bulkSelectedCount')&&($('#bulkSelectedCount').textContent=state.bulkSelectedIds.size);document.body.classList.toggle('bulk-selecting',state.bulkSelectMode);const selectBtn=$('#bulkSelectBtn');if(selectBtn){selectBtn.textContent=state.bulkSelectMode?'Done':'Select';selectBtn.setAttribute('aria-expanded',String(state.bulkSelectMode))}$('#rollGrid').innerHTML=items.map(x=>{const u=URL.createObjectURL(x.blob);setTimeout(()=>URL.revokeObjectURL(u),60000);const video=isVideoItem(x),contactSel=state.selectedPhotoIds.has(String(x.id)),bulkSel=state.bulkSelectedIds.has(String(x.id)),contactSelectable=state.contactMode&&!video,bulkSelectable=state.bulkSelectMode;const media=video?`<video src="${u}" muted playsinline preload="none"></video>`:`<img src="${u}" alt="Kira photo" loading="lazy" decoding="async">`;const title=x.title?`<span class="media-title-badge">${escapeHtml(x.title)}</span>`:'';let selector='';if(state.bulkSelectMode)selector=`<span class="bulk-selection-check">${bulkSel?'✓':''}</span>`;else if(state.contactMode)selector=video?'<span class="selection-check">—</span>':`<span class="selection-check">${contactSel?'✓':'+'}</span>`;else selector=`<button type="button" class="photo-menu-btn" data-photo-menu="${x.id}" aria-label="Open media details">⋯</button>`;return `<article class="roll-photo ${contactSelectable?'selectable':''} ${contactSel?'selected':''} ${bulkSelectable?'bulk-selectable':''} ${bulkSel?'bulk-selected':''}" role="button" tabindex="0" aria-label="Open ${escapeHtml(video?'video':'photo')} details" data-photo-id="${x.id}">${media}${title}${video?'<span class="video-roll-badge">▶ VIDEO</span>':''}${selector}<span class="roll-badge">${escapeHtml(video?'Video':x.kind==='edited'?(x.filter||'Edited'):'Original')}</span></article>`}).join('')}
   function toggleBulkSelection(id){const key=String(id);state.bulkSelectedIds.has(key)?state.bulkSelectedIds.delete(key):state.bulkSelectedIds.add(key);renderRolls()}
+  function safeOpenPhotoModal(id){
+    try{
+      openPhotoModal(id);
+    }catch(err){
+      console.error('Kira Media Details error:',err);
+      // Keep the app responsive even if an optional Media Details enhancement fails.
+      const item=state.rolls.find(x=>String(x.id)===String(id));
+      if(!item){toast('Kira could not find that media item.');return}
+      state.photoModalId=String(id);
+      const modal=$('#photoModal');
+      const im=$('#photoModalImage');
+      const vid=$('#photoModalVideo');
+      try{
+        const isVid=isVideoItem(item);
+        const url=URL.createObjectURL(item.blob);
+        if(isVid){
+          if(im)im.classList.add('hidden');
+          if(vid){vid.classList.remove('hidden');vid.src=url;vid.dataset.objectUrl=url}
+        }else{
+          if(vid){vid.pause();vid.classList.add('hidden')}
+          if(im){im.classList.remove('hidden');im.src=url;im.dataset.objectUrl=url}
+        }
+        if($('#photoDetailMeta')){
+          $('#photoDetailMeta').innerHTML=`<div><b>Roll</b>${escapeHtml(rollName(item.rollId))}</div><div><b>Look</b>${escapeHtml(item.filter||'Original')}</div><div><b>Type</b>${isVid?'Video':'Photo'}</div><div><b>Date</b>${new Date(item.createdAt).toLocaleDateString()}</div>`;
+        }
+        if(modal)modal.classList.remove('hidden');
+        toast('Media opened in safe mode.');
+      }catch(fallbackErr){
+        console.error('Kira Media Details fallback error:',fallbackErr);
+        toast('Could not open this media item. Try reopening Kira.');
+      }
+    }
+  }
+
   let rollTouchStart=null,rollTouchHandledAt=0;
   function activateRollCard(card){
     if(!card)return;
@@ -624,7 +733,7 @@
       if(isVideoItem(item)){toast('Contact sheets use photos only.');return}
       toggleContactSelection(id);return
     }
-    openPhotoModal(id)
+    safeOpenPhotoModal(id)
   }
   function bindRollGridInteractions(){
     const grid=$('#rollGrid');
@@ -634,7 +743,7 @@
     grid.addEventListener('click',e=>{
       if(Date.now()-rollTouchHandledAt<550)return;
       const menu=e.target.closest('[data-photo-menu]');
-      if(menu){e.preventDefault();e.stopPropagation();openPhotoModal(menu.dataset.photoMenu);return}
+      if(menu){e.preventDefault();e.stopPropagation();safeOpenPhotoModal(menu.dataset.photoMenu);return}
       const card=e.target.closest('[data-photo-id]');
       if(card){e.preventDefault();activateRollCard(card)}
     });
@@ -667,7 +776,7 @@
 
       rollTouchHandledAt=Date.now();
       e.preventDefault();
-      if(menu){openPhotoModal(menu.dataset.photoMenu);return}
+      if(menu){safeOpenPhotoModal(menu.dataset.photoMenu);return}
       activateRollCard(card);
     },{passive:false});
   }
@@ -683,11 +792,11 @@
   function setContactMode(on){state.contactMode=on;if(on){state.bulkSelectMode=false;state.bulkSelectedIds.clear()}if(!on)state.selectedPhotoIds.clear();renderRolls()}
   function selectAllCurrent(){const items=currentRollItems().filter(x=>!isVideoItem(x));const limit=16;items.slice(0,limit).forEach(x=>state.selectedPhotoIds.add(String(x.id)));renderRolls();if(items.length>limit)toast('Selected the first 16 photos.')}
 
-  function openPhotoModal(id){const item=state.rolls.find(x=>String(x.id)===String(id));if(!item)return;state.photoModalId=String(id);const im=$('#photoModalImage'),vid=$('#photoModalVideo'),video=isVideoItem(item);for(const media of [im,vid]){if(media?.dataset.objectUrl){URL.revokeObjectURL(media.dataset.objectUrl);delete media.dataset.objectUrl}}const u=URL.createObjectURL(item.blob);if(video){im.classList.add('hidden');vid.classList.remove('hidden');vid.src=u;vid.dataset.objectUrl=u}else{vid.pause();vid.classList.add('hidden');im.classList.remove('hidden');im.src=u;im.dataset.objectUrl=u}$('#photoDetailMeta').innerHTML=`<div><b>Roll</b>${escapeHtml(rollName(item.rollId))}</div><div><b>${video?'Preview look':'Look'}</b>${escapeHtml(video?(item.videoPreviewLook||item.filter||'Original'):item.kind==='edited'?(item.filter||'Edited'):'Original')}</div><div><b>Type</b>${video?'Video':item.kind==='edited'?'Edited':'Original'}</div><div><b>Date</b>${new Date(item.createdAt).toLocaleDateString()}</div>`;renderRollSelectors();$('#photoRollSelect').value=(item.rollId&&($('#photoRollSelect option[value="'+item.rollId+'"]')))?item.rollId:'unfiled';$('#photoTitleInput').value=item.title||'';$('#photoNotesInput').value=item.notes||'';$('#photoTagsInput').value=(Array.isArray(item.tags)?item.tags:[]).join(', ');syncPhotoCaptionUi(item);$('#photoFavoriteBtn').textContent=item.favorite?'♥ Favorited':'♡ Favorite';$('#photoUseLookBtn').disabled=video||!item.snapshot;$('#photoModal').classList.remove('hidden')}
-  async function savePhotoDetails(){const item=currentModalPhoto();if(!item)return;item.title=$('#photoTitleInput').value.trim();item.notes=$('#photoNotesInput').value.trim();item.tags=$('#photoTagsInput').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,20);if(modalCaptionEnabled(item)){item.caption=$('#photoCaptionInput').value.trim();item.captionFont=$('#photoCaptionFontSelect').value||'Classic Serif';item.captionFrame=modalCaptionFrame(item);if(item.snapshot){item.snapshot.caption=item.caption;item.snapshot.captionFont=item.captionFont}const nextBlob=await renderInstantCaptionBlob(item);if(nextBlob)item.blob=nextBlob;}await updateRollItem(item);toast(modalCaptionEnabled(item)?'Memory details and caption saved.':'Memory details saved.');openPhotoModal(item.id)}
+  function openPhotoModal(id){const item=state.rolls.find(x=>String(x.id)===String(id));if(!item)return;state.photoModalId=String(id);const im=$('#photoModalImage'),vid=$('#photoModalVideo'),video=isVideoItem(item);for(const media of [im,vid]){if(media?.dataset.objectUrl){URL.revokeObjectURL(media.dataset.objectUrl);delete media.dataset.objectUrl}}const u=URL.createObjectURL(item.blob);if(video){im.classList.add('hidden');vid.classList.remove('hidden');vid.src=u;vid.dataset.objectUrl=u}else{vid.pause();vid.classList.add('hidden');im.classList.remove('hidden');im.src=u;im.dataset.objectUrl=u}$('#photoDetailMeta').innerHTML=`<div><b>Roll</b>${escapeHtml(rollName(item.rollId))}</div><div><b>${video?'Preview look':'Look'}</b>${escapeHtml(video?(item.videoPreviewLook||item.filter||'Original'):item.kind==='edited'?(item.filter||'Edited'):'Original')}</div><div><b>Type</b>${video?'Video':item.kind==='edited'?'Edited':'Original'}</div><div><b>Date</b>${new Date(item.createdAt).toLocaleDateString()}</div>`;renderRollSelectors();$('#photoRollSelect').value=(item.rollId&&($('#photoRollSelect option[value="'+item.rollId+'"]')))?item.rollId:'unfiled';$('#photoTitleInput').value=item.title||'';$('#photoNotesInput').value=item.notes||'';$('#photoTagsInput').value=(Array.isArray(item.tags)?item.tags:[]).join(', ');try{syncPhotoCaptionUi(item)}catch(err){console.warn('Kira caption UI:',err);$('#photoCaptionTools')?.classList.add('hidden')}$('#photoFavoriteBtn').textContent=item.favorite?'♥ Favorited':'♡ Favorite';$('#photoUseLookBtn').disabled=video||!item.snapshot;$('#photoModal').classList.remove('hidden')}
+  async function savePhotoDetails(){const item=currentModalPhoto();if(!item)return;item.title=$('#photoTitleInput').value.trim();item.notes=$('#photoNotesInput').value.trim();item.tags=$('#photoTagsInput').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,20);let captionSaved=false;try{if(modalCaptionEnabled(item)){item.caption=$('#photoCaptionInput')?.value.trim()||'';item.captionFont=$('#photoCaptionFontSelect')?.value||'Classic Serif';item.captionFrame=modalCaptionFrame(item);if(item.snapshot){item.snapshot.caption=item.caption;item.snapshot.captionFont=item.captionFont}const nextBlob=await renderInstantCaptionBlob(item);if(nextBlob)item.blob=nextBlob;captionSaved=true}}catch(err){console.error('Kira caption save:',err);toast('Details saved, but the Polaroid caption could not be rendered.')}await updateRollItem(item);if(!captionSaved)toast('Memory details saved.');else toast('Memory details and caption saved.');safeOpenPhotoModal(item.id)}
   function currentModalPhoto(){return state.rolls.find(x=>String(x.id)===String(state.photoModalId))}
-  async function moveModalPhoto(){const item=currentModalPhoto();if(!item)return;item.rollId=$('#photoRollSelect').value;await updateRollItem(item);openPhotoModal(item.id);toast('Photo moved.')}
-  async function favoriteModalPhoto(){const item=currentModalPhoto();if(!item)return;item.favorite=!item.favorite;await updateRollItem(item);openPhotoModal(item.id)}
+  async function moveModalPhoto(){const item=currentModalPhoto();if(!item)return;item.rollId=$('#photoRollSelect').value;await updateRollItem(item);safeOpenPhotoModal(item.id);toast('Photo moved.')}
+  async function favoriteModalPhoto(){const item=currentModalPhoto();if(!item)return;item.favorite=!item.favorite;await updateRollItem(item);safeOpenPhotoModal(item.id)}
   async function deleteModalPhoto(){const item=currentModalPhoto();if(!item)return;if(!confirm('Delete this photo from Kira local storage?'))return;closeModal('photoModal');await deleteRollItem(item.id);toast('Photo deleted from Kira.')}
   function useModalPhotoLook(){const item=currentModalPhoto();if(!item?.snapshot){toast('This photo does not have a saved Kira look.');return}if(!state.image){toast('Load or take a photo first, then apply this look.');closeModal('photoModal');switchScreen('camera');return}commit();applySnapshot(item.snapshot);closeModal('photoModal');switchScreen('develop');toast('Look applied from saved photo.')}
 

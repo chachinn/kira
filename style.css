@@ -1024,3 +1024,21 @@ body.theme-lavender{--cream:#f6f1f7;--paper:#ece3ef;--white:#fcf8fc}body.theme-s
 @media (prefers-reduced-motion:reduce){
   .roll-photo:active{transform:none}
 }
+
+
+/* === BUILD 11.3: ROLLS RUNTIME/TAP HARDENING === */
+#rollGrid{position:relative;z-index:1;pointer-events:auto}
+#rollGrid .roll-photo{pointer-events:auto!important;isolation:isolate}
+#rollGrid .roll-photo::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+}
+#rollGrid .roll-photo > img,
+#rollGrid .roll-photo > video{position:relative;z-index:0}
+#rollGrid .roll-photo > .roll-badge,
+#rollGrid .roll-photo > .media-title-badge,
+#rollGrid .roll-photo > .video-roll-badge{z-index:2;pointer-events:none!important}
+#rollGrid .roll-photo > .photo-menu-btn{z-index:5;pointer-events:auto!important}
