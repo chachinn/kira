@@ -612,8 +612,66 @@
   async function deleteRollFromModal(){const id=state.rollModalId;if(!id)return;const r=state.namedRolls.find(x=>x.id===id);if(!r)return;if(!confirm(`Delete roll "${r.name}"? Photos and videos will move to Unfiled.`))return;for(const item of state.rolls.filter(x=>x.rollId===id)){item.rollId='unfiled';await updateRollItemDirect(item)}state.namedRolls=state.namedRolls.filter(x=>x.id!==id);if(state.activeNamedRollId===id)state.activeNamedRollId='unfiled';if(state.rollViewId===id)state.rollViewId='all';saveNamedRolls();closeModal('rollModal');await refreshRolls();toast('Roll deleted; media kept in Unfiled.')}
   async function updateRollItemDirect(item){const db=await openDB();await new Promise((res,rej)=>{const tx=db.transaction('photos','readwrite');tx.objectStore('photos').put(item);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close()}
 
-  function renderRolls(){if(!$('#rollGrid'))return;const items=currentRollItems();$('#emptyRolls').classList.toggle('hidden',items.length>0);$('#rollGrid').classList.toggle('hidden',items.length===0);$('#contactModeBar').classList.toggle('hidden',!state.contactMode);$('#bulkSelectBar').classList.toggle('hidden',!state.bulkSelectMode);$('#contactSelectedCount').textContent=state.selectedPhotoIds.size;$('#bulkSelectedCount')&&($('#bulkSelectedCount').textContent=state.bulkSelectedIds.size);document.body.classList.toggle('bulk-selecting',state.bulkSelectMode);const selectBtn=$('#bulkSelectBtn');if(selectBtn){selectBtn.textContent=state.bulkSelectMode?'Done':'Select';selectBtn.setAttribute('aria-expanded',String(state.bulkSelectMode))}$('#rollGrid').innerHTML=items.map(x=>{const u=URL.createObjectURL(x.blob);setTimeout(()=>URL.revokeObjectURL(u),60000);const video=isVideoItem(x),contactSel=state.selectedPhotoIds.has(String(x.id)),bulkSel=state.bulkSelectedIds.has(String(x.id)),contactSelectable=state.contactMode&&!video,bulkSelectable=state.bulkSelectMode;const media=video?`<video src="${u}" muted playsinline preload="none"></video>`:`<img src="${u}" alt="Kira photo" loading="lazy" decoding="async">`;const title=x.title?`<span class="media-title-badge">${escapeHtml(x.title)}</span>`:'';let selector='';if(state.bulkSelectMode)selector=`<span class="bulk-selection-check">${bulkSel?'✓':''}</span>`;else if(state.contactMode)selector=video?'<span class="selection-check">—</span>':`<span class="selection-check">${contactSel?'✓':'+'}</span>`;else selector=`<button class="photo-menu-btn" data-photo-menu="${x.id}">⋯</button>`;return `<article class="roll-photo ${contactSelectable?'selectable':''} ${contactSel?'selected':''} ${bulkSelectable?'bulk-selectable':''} ${bulkSel?'bulk-selected':''}" data-photo-id="${x.id}">${media}${title}${video?'<span class="video-roll-badge">▶ VIDEO</span>':''}${selector}<span class="roll-badge">${escapeHtml(video?'Video':x.kind==='edited'?(x.filter||'Edited'):'Original')}</span></article>`}).join('');$$('[data-photo-id]').forEach(card=>card.onclick=e=>{if(e.target.closest('button'))return;const id=card.dataset.photoId,item=state.rolls.find(x=>String(x.id)===String(id));if(state.bulkSelectMode){toggleBulkSelection(id);return}if(state.contactMode){if(isVideoItem(item)){toast('Contact sheets use photos only.');return}toggleContactSelection(id);return}openPhotoModal(id)});$$('[data-photo-menu]').forEach(b=>b.onclick=()=>openPhotoModal(b.dataset.photoMenu))}
+  function renderRolls(){if(!$('#rollGrid'))return;const items=currentRollItems();$('#emptyRolls').classList.toggle('hidden',items.length>0);$('#rollGrid').classList.toggle('hidden',items.length===0);$('#contactModeBar').classList.toggle('hidden',!state.contactMode);$('#bulkSelectBar').classList.toggle('hidden',!state.bulkSelectMode);$('#contactSelectedCount').textContent=state.selectedPhotoIds.size;$('#bulkSelectedCount')&&($('#bulkSelectedCount').textContent=state.bulkSelectedIds.size);document.body.classList.toggle('bulk-selecting',state.bulkSelectMode);const selectBtn=$('#bulkSelectBtn');if(selectBtn){selectBtn.textContent=state.bulkSelectMode?'Done':'Select';selectBtn.setAttribute('aria-expanded',String(state.bulkSelectMode))}$('#rollGrid').innerHTML=items.map(x=>{const u=URL.createObjectURL(x.blob);setTimeout(()=>URL.revokeObjectURL(u),60000);const video=isVideoItem(x),contactSel=state.selectedPhotoIds.has(String(x.id)),bulkSel=state.bulkSelectedIds.has(String(x.id)),contactSelectable=state.contactMode&&!video,bulkSelectable=state.bulkSelectMode;const media=video?`<video src="${u}" muted playsinline preload="none"></video>`:`<img src="${u}" alt="Kira photo" loading="lazy" decoding="async">`;const title=x.title?`<span class="media-title-badge">${escapeHtml(x.title)}</span>`:'';let selector='';if(state.bulkSelectMode)selector=`<span class="bulk-selection-check">${bulkSel?'✓':''}</span>`;else if(state.contactMode)selector=video?'<span class="selection-check">—</span>':`<span class="selection-check">${contactSel?'✓':'+'}</span>`;else selector=`<button type="button" class="photo-menu-btn" data-photo-menu="${x.id}" aria-label="Open media details">⋯</button>`;return `<article class="roll-photo ${contactSelectable?'selectable':''} ${contactSel?'selected':''} ${bulkSelectable?'bulk-selectable':''} ${bulkSel?'bulk-selected':''}" role="button" tabindex="0" aria-label="Open ${escapeHtml(video?'video':'photo')} details" data-photo-id="${x.id}">${media}${title}${video?'<span class="video-roll-badge">▶ VIDEO</span>':''}${selector}<span class="roll-badge">${escapeHtml(video?'Video':x.kind==='edited'?(x.filter||'Edited'):'Original')}</span></article>`}).join('')}
   function toggleBulkSelection(id){const key=String(id);state.bulkSelectedIds.has(key)?state.bulkSelectedIds.delete(key):state.bulkSelectedIds.add(key);renderRolls()}
+  let rollTouchStart=null,rollTouchHandledAt=0;
+  function activateRollCard(card){
+    if(!card)return;
+    const id=card.dataset.photoId,item=state.rolls.find(x=>String(x.id)===String(id));
+    if(!item)return;
+    if(state.bulkSelectMode){toggleBulkSelection(id);return}
+    if(state.contactMode){
+      if(isVideoItem(item)){toast('Contact sheets use photos only.');return}
+      toggleContactSelection(id);return
+    }
+    openPhotoModal(id)
+  }
+  function bindRollGridInteractions(){
+    const grid=$('#rollGrid');
+    if(!grid||grid.dataset.tapBound==='1')return;
+    grid.dataset.tapBound='1';
+
+    grid.addEventListener('click',e=>{
+      if(Date.now()-rollTouchHandledAt<550)return;
+      const menu=e.target.closest('[data-photo-menu]');
+      if(menu){e.preventDefault();e.stopPropagation();openPhotoModal(menu.dataset.photoMenu);return}
+      const card=e.target.closest('[data-photo-id]');
+      if(card){e.preventDefault();activateRollCard(card)}
+    });
+
+    grid.addEventListener('keydown',e=>{
+      if(e.key!=='Enter'&&e.key!==' ')return;
+      const card=e.target.closest('[data-photo-id]');
+      if(!card)return;
+      e.preventDefault();
+      activateRollCard(card);
+    });
+
+    grid.addEventListener('touchstart',e=>{
+      if(e.touches.length!==1){rollTouchStart=null;return}
+      const t=e.touches[0];
+      rollTouchStart={x:t.clientX,y:t.clientY,target:e.target};
+    },{passive:true});
+
+    grid.addEventListener('touchend',e=>{
+      if(!rollTouchStart||e.changedTouches.length!==1){rollTouchStart=null;return}
+      const t=e.changedTouches[0],dx=t.clientX-rollTouchStart.x,dy=t.clientY-rollTouchStart.y;
+      const moved=Math.hypot(dx,dy);
+      const target=rollTouchStart.target;
+      rollTouchStart=null;
+      if(moved>12)return; // scrolling, not a tap
+
+      const menu=target.closest?.('[data-photo-menu]');
+      const card=target.closest?.('[data-photo-id]');
+      if(!menu&&!card)return;
+
+      rollTouchHandledAt=Date.now();
+      e.preventDefault();
+      if(menu){openPhotoModal(menu.dataset.photoMenu);return}
+      activateRollCard(card);
+    },{passive:false});
+  }
+
   function setBulkSelectMode(on){state.bulkSelectMode=!!on;if(on){state.contactMode=false;state.selectedPhotoIds.clear()}else state.bulkSelectedIds.clear();renderRolls()}
   function selectAllBulk(){const items=currentRollItems();state.bulkSelectedIds=new Set(items.map(x=>String(x.id)));renderRolls();toast(items.length?`${items.length} item${items.length===1?'':'s'} selected.`:'Nothing to select.')}
   function bulkSelectedItems(){return currentRollItems().filter(x=>state.bulkSelectedIds.has(String(x.id)))}
@@ -642,7 +700,7 @@
 
   function escapeHtml(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
-  function bindInputs(){
+  function bindInputs(){bindRollGridInteractions();
     $('#menuBtn')&&($('#menuBtn').onclick=openDrawer);$('#drawerCloseBtn')&&($('#drawerCloseBtn').onclick=closeDrawer);$('#drawerBackdrop')&&($('#drawerBackdrop').onclick=closeDrawer);$$('[data-menu-action]').forEach(b=>b.onclick=()=>runMenuAction(b.dataset.menuAction));$('#surpriseLookBtn')&&($('#surpriseLookBtn').onclick=randomizeLook);$('#cameraTorchBtn')&&($('#cameraTorchBtn').onclick=toggleCameraTorch);const zoom=$('#cameraZoom');if(zoom)zoom.oninput=e=>scheduleCameraZoom(e.target.value);const rs=$('#rollSearch');if(rs)rs.oninput=e=>{state.rollSearch=e.target.value;renderRolls()};const rsort=$('#rollSort');if(rsort){rsort.value=state.rollSort;rsort.onchange=e=>{state.rollSort=e.target.value;renderRolls()}};$('#savePhotoDetailsBtn')&&($('#savePhotoDetailsBtn').onclick=savePhotoDetails);
     const cameraControls=$('#cameraControlsBtn'),cameraPanel=$('#cameraAdvancedPanel');if(cameraControls&&cameraPanel)cameraControls.onclick=()=>{const open=cameraPanel.classList.toggle('hidden')===false;cameraControls.setAttribute('aria-expanded',String(open));cameraControls.textContent=open?'Controls⌃':'Controls⌄';haptic()};
     
