@@ -959,3 +959,35 @@ body.camera-mode .app-update-banner{
 @media(min-width:700px){
   .app-update-banner{bottom:calc(100px + env(safe-area-inset-bottom))}
 }
+
+
+/* === BUILD 11: ACTUAL APP / MEGA UI === */
+.mega-topbar{display:grid;grid-template-columns:42px 1fr 42px;gap:8px;padding-left:12px;padding-right:12px}
+.menu-icon-btn{width:40px;height:40px;border:1px solid var(--line);border-radius:14px;background:rgba(255,250,246,.84);color:var(--rose-dark);font-size:20px;line-height:1}
+.compact-brand{justify-self:center}.compact-brand .brand-icon{width:38px;height:38px}.compact-brand .brand{font-size:27px}.compact-brand .tagline{font-size:9px}
+.essential-nav{grid-template-columns:repeat(3,1fr)}
+
+.drawer-backdrop{position:fixed;z-index:190;inset:0;background:rgba(35,24,25,.38)}
+.app-drawer{position:fixed;z-index:200;top:0;bottom:0;left:max(0px,calc(50% - 260px));width:min(86vw,360px);background:#fffaf6;box-shadow:24px 0 65px rgba(42,25,27,.24);transform:translateX(-110%);transition:transform .22s ease;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+.app-drawer.open{transform:translateX(0)}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;padding:15px;border-bottom:1px solid var(--line)}
+.drawer-brand{display:flex;align-items:center;gap:10px}.drawer-brand img{width:45px;height:45px;border-radius:14px}.drawer-brand strong{font-family:Georgia,serif;color:var(--rose-dark);font-size:24px;display:block}.drawer-brand small{font-size:9px;color:#96777a}
+.drawer-close{border:0;background:var(--paper);color:var(--rose-dark);width:36px;height:36px;border-radius:50%;font-size:23px}.drawer-scroll{padding:10px 12px 28px;overflow:auto}.drawer-section{padding:7px 0 11px;border-bottom:1px solid rgba(96,64,66,.07)}.drawer-section:last-child{border:0}.drawer-section>small{display:block;padding:7px 9px 5px;font-size:8px;letter-spacing:.12em;font-weight:800;color:#b18c8f}.drawer-nav-btn{width:100%;display:flex;align-items:center;gap:12px;border:0;background:transparent;color:var(--ink);border-radius:13px;padding:11px 10px;text-align:left;font-size:12px}.drawer-nav-btn span{width:23px;text-align:center;color:var(--rose-dark);font-size:17px}.drawer-nav-btn:active,.drawer-nav-btn.active{background:var(--paper);color:var(--rose-dark);font-weight:700}
+body.drawer-open{overflow:hidden}
+
+.camera-hardware-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.camera-hardware-grid .secondary-btn{padding:10px 8px;font-size:10px}.camera-zoom-control{margin-top:9px;background:rgba(255,250,246,.76);border:1px solid var(--line);border-radius:15px;padding:10px}.camera-surprise-btn{border-style:dashed}
+
+.library-search-row{display:grid;grid-template-columns:1fr 112px;gap:8px;align-items:center;margin:3px 0 8px}.library-search-row .filter-search-input{margin:0;padding:10px 12px;font-size:16px}.library-search-row .mini-select{width:100%;font-size:10px}
+.media-memory-fields{display:grid;gap:7px;margin:11px 0;padding:11px;background:var(--paper);border-radius:16px}.media-notes-input{width:100%;min-height:82px;resize:vertical;border:1px solid var(--line);background:#fffaf6;border-radius:14px;padding:12px;color:var(--ink);font:inherit;font-size:16px}.roll-photo .media-title-badge{position:absolute;left:8px;top:8px;max-width:65%;background:rgba(255,250,246,.88);color:var(--rose-dark);border-radius:999px;padding:5px 8px;font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.storage-meter{background:var(--paper);border-radius:15px;padding:11px;margin:9px 0}.storage-meter>div:first-child{display:flex;justify-content:space-between;gap:12px;font-size:9px;color:#826669}.storage-meter-track{height:7px;background:rgba(112,77,79,.12);border-radius:999px;overflow:hidden;margin-top:8px}.storage-meter-track i{display:block;height:100%;width:0;background:var(--rose);border-radius:999px;transition:width .25s ease}.settings-button-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.settings-button-grid button{padding:11px 8px;font-size:10px}.settings-group input[type=color]{width:46px;height:34px;padding:2px;border:1px solid var(--line);border-radius:10px;background:#fff}
+body.compact-ui main{padding:9px}body.compact-ui .section-title-row{padding-bottom:8px}body.compact-ui .settings-group summary{padding:11px}body.compact-ui .roll-grid{gap:7px}body.compact-ui .tool-tabs{margin:9px 0 7px}body.compact-ui .filter-browser-card{padding:8px}
+
+.first-run-modal{z-index:260;align-items:center}.onboarding-card{text-align:center;max-width:440px}.onboarding-icon{width:86px;height:86px;border-radius:24px;box-shadow:0 9px 24px rgba(76,48,51,.14)}.onboarding-kicker{margin-top:13px;color:var(--rose);font-weight:900;font-size:9px;letter-spacing:.15em}.onboarding-card h2{font-family:Georgia,serif;color:var(--rose-dark);font-size:28px;margin:6px 0 7px}.onboarding-card>p{font-size:11px;color:#81696b;line-height:1.6;margin:0 auto 14px;max-width:330px}.onboarding-points{display:grid;gap:8px;text-align:left;margin-bottom:14px}.onboarding-points>div{display:grid;grid-template-columns:32px 1fr;gap:8px;background:var(--paper);border-radius:15px;padding:10px}.onboarding-points b{font-size:20px}.onboarding-points strong{display:block;font-size:11px;color:var(--rose-dark)}.onboarding-points small{display:block;font-size:9px;line-height:1.45;color:#846b6d;margin-top:2px}
+.release-badge{display:inline-flex;background:var(--rose);color:#fff;border-radius:999px;padding:5px 9px;font-size:8px;font-weight:800;letter-spacing:.08em}.info-modal-card h4{font-family:Georgia,serif;color:var(--rose-dark);font-size:20px;margin:10px 0}.info-list{display:grid;gap:8px}.info-list>div{display:grid;grid-template-columns:30px 1fr;gap:9px;padding:10px;background:var(--paper);border-radius:14px;font-size:10px;line-height:1.45}.info-list b{font-size:18px;color:var(--rose-dark)}.help-grid{display:grid;gap:8px}.help-grid>div{background:var(--paper);padding:11px;border-radius:14px}.help-grid strong{color:var(--rose-dark);font-size:11px}.help-grid p{font-size:9px;line-height:1.55;color:#80696b;margin:4px 0 0}
+
+/* Themes are applied through variables; keep surfaces cheap to render. */
+body.theme-lavender{--cream:#f6f1f7;--paper:#ece3ef;--white:#fcf8fc}body.theme-sepia{--cream:#f5efe5;--paper:#e9ddca;--white:#fbf6ed}body.theme-mono{--cream:#f3f1ef;--paper:#e7e3e0;--white:#fbfaf9}
+
+@media(max-width:390px){.compact-brand .tagline{display:none}.compact-brand .brand{font-size:25px}.library-search-row{grid-template-columns:1fr 102px}.settings-button-grid{grid-template-columns:1fr}.camera-hardware-grid{grid-template-columns:1fr 1fr}}
+@media(min-width:700px){.app-drawer{left:calc(50% - 260px)}}

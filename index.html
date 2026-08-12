@@ -8,18 +8,19 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=10.3.0" />
+  <link rel="manifest" href="./manifest.json?v=11.0.0" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=10.3.0" />
+  <link rel="stylesheet" href="./style.css?v=11.0.0" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
   <div class="app-shell">
-    <header class="topbar">
-      <div class="brand-wrap">
+    <header class="topbar mega-topbar">
+      <button class="menu-icon-btn" id="menuBtn" aria-label="Open Kira menu" aria-expanded="false">☰</button>
+      <div class="brand-wrap compact-brand">
         <img src="./icons/icon-96.png" alt="" class="brand-icon" />
         <div>
           <div class="brand">kira</div>
@@ -77,7 +78,15 @@
             </div>
           </div>
           <label class="camera-roll-control"><span>Shooting into</span><select id="cameraRollSelect" class="mini-select" aria-label="Active roll"></select></label>
-          <div class="camera-film-counter"><span id="cameraRollBadge">Kira Roll</span><b id="cameraRollCount">0 / 36</b></div>
+          <div class="camera-hardware-grid">
+            <button class="secondary-btn camera-surprise-btn" id="surpriseLookBtn">✦ Surprise Me</button>
+            <button class="secondary-btn hidden" id="cameraTorchBtn">Flashlight Off</button>
+          </div>
+          <div class="camera-zoom-control hidden" id="cameraZoomControl">
+            <div class="control-head"><span>Camera zoom</span><b id="cameraZoomValue">1×</b></div>
+            <input id="cameraZoom" type="range" min="1" max="1" step="0.1" value="1">
+          </div>
+          <div class="camera-film-counter"><span id="cameraRollBadge">Unfiled</span><b id="cameraRollCount">0 / 36</b></div>
         </div>
 
         <div class="camera-actions clean-camera-actions">
@@ -174,6 +183,15 @@
 
         <div class="roll-collection-bar" id="rollCollectionBar"></div>
 
+        <div class="library-search-row">
+          <input id="rollSearch" class="filter-search-input" type="search" placeholder="Search title, tags, look, notes…" autocomplete="off">
+          <select id="rollSort" class="mini-select" aria-label="Sort library">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="favorites">Favorites first</option>
+          </select>
+        </div>
+
         <div class="roll-library-head">
           <div class="roll-tabs compact-roll-tabs">
             <button class="chip active" data-roll-filter="all">All</button>
@@ -221,7 +239,7 @@
 
       <section class="screen clean-settings-screen" id="screen-settings" data-screen="settings">
         <div class="section-title-row cleaner-title-row">
-          <div><h2>Settings</h2><p>only the practical stuff.</p></div>
+          <div><h2>Settings</h2><p>make Kira feel like yours.</p></div>
         </div>
 
         <details class="settings-group" open>
@@ -236,6 +254,12 @@
                 <option value="high">High quality</option>
               </select>
             </label>
+            <label class="setting-row setting-select-row"><span>Default capture mode</span>
+              <select id="settingDefaultCapture" class="mini-select">
+                <option value="photo">Photo</option>
+                <option value="video">Video</option>
+              </select>
+            </label>
             <div class="notice">Smooth mode uses a lower video bitrate and is the recommended setting for iPhone. Kira records the original camera stream for video so recording stays responsive.</div>
           </div>
         </details>
@@ -244,17 +268,38 @@
           <summary><span>Editing</span><small>remember your workflow</small></summary>
           <div class="settings-group-body">
             <label class="setting-row"><span>Remember last filter</span><input type="checkbox" id="settingRememberFilter" checked /></label>
-            <label class="setting-row"><span>Keep originals in Kira Rolls</span><input type="checkbox" id="settingKeepOriginal" checked /></label>
+            <label class="setting-row"><span>Keep originals in Kira Rolls</span><input type="checkbox" id="settingKeepOriginal" /></label>
           </div>
         </details>
 
         <details class="settings-group">
           <summary><span>Saving</span><small>exports & Photos</small></summary>
           <div class="settings-group-body">
-            <label class="setting-row"><span>Auto-download when Save is tapped</span><input type="checkbox" id="settingAutoSave" checked /></label>
+            <label class="setting-row"><span>Auto-download when Save is tapped</span><input type="checkbox" id="settingAutoSave" /></label>
             <label class="setting-row"><span>Continuous shooting — stay on Camera</span><input type="checkbox" id="settingContinuousShoot" checked /></label>
             <label class="setting-row"><span>Queue new captures for iPhone Photos</span><input type="checkbox" id="settingAutoPhotos" checked /></label>
             <div class="notice">Kira saves each shot immediately to Kira Rolls and keeps the camera open. iPhone does not allow a web app to silently insert files into Photos, so queued shots can be sent to Photos together with one tap on the Photos button in Camera.</div>
+          </div>
+        </details>
+
+        <details class="settings-group">
+          <summary><span>Appearance</span><small>theme & spacing</small></summary>
+          <div class="settings-group-body">
+            <label class="setting-row setting-select-row"><span>Theme</span>
+              <select id="settingTheme" class="mini-select">
+                <option value="old-rose">Old Rose</option>
+                <option value="sakura">Sakura Pink</option>
+                <option value="lavender">Lavender Film</option>
+                <option value="sepia">Warm Sepia</option>
+                <option value="mono">Soft Mono</option>
+                <option value="custom">Custom</option>
+              </select>
+            </label>
+            <label class="setting-row"><span>Custom accent</span><input type="color" id="settingAccent" value="#b76e79" /></label>
+            <label class="setting-row setting-select-row"><span>UI spacing</span>
+              <select id="settingDensity" class="mini-select"><option value="cozy">Cozy</option><option value="compact">Compact</option></select>
+            </label>
+            <button class="secondary-btn" id="resetAppearanceBtn">Reset appearance</button>
           </div>
         </details>
 
@@ -263,8 +308,23 @@
           <div class="settings-group-body">
             <div class="setting-row"><span>Media stored in Kira</span><b id="storedCount">0</b></div>
             <div class="setting-row"><span>Saved recipes</span><b id="recipeCount">0</b></div>
-            <div class="setting-row"><span>Named film rolls</span><b id="namedRollCount">1</b></div>
-            <button class="danger-btn" id="clearKiraBtn">Clear Kira local photos</button>
+            <div class="setting-row"><span>Named film rolls</span><b id="namedRollCount">0</b></div>
+            <div class="storage-meter"><div><span>Device storage used by this app</span><b id="storageUsageText">Checking…</b></div><div class="storage-meter-track"><i id="storageUsageBar"></i></div></div>
+            <button class="secondary-btn" id="persistentStorageBtn">Protect local storage</button>
+            <div class="notice">Kira is local-first. Photos, videos, recipes, and settings stay on this device unless you explicitly share or export them.</div>
+            <button class="danger-btn" id="clearKiraBtn">Clear Kira local media</button>
+          </div>
+        </details>
+
+        <details class="settings-group">
+          <summary><span>Backup & Restore</span><small>settings, recipes & rolls</small></summary>
+          <div class="settings-group-body">
+            <div class="notice">Setup backups include preferences, favorite looks, recipes, and roll names. Photos and videos are not included, so backups stay small and fast.</div>
+            <div class="settings-button-grid">
+              <button class="secondary-btn" id="exportSetupBtn">Export Kira Setup</button>
+              <button class="secondary-btn" id="importSetupBtn">Import Setup</button>
+            </div>
+            <button class="secondary-btn" id="resetPreferencesBtn">Reset preferences only</button>
           </div>
         </details>
 
@@ -278,23 +338,54 @@
                 <p>Kira comes from <em>kirakira</em> (キラキラ), meaning “sparkling” or “glittering.” It fits a camera made to capture, style, and save the little moments that shine.</p>
               </div>
             </div>
-            <div class="setting-row"><span>Current version</span><b>Build 10.3</b></div>
+            <div class="setting-row"><span>Current version</span><b>Build 11</b></div>
           </div>
         </details>
       </section>
     </main>
 
-    <nav class="bottom-nav">
+    <nav class="bottom-nav essential-nav">
       <button class="nav-btn active" data-target="camera"><span>▣</span>Camera</button>
       <button class="nav-btn" data-target="develop"><span>♨</span>Develop</button>
       <button class="nav-btn" data-target="rolls"><span>▤</span>Rolls</button>
-      <button class="nav-btn" data-target="settings"><span>⚙</span>Settings</button>
     </nav>
   </div>
+
+  <div class="drawer-backdrop hidden" id="drawerBackdrop"></div>
+  <aside class="app-drawer" id="appDrawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div class="drawer-brand"><img src="./icons/icon-96.png" alt=""><div><strong>kira</strong><small>your little film camera</small></div></div>
+      <button class="drawer-close" id="drawerCloseBtn" aria-label="Close menu">×</button>
+    </div>
+    <div class="drawer-scroll">
+      <div class="drawer-section"><small>MAIN</small>
+        <button class="drawer-nav-btn" data-menu-action="camera"><span>▣</span>Camera</button>
+        <button class="drawer-nav-btn" data-menu-action="develop"><span>♨</span>Develop</button>
+        <button class="drawer-nav-btn" data-menu-action="rolls"><span>▤</span>Rolls</button>
+      </div>
+      <div class="drawer-section"><small>CREATE</small>
+        <button class="drawer-nav-btn" data-menu-action="film-lab"><span>✦</span>Film Lab</button>
+        <button class="drawer-nav-btn" data-menu-action="favorite-looks"><span>♡</span>Favorite Looks</button>
+        <button class="drawer-nav-btn" data-menu-action="surprise"><span>✧</span>Surprise Me</button>
+        <button class="drawer-nav-btn" data-menu-action="contact-sheet"><span>▦</span>Contact Sheet</button>
+      </div>
+      <div class="drawer-section"><small>LIBRARY</small>
+        <button class="drawer-nav-btn" data-menu-action="media-favorites"><span>♥</span>Favorite Media</button>
+        <button class="drawer-nav-btn" data-menu-action="library-search"><span>⌕</span>Search Library</button>
+      </div>
+      <div class="drawer-section"><small>KIRA</small>
+        <button class="drawer-nav-btn" data-menu-action="settings"><span>⚙</span>Settings</button>
+        <button class="drawer-nav-btn" data-menu-action="whats-new"><span>✺</span>What’s New</button>
+        <button class="drawer-nav-btn" data-menu-action="about"><span>ⓘ</span>About Kira</button>
+        <button class="drawer-nav-btn" data-menu-action="help"><span>?</span>Help & Tips</button>
+      </div>
+    </div>
+  </aside>
 
   <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden />
   <input type="file" id="galleryInput" accept="image/*" hidden />
   <input type="file" id="rollImportInput" accept="image/*" multiple hidden />
+  <input type="file" id="setupImportInput" accept="application/json,.json" hidden />
 
   <div class="modal-backdrop hidden" id="rollModal">
     <div class="modal-card">
@@ -313,6 +404,12 @@
       <img id="photoModalImage" class="photo-detail-image" alt="Kira photo">
       <video id="photoModalVideo" class="photo-detail-image hidden" controls playsinline preload="metadata"></video>
       <div class="photo-detail-meta" id="photoDetailMeta"></div>
+      <div class="media-memory-fields">
+        <label class="modal-label">Title<input id="photoTitleInput" class="filter-search-input" maxlength="60" placeholder="Give this moment a title"></label>
+        <label class="modal-label">Notes<textarea id="photoNotesInput" class="media-notes-input" maxlength="500" placeholder="A little memory, place, or story…"></textarea></label>
+        <label class="modal-label">Tags<input id="photoTagsInput" class="filter-search-input" maxlength="160" placeholder="tokyo, friends, summer"></label>
+        <button class="secondary-btn" id="savePhotoDetailsBtn">Save Details</button>
+      </div>
       <label class="modal-label">Move to roll<select id="photoRollSelect" class="mini-select full"></select></label>
       <div class="modal-actions grid-2">
         <button class="secondary-btn" id="photoUseLookBtn">Use This Look</button>
@@ -341,6 +438,49 @@
     </div>
   </div>
 
+  <div class="modal-backdrop hidden first-run-modal" id="onboardingModal">
+    <div class="modal-card onboarding-card">
+      <img src="./icons/icon-192.png" class="onboarding-icon" alt="Kira">
+      <div class="onboarding-kicker">WELCOME TO KIRA</div>
+      <h2>Make little moments shine.</h2>
+      <p>Kira is a camera, film lab, and private local photo library. Start with a clean app — no demo photos, fake rolls, or pre-made personal entries.</p>
+      <div class="onboarding-points">
+        <div><b>📷</b><span><strong>Shoot continuously</strong><small>Pick a look and keep taking photos without being sent to an editor after every shot.</small></span></div>
+        <div><b>🎞️</b><span><strong>Organize your way</strong><small>Create rolls only when you want them. Otherwise captures stay safely under Unfiled.</small></span></div>
+        <div><b>✨</b><span><strong>Make it yours</strong><small>Customize themes, recipes, favorites, tags, notes, saving behavior, and camera options.</small></span></div>
+      </div>
+      <button class="primary-btn" id="finishOnboardingBtn">Start Using Kira</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="whatsNewModal">
+    <div class="modal-card info-modal-card">
+      <div class="modal-title-row"><h3>What’s New</h3><button class="modal-close" data-close-modal="whatsNewModal">×</button></div>
+      <div class="release-badge">BUILD 11</div>
+      <h4>A much bigger Kira, with a much calmer UI.</h4>
+      <div class="info-list">
+        <div><b>☰</b><span>New hamburger navigation with only Camera, Develop, and Rolls kept in the bottom bar.</span></div>
+        <div><b>⌕</b><span>Library search, sorting, titles, notes, and tags.</span></div>
+        <div><b>✦</b><span>Recent Looks, Surprise Me, and shortcuts to Film Lab and favorites.</span></div>
+        <div><b>◉</b><span>Zoom and flashlight controls appear automatically when the device supports them.</span></div>
+        <div><b>◌</b><span>Themes, UI density, storage dashboard, persistent-storage request, and setup backup/restore.</span></div>
+        <div><b>⚡</b><span>Startup work reduced: heavy Develop panels are now built only when you actually open Develop.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="helpModal">
+    <div class="modal-card info-modal-card">
+      <div class="modal-title-row"><h3>Help & Tips</h3><button class="modal-close" data-close-modal="helpModal">×</button></div>
+      <div class="help-grid">
+        <div><strong>Camera permission</strong><p>Kira only requests camera access after you tap Start Camera unless iPhone already reports permission as granted.</p></div>
+        <div><strong>Saving to Photos</strong><p>iPhone does not let a web app silently insert media into Photos. Kira can queue your captures so you can send a batch to the native save/share sheet.</p></div>
+        <div><strong>Where is my media?</strong><p>Everything captured in Kira is stored locally in Rolls. New installs start with no named rolls; media goes to Unfiled until you create one.</p></div>
+        <div><strong>Keep Kira smooth</strong><p>Use Smooth video quality, keep the camera in continuous-shoot mode, and avoid filling device storage completely.</p></div>
+      </div>
+    </div>
+  </div>
+
   <div class="save-photos-prompt hidden" id="savePhotosPrompt">
     <div><strong>Ready for Photos</strong><small id="savePhotosPromptText">iPhone needs one tap to continue.</small></div>
     <button id="savePhotosPromptBtn">Save to Photos</button>
@@ -352,6 +492,6 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=10.3.0"></script>
+  <script src="./app.js?v=11.0.0"></script>
 </body>
 </html>
