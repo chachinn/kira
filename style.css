@@ -1042,3 +1042,7 @@ body.theme-lavender{--cream:#f6f1f7;--paper:#ece3ef;--white:#fcf8fc}body.theme-s
 #rollGrid .roll-photo > .media-title-badge,
 #rollGrid .roll-photo > .video-roll-badge{z-index:2;pointer-events:none!important}
 #rollGrid .roll-photo > .photo-menu-btn{z-index:5;pointer-events:auto!important}
+
+
+/* Build 11.4 — caption size controls */
+.caption-size-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}.caption-size-row b{min-width:46px;text-align:right;color:var(--rose-dark);font-size:12px}.caption-size-row input[type=range]{width:100%}

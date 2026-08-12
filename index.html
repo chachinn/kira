@@ -415,7 +415,10 @@
           </div>
           <label class="modal-label">Caption<input id="photoCaptionInput" class="filter-search-input" maxlength="32" placeholder="little memory ♡"></label>
           <label class="modal-label">Caption font<select id="photoCaptionFontSelect" class="mini-select full"><option value="Classic Serif">Classic Serif</option><option value="1989 Sparkle">1989 Sparkle</option><option value="Typewriter">Typewriter</option><option value="Marker">Marker</option><option value="Mono Label">Mono Label</option></select></label>
-          <div class="caption-tools-note">“1989 Sparkle” is Kira’s 1989-inspired handwritten caption style.</div>
+          <label class="modal-label">Caption size
+            <div class="caption-size-row"><input id="photoCaptionSize" type="range" min="70" max="220" value="125"><b id="photoCaptionSizeValue">125%</b></div>
+          </label>
+          <div class="caption-tools-note">“1989 Sparkle” now uses a rounded hand-drawn 1989-inspired print style based on your sample, and you can resize the Polaroid caption.</div>
         </div>
         <button class="secondary-btn" id="savePhotoDetailsBtn">Save Details</button>
       </div>
