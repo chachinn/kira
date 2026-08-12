@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Kira — Retro Film Camera",
   "short_name": "Kira",
-  "description": "A local-first retro film camera with continuous shooting, live photo looks, smooth video, named rolls and contact sheets.",
+  "description": "Kira is a local-first retro camera for capturing, styling, organizing and saving sparkling little moments.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

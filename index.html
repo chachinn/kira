@@ -8,12 +8,12 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=10.0.0" />
+  <link rel="manifest" href="./manifest.json?v=10.2.0" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=10.0.0" />
+  <link rel="stylesheet" href="./style.css?v=10.2.0" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -181,12 +181,25 @@
             <button class="chip" data-roll-filter="edited">Edited</button>
             <button class="chip" data-roll-filter="videos">Videos</button>
           </div>
-          <button class="soft-icon-btn" id="rollActionsBtn" aria-expanded="false">Actions⌄</button>
+          <div class="roll-head-actions">
+            <button class="soft-icon-btn" id="bulkSelectBtn" aria-expanded="false">Select</button>
+            <button class="soft-icon-btn" id="rollActionsBtn" aria-expanded="false">Actions⌄</button>
+          </div>
         </div>
 
         <div class="roll-utility-panel hidden" id="rollUtilityPanel">
           <button class="secondary-btn compact-btn" id="importToRollBtn">Import Photos</button>
           <button class="secondary-btn compact-btn" id="contactSheetBtn">Make Contact Sheet</button>
+          <button class="primary-btn compact-btn" id="saveAllRollBtn">Save All</button>
+        </div>
+
+        <div class="bulk-select-bar hidden" id="bulkSelectBar">
+          <span><b id="bulkSelectedCount">0</b> selected</span>
+          <div class="bulk-select-actions">
+            <button class="tiny-btn" id="bulkSelectAllBtn">Select All</button>
+            <button class="tiny-btn rose" id="bulkSaveSelectedBtn">Save Selected</button>
+            <button class="tiny-btn" id="bulkCancelBtn">Cancel</button>
+          </div>
         </div>
 
         <div class="contact-mode-bar hidden" id="contactModeBar">
@@ -255,10 +268,19 @@
           </div>
         </details>
 
-        <div class="about-card clean-about-card">
-          <img src="./icons/icon-96.png" alt="" />
-          <div><strong>kira</strong><small>Build 10 • UI & stability fix</small></div>
-        </div>
+        <details class="settings-group about-kira-group">
+          <summary><span>About Kira</span><small>the name & little story</small></summary>
+          <div class="settings-group-body">
+            <div class="kira-about-story">
+              <img src="./icons/icon-96.png" alt="" />
+              <div>
+                <strong>Kira</strong>
+                <p>Kira comes from <em>kirakira</em> (キラキラ), meaning “sparkling” or “glittering.” It fits a camera made to capture, style, and save the little moments that shine.</p>
+              </div>
+            </div>
+            <div class="setting-row"><span>Current version</span><b>Build 10.2</b></div>
+          </div>
+        </details>
       </section>
     </main>
 
@@ -324,8 +346,12 @@
     <button id="savePhotosPromptBtn">Save to Photos</button>
     <button class="save-photos-dismiss" id="savePhotosDismissBtn" aria-label="Dismiss">×</button>
   </div>
+  <div class="app-update-banner hidden" id="appUpdateBanner" role="status" aria-live="polite">
+    <span>An update is available. Refresh to update.</span>
+    <button id="applyUpdateBtn">Update</button>
+  </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=10.0.0"></script>
+  <script src="./app.js?v=10.2.0"></script>
 </body>
 </html>

@@ -876,3 +876,86 @@ body.camera-mode .camera-advanced-panel{bottom:101px!important}
 .shutter.saving{opacity:.72}
 .camera-save-status{position:absolute;z-index:22;left:50%;bottom:42px;transform:translateX(-50%);background:rgba(27,21,21,.72);color:#fff;padding:5px 9px;border-radius:999px;font-size:8px;font-weight:700;pointer-events:none}
 @media(max-width:390px){.photos-queue-btn{padding:6px 8px;font-size:7.5px}.camera-heading-actions{gap:4px}}
+
+
+/* === BUILD 10.1: ROLLS BULK SELECT + SAVE ALL === */
+.roll-head-actions{display:flex;align-items:center;gap:7px;flex:none}
+.roll-utility-panel{grid-template-columns:repeat(3,minmax(0,1fr))}
+.bulk-select-bar{position:sticky;top:0;z-index:25;display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(44,34,35,.94);color:#fff;border-radius:16px;padding:9px 10px;margin:10px 0 8px;box-shadow:0 8px 22px rgba(45,27,29,.14)}
+.bulk-select-bar>span{font-size:10px;white-space:nowrap}.bulk-select-bar>span b{font-size:12px}
+.bulk-select-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0}
+.bulk-select-bar .tiny-btn{padding:7px 8px;white-space:nowrap}
+.roll-photo.bulk-selectable{cursor:pointer;touch-action:manipulation}
+.roll-photo.bulk-selectable:after{content:"";position:absolute;inset:0;border-radius:18px;border:3px solid transparent;pointer-events:none;transition:border-color .08s ease,box-shadow .08s ease}
+.roll-photo.bulk-selected:after{border-color:#fff;box-shadow:inset 0 0 0 3px var(--rose)}
+.bulk-selection-check{position:absolute;z-index:7;left:8px;top:8px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(255,250,246,.92);border:1px solid rgba(99,67,69,.12);color:var(--rose-dark);font-size:12px;font-weight:800;box-shadow:0 3px 10px rgba(36,22,23,.1)}
+.roll-photo.bulk-selected .bulk-selection-check{background:var(--rose);border-color:var(--rose);color:#fff}
+body.bulk-selecting .roll-photo .photo-menu-btn{display:none!important}
+@media(max-width:430px){.roll-library-head{align-items:flex-start}.roll-head-actions{gap:5px}.roll-head-actions .soft-icon-btn{padding:7px 9px;font-size:9px}.roll-utility-panel{grid-template-columns:1fr 1fr}.roll-utility-panel #saveAllRollBtn{grid-column:1/-1}.bulk-select-bar{align-items:flex-start;flex-direction:column}.bulk-select-actions{width:100%;display:grid;grid-template-columns:1fr 1.35fr .85fr}.bulk-select-bar .tiny-btn{width:100%;padding:8px 5px;font-size:9px}}
+
+
+/* === BUILD 10.2: ABOUT KIRA + UPDATE NOTE === */
+.about-kira-group .settings-group-body{padding-top:13px}
+.kira-about-story{
+  display:grid;
+  grid-template-columns:58px 1fr;
+  align-items:start;
+  gap:13px;
+  padding:2px 0 13px;
+}
+.kira-about-story img{
+  width:58px;
+  height:58px;
+  border-radius:16px;
+  box-shadow:0 6px 16px rgba(77,48,50,.10);
+}
+.kira-about-story strong{
+  display:block;
+  font-family:Georgia,serif;
+  color:var(--rose-dark);
+  font-size:22px;
+  line-height:1;
+  margin:2px 0 7px;
+}
+.kira-about-story p{
+  margin:0;
+  color:#80686a;
+  font-size:11px;
+  line-height:1.65;
+}
+.kira-about-story em{color:var(--rose-dark)}
+.app-update-banner{
+  position:fixed;
+  z-index:170;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:calc(74px + env(safe-area-inset-bottom));
+  width:min(calc(100% - 24px),496px);
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  gap:12px;
+  padding:12px 12px 12px 15px;
+  background:rgba(255,250,246,.98);
+  border:1px solid rgba(183,110,121,.20);
+  border-radius:18px;
+  box-shadow:0 14px 38px rgba(58,36,38,.18);
+  color:#58494a;
+  font-size:11px;
+  line-height:1.35;
+}
+.app-update-banner button{
+  border:1px solid rgba(183,110,121,.40);
+  background:#fff4f2;
+  color:var(--rose-dark);
+  border-radius:13px;
+  padding:10px 15px;
+  font-size:11px;
+  font-weight:800;
+}
+body.camera-mode .app-update-banner{
+  bottom:calc(76px + env(safe-area-inset-bottom));
+}
+@media(min-width:700px){
+  .app-update-banner{bottom:calc(100px + env(safe-area-inset-bottom))}
+}
