@@ -8,12 +8,12 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=10.2.0" />
+  <link rel="manifest" href="./manifest.json?v=10.3.0" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=10.2.0" />
+  <link rel="stylesheet" href="./style.css?v=10.3.0" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -39,8 +39,8 @@
           <div id="liveFrameOverlay" class="live-frame-overlay hidden" aria-hidden="true"></div>
           <div class="camera-empty" id="cameraEmpty">
             <img src="./icons/icon-192.png" alt="Kira camera icon" />
-            <h1 id="cameraEmptyTitle">opening camera…</h1>
-            <p id="cameraEmptyText">Allow camera access so you can preview Kira filters live.</p>
+            <h1 id="cameraEmptyTitle">camera ready when you are.</h1>
+            <p id="cameraEmptyText">Kira will only request camera access after you tap Start Camera, unless iPhone already reports permission as granted.</p>
             <button class="camera-permission-btn" id="startCameraBtn">Start Camera</button>
           </div>
           <canvas id="cameraCanvas" class="photo-canvas hidden"></canvas>
@@ -278,7 +278,7 @@
                 <p>Kira comes from <em>kirakira</em> (キラキラ), meaning “sparkling” or “glittering.” It fits a camera made to capture, style, and save the little moments that shine.</p>
               </div>
             </div>
-            <div class="setting-row"><span>Current version</span><b>Build 10.2</b></div>
+            <div class="setting-row"><span>Current version</span><b>Build 10.3</b></div>
           </div>
         </details>
       </section>
@@ -352,6 +352,6 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=10.2.0"></script>
+  <script src="./app.js?v=10.3.0"></script>
 </body>
 </html>

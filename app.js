@@ -228,7 +228,7 @@
   function startRangeHistory(){if(!state.pendingSnapshot)state.pendingSnapshot=editSnapshot()}
   function finishRangeHistory(){if(state.pendingSnapshot){state.history.push(state.pendingSnapshot);if(state.history.length>50)state.history.shift();state.pendingSnapshot=null;state.future=[];updateHistoryButtons();saveSettings()}}
 
-  function switchScreen(name){if(state.recording&&name!=='camera'){toast('Stop recording before leaving Camera.');return}$$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));$$('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.target===name));document.body.classList.toggle('camera-mode',name==='camera');window.scrollTo(0,0);if(name==='rolls'){renderNamedRollBar();renderRolls()}if(name==='camera'){renderCameraCategories();renderCameraFilters();updateCameraViewport();applyCameraRatio();startCamera()}else{stopCamera();if(name==='develop'){renderAllPanels();renderPhoto()}}renderRollSelectors()}
+  function switchScreen(name){if(state.recording&&name!=='camera'){toast('Stop recording before leaving Camera.');return}$$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));$$('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.target===name));document.body.classList.toggle('camera-mode',name==='camera');window.scrollTo(0,0);if(name==='rolls'){renderNamedRollBar();renderRolls()}if(name==='camera'){renderCameraCategories();renderCameraFilters();updateCameraViewport();applyCameraRatio();bootCameraSafely()}else{stopCamera();if(name==='develop'){renderAllPanels();renderPhoto()}}renderRollSelectors()}
   function presetCard(f){const fav=f.kind==='recipe'?(f.pinned?'♥':''):(state.favoriteFilters.has(f.name)?'♥':'');const label=f.kind==='recipe'?'Recipe':f.cat;return `<button class="preset-card ${state.activeFilter===f.name?'active':''}" data-filter="${escapeHtml(f.name)}" data-kind="${f.kind}" ${f.recipeId?`data-recipe-id="${f.recipeId}"`:''}><div class="preset-thumb" style="background:${f.thumb}"></div><span>${escapeHtml(f.name)}${fav?` <i class="favorite-star">${fav}</i>`:''}</span><small style="font-size:9px;color:#8f7072">${label}</small></button>`}
   function cameraPresetCard(f){const fav=f.kind==='recipe'?(f.pinned?'♥':''):(state.favoriteFilters.has(f.name)?'♥':'');return `<button class="preset-card ${cameraPresetIsActive(f)?'active':''}" data-camera-filter="${escapeHtml(f.name)}" data-kind="${f.kind}" ${f.recipeId?`data-recipe-id="${f.recipeId}"`:''}><div class="preset-thumb camera-swatch" style="background:${f.thumb}"></div><span>${escapeHtml(f.name)}${fav?` <i class="favorite-star">${fav}</i>`:''}</span><small>${f.kind==='recipe'?'Recipe':(f.p?.pack||f.cat)}</small></button>`}
   function cameraPresetIsActive(f){if(f.kind==='recipe')return state.selectedRecipeId===f.recipeId;return !state.selectedRecipeId&&state.activeFilter===f.name}
@@ -405,7 +405,7 @@
   async function startVideoRecording(){
     if(state.recording||state.timerRunning)return;
     if(!window.MediaRecorder){toast('Video recording is not supported by this browser.');return}
-    if(!state.cameraReady){await startCamera();if(!state.cameraReady)return}
+    if(!state.cameraReady){await startCamera(true);if(!state.cameraReady)return}
     await runCameraCountdown();if(!state.cameraReady)return;
     const videoTrack=state.cameraStream?.getVideoTracks?.()[0];
     if(!videoTrack){toast('Camera is not ready.');return}
@@ -466,10 +466,92 @@
     showSavePhotosPrompt(file,title);
   }
 
+  let cameraPermissionStatus=null;
+  async function getCameraPermissionState(){
+    if(!navigator.permissions?.query)return 'unknown';
+    try{
+      const status=await navigator.permissions.query({name:'camera'});
+      cameraPermissionStatus=status;
+      if(status&&!status.onchange){
+        status.onchange=()=>{
+          if(status.state==='granted'&&$('#screen-camera')?.classList.contains('active')&&!document.hidden)bootCameraSafely();
+          if(status.state==='denied'&&!state.cameraReady)showCameraMessage('camera access is off','Enable Camera for Kira in iPhone Settings, then return here.',true);
+        };
+      }
+      return status?.state||'unknown';
+    }catch(err){
+      return 'unknown';
+    }
+  }
+  async function bootCameraSafely(){
+    const stage=$('#cameraStage');
+    if(!stage)return;
+    if(state.cameraStream&&state.cameraStream.getVideoTracks().some(t=>t.readyState==='live')){
+      state.cameraReady=true;
+      $('#cameraEmpty')?.classList.add('hidden');
+      return;
+    }
+    if(!navigator.mediaDevices?.getUserMedia){
+      stage.classList.add('camera-denied');
+      showCameraMessage('camera needs your browser','Live camera is not supported here. Tap below to use your phone camera instead.',true);
+      return;
+    }
+    const permission=await getCameraPermissionState();
+    if(permission==='granted'){
+      await startCamera(false);
+      return;
+    }
+    stage.classList.remove('camera-loading');
+    if(permission==='denied'){
+      stage.classList.add('camera-denied');
+      showCameraMessage('camera access is off','Enable Camera for Kira in iPhone Settings, then return here.',true);
+      return;
+    }
+    stage.classList.remove('camera-denied');
+    const previouslyAllowed=localStorage.getItem('kira.cameraPermissionGranted')==='1';
+    showCameraMessage(
+      previouslyAllowed?'tap to reopen camera':'start your camera',
+      previouslyAllowed?'Kira will not request camera access until you tap Start Camera.':'Tap Start Camera once and choose Allow when iPhone asks.',
+      true
+    );
+  }
   function showCameraMessage(title,text,button=true){const box=$('#cameraEmpty');if(!box)return;$('#cameraEmptyTitle').textContent=title;$('#cameraEmptyText').textContent=text;$('#startCameraBtn').hidden=!button;box.classList.remove('hidden')}
-  async function startCamera(){const stage=$('#cameraStage'),video=$('#cameraVideo');if(!stage||!video)return;if(state.cameraStream&&state.cameraStream.getVideoTracks().some(t=>t.readyState==='live')){state.cameraReady=true;$('#cameraEmpty').classList.add('hidden');applyLiveFilter();updateCameraHUD();updateLiveFrame();return}if(!navigator.mediaDevices?.getUserMedia){stage.classList.add('camera-denied');showCameraMessage('camera needs your browser','Live camera is not supported here. Tap below to use your phone camera instead.',true);return}stage.classList.add('camera-loading');stage.classList.remove('camera-denied');showCameraMessage('opening camera…','Allow camera access so you can preview Kira filters live.',false);try{const constraints={audio:false,video:{facingMode:{ideal:state.cameraFacing},width:{ideal:1080,max:1920},height:{ideal:1440,max:1920},frameRate:{ideal:30,max:30}}};const stream=await navigator.mediaDevices.getUserMedia(constraints);state.cameraStream=stream;video.srcObject=stream;video.muted=true;video.setAttribute('playsinline','');await video.play();state.cameraReady=true;stage.classList.toggle('front-camera',state.cameraFacing==='user');stage.classList.remove('camera-loading','camera-denied');$('#cameraEmpty').classList.add('hidden');applyLiveFilter();updateCameraHUD();updateLiveFrame();renderCameraFilters()}catch(err){console.warn('Kira camera:',err);state.cameraReady=false;stage.classList.remove('camera-loading');stage.classList.add('camera-denied');showCameraMessage('camera access needed','Tap Start Camera and allow access. If access stays blocked, Kira can fall back to the phone camera.',true)}}
+  async function startCamera(userInitiated=false){
+    const stage=$('#cameraStage'),video=$('#cameraVideo');
+    if(!stage||!video)return;
+    if(state.cameraStream&&state.cameraStream.getVideoTracks().some(t=>t.readyState==='live')){
+      state.cameraReady=true;$('#cameraEmpty').classList.add('hidden');applyLiveFilter();updateCameraHUD();updateLiveFrame();return;
+    }
+    if(!navigator.mediaDevices?.getUserMedia){
+      stage.classList.add('camera-denied');showCameraMessage('camera needs your browser','Live camera is not supported here. Tap below to use your phone camera instead.',true);return;
+    }
+    if(!userInitiated){
+      const permission=await getCameraPermissionState();
+      if(permission!=='granted'){
+        await bootCameraSafely();
+        return;
+      }
+    }
+    stage.classList.add('camera-loading');stage.classList.remove('camera-denied');
+    showCameraMessage('opening camera…',userInitiated?'If iPhone asks, choose Allow.':'Camera permission is already granted.',false);
+    try{
+      const constraints={audio:false,video:{facingMode:{ideal:state.cameraFacing},width:{ideal:1080,max:1920},height:{ideal:1440,max:1920},frameRate:{ideal:30,max:30}}};
+      const stream=await navigator.mediaDevices.getUserMedia(constraints);
+      state.cameraStream=stream;video.srcObject=stream;video.muted=true;video.setAttribute('playsinline','');await video.play();
+      state.cameraReady=true;localStorage.setItem('kira.cameraPermissionGranted','1');
+      stage.classList.toggle('front-camera',state.cameraFacing==='user');stage.classList.remove('camera-loading','camera-denied');$('#cameraEmpty').classList.add('hidden');
+      applyLiveFilter();updateCameraHUD();updateLiveFrame();renderCameraFilters();
+    }catch(err){
+      console.warn('Kira camera:',err);state.cameraReady=false;stage.classList.remove('camera-loading');stage.classList.add('camera-denied');
+      if(err?.name==='NotAllowedError'||err?.name==='PermissionDeniedError'){
+        showCameraMessage('camera access needed','Tap Start Camera when you are ready. If iPhone has Camera disabled for Kira, enable it in Settings.',true);
+      }else{
+        showCameraMessage('camera could not start','Tap Start Camera to try again. Kira can also fall back to the phone camera.',true);
+      }
+    }
+  }
   function stopCamera(){if(state.recording)stopVideoRecording();if(state.cameraThumbTimer){clearInterval(state.cameraThumbTimer);state.cameraThumbTimer=null}if(state.cameraStream){state.cameraStream.getTracks().forEach(t=>t.stop());state.cameraStream=null}state.cameraReady=false;const video=$('#cameraVideo');if(video)video.srcObject=null}
-  async function flipCamera(){state.cameraFacing=state.cameraFacing==='environment'?'user':'environment';stopCamera();await startCamera();haptic(18)}
+  async function flipCamera(){state.cameraFacing=state.cameraFacing==='environment'?'user':'environment';stopCamera();await startCamera(true);haptic(18)}
   function updateCameraHUD(){const active=state.selectedRecipeId?state.recipes.find(r=>r.id===state.selectedRecipeId)?.name:state.activeFilter;$('#liveFilterName')&&($('#liveFilterName').textContent=active||'Kira');$('#liveIntensityValue')&&($('#liveIntensityValue').textContent=state.filterIntensity);const live=$('#liveFilterIntensity');if(live&&Number(live.value)!==state.filterIntensity)live.value=state.filterIntensity;const fav=$('#cameraFavoriteBtn');if(fav){const on=state.selectedRecipeId?!!state.recipes.find(r=>r.id===state.selectedRecipeId)?.pinned:state.favoriteFilters.has(state.activeFilter);fav.textContent=on?'♥':'♡';fav.classList.toggle('active',on)}const count=state.rolls.filter(x=>(x.rollId||defaultRollId())===state.activeNamedRollId).length;$('#cameraRollCount')&&($('#cameraRollCount').textContent=`${Math.min(count,999)} / 36`);$('#cameraRollBadge')&&($('#cameraRollBadge').textContent=rollName(state.activeNamedRollId));const summary=$('#activeLookSummary');if(summary)summary.textContent=active||'Kira';const si=$('#activeLookIntensity');if(si)si.textContent=`${state.filterIntensity}%`;updateLiveDateStamp()}
   function toggleActiveCameraFavorite(){if(state.selectedRecipeId)toggleRecipePin(state.selectedRecipeId);else toggleFavorite(state.activeFilter);updateCameraHUD()}
   function applyCameraRatio(){const stage=$('#cameraStage');if(!stage)return;stage.classList.remove('ratio-3-4','ratio-1-1','ratio-9-16');stage.classList.add(state.cameraRatio==='1:1'?'ratio-1-1':state.cameraRatio==='9:16'?'ratio-9-16':'ratio-3-4');$('#ratioBtn')&&($('#ratioBtn').textContent=state.cameraRatio)}
@@ -489,7 +571,7 @@
 
   function captureCanvasForRatio(video){const ratio=state.cameraRatio==='1:1'?[1,1]:state.cameraRatio==='9:16'?[9,16]:[3,4],target=ratio[0]/ratio[1],vw=video.videoWidth||1080,vh=video.videoHeight||1440,src=vw/vh;let sw=vw,sh=vh;if(src>target)sw=vh*target;else sh=vw/target;const maxSide=2048,scale=Math.min(1,maxSide/Math.max(sw,sh)),cw=Math.max(1,Math.round(sw*scale)),ch=Math.max(1,Math.round(sh*scale)),c=document.createElement('canvas');c.width=cw;c.height=ch;drawVideoCrop(c.getContext('2d',{alpha:false}),video,cw,ch);return c}
   async function runCameraCountdown(){if(state.timerRunning)return false;if(!state.cameraTimer)return true;state.timerRunning=true;$('#shutterBtn')?.classList.add('timer-running');const box=$('#cameraCountdown');for(let n=state.cameraTimer;n>0;n--){if(box){box.textContent=n;box.classList.remove('hidden')}haptic(12);await new Promise(r=>setTimeout(r,1000))}box?.classList.add('hidden');$('#shutterBtn')?.classList.remove('timer-running');state.timerRunning=false;return true}
-  async function captureLivePhoto(){if(state.timerRunning)return;if(!state.cameraReady){if(navigator.mediaDevices?.getUserMedia){startCamera();toast('Start the camera first.')}else $('#cameraInput').click();return}const video=$('#cameraVideo');if(!video.videoWidth||!video.videoHeight){toast('Camera is still getting ready.');return}await runCameraCountdown();if(!state.cameraReady)return;const c=captureCanvasForRatio(video);shotFeedback();c.toBlob(blob=>{if(!blob){toast('Could not capture photo.');return}if(state.settings.continuousShoot){enqueueContinuousPhoto(blob,c);return}const file=new File([blob],`kira-${Date.now()}.jpg`,{type:'image/jpeg'});loadFile(file,'camera')},'image/jpeg',.92)}
+  async function captureLivePhoto(){if(state.timerRunning)return;if(!state.cameraReady){if(navigator.mediaDevices?.getUserMedia){startCamera(true);toast('Starting camera…')}else $('#cameraInput').click();return}const video=$('#cameraVideo');if(!video.videoWidth||!video.videoHeight){toast('Camera is still getting ready.');return}await runCameraCountdown();if(!state.cameraReady)return;const c=captureCanvasForRatio(video);shotFeedback();c.toBlob(blob=>{if(!blob){toast('Could not capture photo.');return}if(state.settings.continuousShoot){enqueueContinuousPhoto(blob,c);return}const file=new File([blob],`kira-${Date.now()}.jpg`,{type:'image/jpeg'});loadFile(file,'camera')},'image/jpeg',.92)}
 
   function exportDimensions(){const iw=state.image.naturalWidth,ih=state.image.naturalHeight,max=state.exportQuality==='Original'?4096:state.exportQuality==='High'?2560:1440,sc=Math.min(1,max/Math.max(iw,ih));return [Math.max(1,Math.round(iw*sc)),Math.max(1,Math.round(ih*sc))]}
   function currentBlob(type='image/jpeg',quality=.94){return new Promise(resolve=>{const [w,h]=exportDimensions(),c=document.createElement('canvas');c.width=w;c.height=h;drawEdited(c,filterParams(),true);c.toBlob(resolve,type,state.exportQuality==='Social'?.9:quality)})}
@@ -552,7 +634,7 @@
     const rollActions=$('#rollActionsBtn'),rollPanel=$('#rollUtilityPanel');if(rollActions&&rollPanel)rollActions.onclick=()=>{const open=rollPanel.classList.toggle('hidden')===false;rollActions.setAttribute('aria-expanded',String(open));rollActions.textContent=open?'Actions⌃':'Actions⌄';haptic()};
     const bulkSelect=$('#bulkSelectBtn');if(bulkSelect)bulkSelect.onclick=()=>setBulkSelectMode(!state.bulkSelectMode);$('#bulkSelectAllBtn').onclick=selectAllBulk;$('#bulkSaveSelectedBtn').onclick=saveSelectedBulk;$('#bulkCancelBtn').onclick=()=>setBulkSelectMode(false);$('#saveAllRollBtn').onclick=saveAllCurrent;
     const compareQuick=$('#compareQuickBtn');if(compareQuick){const on=()=>{state.compare=true;renderPhoto();compareQuick.classList.add('active')},off=()=>{state.compare=false;renderPhoto();compareQuick.classList.remove('active')};compareQuick.addEventListener('pointerdown',on);['pointerup','pointercancel','pointerleave'].forEach(x=>compareQuick.addEventListener(x,off))}
-    $('#galleryBtn').onclick=()=>$('#galleryInput').click();$('#shutterBtn').onclick=captureOrRecord;$$('[data-capture-mode]').forEach(b=>b.onclick=()=>setCaptureMode(b.dataset.captureMode));$('#flipCameraBtn').onclick=flipCamera;$('#startCameraBtn').onclick=()=>{if(!navigator.mediaDevices?.getUserMedia){$('#cameraInput').click();return}startCamera()};
+    $('#galleryBtn').onclick=()=>$('#galleryInput').click();$('#shutterBtn').onclick=captureOrRecord;$$('[data-capture-mode]').forEach(b=>b.onclick=()=>setCaptureMode(b.dataset.captureMode));$('#flipCameraBtn').onclick=flipCamera;$('#startCameraBtn').onclick=()=>{if(!navigator.mediaDevices?.getUserMedia){$('#cameraInput').click();return}startCamera(true)};
     $('#galleryInput').onchange=e=>loadFile(e.target.files?.[0],'gallery');$('#cameraInput').onchange=e=>loadFile(e.target.files?.[0],'camera');
     $('#savePhotoBtn').onclick=saveEdited;$('#saveTopBtn').onclick=saveEdited;$('#sharePhotoBtn').onclick=shareEdited;$('#undoBtn').onclick=undo;$('#redoBtn').onclick=redo;
     const fi=$('#filterIntensity');rangeHistory(fi);fi.oninput=e=>{state.filterIntensity=Number(e.target.value);$('#intensityValue').textContent=e.target.value;$('#activeLookIntensity')&&($('#activeLookIntensity').textContent=`${e.target.value}%`);$('#liveFilterIntensity').value=e.target.value;scheduleRender();scheduleLiveFilter()};fi.onchange=()=>{finishRangeHistory();applyLiveFilter()};
@@ -582,7 +664,7 @@
   async function setupServiceWorkerUpdates(){
     if(!('serviceWorker' in navigator))return;
     try{
-      const reg=await navigator.serviceWorker.register('./service-worker.js?v=10.2.0');
+      const reg=await navigator.serviceWorker.register('./service-worker.js?v=10.3.0');
       kiraSwRegistration=reg;
       if(reg.waiting&&navigator.serviceWorker.controller)showAppUpdateBanner(reg);
       reg.addEventListener('updatefound',()=>{
@@ -621,6 +703,6 @@
 
   function setupInstall(){window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.deferredInstallPrompt=e;$('#installBtn').hidden=false});$('#installBtn').onclick=async()=>{if(!state.deferredInstallPrompt){toast(isIOS()?'On iPhone: Share → Add to Home Screen':'Use your browser menu → Install app');return}state.deferredInstallPrompt.prompt();await state.deferredInstallPrompt.userChoice;state.deferredInstallPrompt=null;$('#installBtn').hidden=true}}
   function preventZoom(){const stop=e=>e.preventDefault();['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,stop,{passive:false}));document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});let last=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-last<=320)e.preventDefault();last=n},{passive:false});document.addEventListener('dblclick',stop,{passive:false});document.addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault()},{passive:false})}
-  function init(){saveNamedRolls();setCaptureMode('photo');if(!state.selectedRecipeId)applyPresetExtras(state.activeFilter);renderAllPanels();renderCameraCategories();renderCameraFilters();setupToolTabs();bindInputs();bindSettings();applySettings();setupInstall();preventZoom();refreshRolls();updateHistoryButtons();renderNamedRollBar();updatePhotosQueueUI();document.body.classList.add('camera-mode');updateCameraViewport();const onViewport=()=>requestAnimationFrame(updateCameraViewport);window.addEventListener('resize',onViewport,{passive:true});window.visualViewport?.addEventListener('resize',onViewport,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state.recording)stopVideoRecording();else stopCamera()}else if($('#screen-camera')?.classList.contains('active')){updateCameraViewport();startCamera()}});setupServiceWorkerUpdates();setTimeout(()=>{updateCameraViewport();startCamera()},120)}
+  function init(){saveNamedRolls();setCaptureMode('photo');if(!state.selectedRecipeId)applyPresetExtras(state.activeFilter);renderAllPanels();renderCameraCategories();renderCameraFilters();setupToolTabs();bindInputs();bindSettings();applySettings();setupInstall();preventZoom();refreshRolls();updateHistoryButtons();renderNamedRollBar();updatePhotosQueueUI();document.body.classList.add('camera-mode');updateCameraViewport();const onViewport=()=>requestAnimationFrame(updateCameraViewport);window.addEventListener('resize',onViewport,{passive:true});window.visualViewport?.addEventListener('resize',onViewport,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state.recording)stopVideoRecording();else stopCamera()}else if($('#screen-camera')?.classList.contains('active')){updateCameraViewport();bootCameraSafely()}});setupServiceWorkerUpdates();setTimeout(()=>{updateCameraViewport();bootCameraSafely()},120)}
   init();
 })();

@@ -1,4 +1,4 @@
-const CACHE='kira-build10-2-about-update-20260812';
+const CACHE='kira-build10-3-camera-permission-20260812';
 const SHELL=['./','./index.html','./style.css','./app.js','./manifest.json','./icons/icon-32.png','./icons/icon-96.png','./icons/icon-180.png','./icons/icon-192.png','./icons/icon-512.png','./icons/icon-192-maskable.png','./icons/icon-512-maskable.png'];
 
 self.addEventListener('install',event=>{
