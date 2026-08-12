@@ -190,7 +190,7 @@
   const loadNamedRolls=()=>{try{const v=JSON.parse(localStorage.getItem('kira.namedRolls')||'[]');return Array.isArray(v)?v:[]}catch(e){return []}};
   const state={
     image:null,imageName:'kira-photo',activeFilter:'Old Rose',activeCategory:'Kira',filterIntensity:70,filterSearch:'',
-    adjustments:defaultAdjust(),effects:defaultEffects(),frame:'None',frameTone:'#fff8f1',frameWidth:8,frameCorner:8,caption:'',captionFont:'Classic Serif',captionSize:125,
+    adjustments:defaultAdjust(),effects:defaultEffects(),frame:'None',frameTone:'#fff8f1',frameWidth:8,frameCorner:8,caption:'',captionFont:'Classic Serif',captionSize:165,
     dateEnabled:false,dateStyle:'Classic',dateValue:today(),dateColor:'Orange',datePosition:'Bottom Right',dateCustomText:'',
     compare:false,exportQuality:'High',selectedRecipeId:null,
     favoriteFilters:new Set(JSON.parse(localStorage.getItem('kira.favoriteFilters')||'[]')),
@@ -220,7 +220,7 @@
   function recipeToPreset(r){const base=builtins.find(x=>x.name===r.snapshot.activeFilter)||builtins[0];return {id:r.id,name:r.name,cat:'My Recipes',thumb:base.thumb,p:r.snapshot.adjustments||{},kind:'recipe',recipeId:r.id,pinned:!!r.pinned,snapshot:r.snapshot};}
   function findPreset(name){return allPresets().find(x=>x.name===name) || builtins[0]}
   function editSnapshot(){return JSON.parse(JSON.stringify({activeFilter:state.activeFilter,filterIntensity:state.filterIntensity,adjustments:state.adjustments,effects:state.effects,frame:state.frame,frameTone:state.frameTone,frameWidth:state.frameWidth,frameCorner:state.frameCorner,caption:state.caption,captionFont:state.captionFont,captionSize:state.captionSize,dateEnabled:state.dateEnabled,dateStyle:state.dateStyle,dateValue:state.dateValue,dateColor:state.dateColor,datePosition:state.datePosition,dateCustomText:state.dateCustomText}))}
-  function applySnapshot(s){Object.assign(state,JSON.parse(JSON.stringify(s||{})));if(!state.captionFont)state.captionFont='Classic Serif';if(!state.captionSize)state.captionSize=125;state.presetAutoDate=false;state.presetAutoFrame=false;$('#filterIntensity').value=state.filterIntensity;$('#intensityValue').textContent=state.filterIntensity;renderAllPanels();renderPhoto();applyLiveFilter();updateHistoryButtons();saveSettings()}
+  function applySnapshot(s){Object.assign(state,JSON.parse(JSON.stringify(s||{})));if(!state.captionFont)state.captionFont='Classic Serif';if(!state.captionSize)state.captionSize=165;state.presetAutoDate=false;state.presetAutoFrame=false;$('#filterIntensity').value=state.filterIntensity;$('#intensityValue').textContent=state.filterIntensity;renderAllPanels();renderPhoto();applyLiveFilter();updateHistoryButtons();saveSettings()}
   function commit(){state.history.push(editSnapshot());if(state.history.length>50)state.history.shift();state.future=[];updateHistoryButtons()}
   function undo(){if(!state.history.length)return;state.future.push(editSnapshot());applySnapshot(state.history.pop());toast('Undo')}
   function redo(){if(!state.future.length)return;state.history.push(editSnapshot());applySnapshot(state.future.pop());toast('Redo')}
@@ -286,7 +286,7 @@
   }
   function renderEffectVariants(selected){const area=$('#effectVariantArea');if(!area)return;let label='',opts=[],key='';if(selected==='grain'){label='Grain type';opts=['Fine','Classic','Rough'];key='grainType'}else if(selected==='bloom'){label='Glow style';opts=['Soft','Dream','Flash'];key='bloomType'}else if(selected==='leak'){label='Leak color';opts=['Red','Orange','Pink'];key='leakType'}else if(selected==='sparkle'){label='Sparkle style';opts=['Star','Dream','Heart'];key='sparkleType'}else{area.innerHTML='';return}area.innerHTML=`<div class="effect-control-title">${label}</div><div class="effect-options">${opts.map(o=>`<button class="option-chip ${state.effects[key]===o?'active':''}" data-variant="${o}" data-key="${key}">${o}</button>`).join('')}</div>`;$$('[data-variant]',area).forEach(b=>b.onclick=()=>{commit();state.effects[b.dataset.key]=b.dataset.variant;renderEffectsPanel();renderPhoto();saveSettings()})}
 
-  function renderFramePanel(){const frames=[['None','◻'],['Classic','▣'],['Polaroid','▤'],['Instant Square','□'],['Instant Wide','▭'],['Instant Mini','▯'],['Instant Black','■'],['35mm','▥'],['Film Strip','▦'],['Mini Print','▧'],['Photo Booth','◫'],['Postcard','✉'],['Negative Edge','◩'],['Contact Print','◪']];const tones=['#fff8f1','#f0dfce','#e6c5aa','#d6a7a5','#201b1b'];const fonts=['Classic Serif','1989 Sparkle','Typewriter','Marker','Mono Label'];$('#tool-frame').innerHTML=`<div class="frame-grid">${frames.map(([n,i])=>`<button class="frame-btn ${state.frame===n?'active':''}" data-frame="${n}"><b>${i}</b>${n}</button>`).join('')}</div><div class="frame-controls"><div class="sub-control"><div class="control-head"><span>Border width</span><b>${state.frameWidth}</b></div><input id="frameWidth" type="range" min="2" max="24" value="${state.frameWidth}"></div><div class="sub-control"><div class="control-head"><span>Corner</span><b>${state.frameCorner}</b></div><input id="frameCorner" type="range" min="0" max="24" value="${state.frameCorner}"></div><div class="sub-control"><div class="control-head"><span>Paper tone</span></div><div class="tone-options">${tones.map(t=>`<button class="color-dot ${state.frameTone===t?'active':''}" data-tone="${t}" style="background:${t}"></button>`).join('')}</div></div><div class="control-card"><label class="control-head"><span>Caption</span></label><input class="caption-input" id="captionInput" maxlength="32" placeholder="good days ♡" value="${escapeHtml(state.caption)}"><select id="captionFontSelect" class="mini-select" style="margin-top:10px">${fonts.map(f=>`<option value="${f}" ${state.captionFont===f?'selected':''}>${f}</option>`).join('')}</select><div class="sub-control" style="margin-top:10px"><div class="control-head"><span>Caption size</span><b id="captionSizeValue">${state.captionSize}%</b></div><input id="captionSize" type="range" min="70" max="220" value="${state.captionSize}"></div><small class="control-help">“1989 Sparkle” now follows the rounded handwritten 1989 sample style.</small></div></div>`;$$('.frame-btn').forEach(b=>b.onclick=()=>{commit();state.frame=b.dataset.frame;state.presetAutoFrame=false;renderFramePanel();renderPhoto();updateLiveFrame();saveSettings();haptic()});$$('[data-tone]').forEach(b=>b.onclick=()=>{commit();state.frameTone=b.dataset.tone;renderFramePanel();renderPhoto();saveSettings()});[['#frameWidth','frameWidth'],['#frameCorner','frameCorner'],['#captionSize','captionSize']].forEach(([s,k])=>{const e=$(s);rangeHistory(e);e.oninput=()=>{state[k]=Number(e.value);if(k==='captionSize')$('#captionSizeValue').textContent=`${state.captionSize}%`;scheduleRender()};e.onchange=()=>{finishRangeHistory();renderFramePanel();saveSettings()}});$('#captionInput').addEventListener('focus',startRangeHistory);$('#captionInput').oninput=e=>{state.caption=e.target.value;scheduleRender()};$('#captionInput').onchange=()=>{finishRangeHistory();saveSettings()};$('#captionFontSelect').addEventListener('focus',startRangeHistory);$('#captionFontSelect').onchange=e=>{state.captionFont=e.target.value;finishRangeHistory();renderPhoto();saveSettings()}}
+  function renderFramePanel(){const frames=[['None','◻'],['Classic','▣'],['Polaroid','▤'],['Instant Square','□'],['Instant Wide','▭'],['Instant Mini','▯'],['Instant Black','■'],['35mm','▥'],['Film Strip','▦'],['Mini Print','▧'],['Photo Booth','◫'],['Postcard','✉'],['Negative Edge','◩'],['Contact Print','◪']];const tones=['#fff8f1','#f0dfce','#e6c5aa','#d6a7a5','#201b1b'];const fonts=['Classic Serif','1989 Sparkle','Typewriter','Marker','Mono Label'];$('#tool-frame').innerHTML=`<div class="frame-grid">${frames.map(([n,i])=>`<button class="frame-btn ${state.frame===n?'active':''}" data-frame="${n}"><b>${i}</b>${n}</button>`).join('')}</div><div class="frame-controls"><div class="sub-control"><div class="control-head"><span>Border width</span><b>${state.frameWidth}</b></div><input id="frameWidth" type="range" min="2" max="24" value="${state.frameWidth}"></div><div class="sub-control"><div class="control-head"><span>Corner</span><b>${state.frameCorner}</b></div><input id="frameCorner" type="range" min="0" max="24" value="${state.frameCorner}"></div><div class="sub-control"><div class="control-head"><span>Paper tone</span></div><div class="tone-options">${tones.map(t=>`<button class="color-dot ${state.frameTone===t?'active':''}" data-tone="${t}" style="background:${t}"></button>`).join('')}</div></div><div class="control-card"><label class="control-head"><span>Caption</span></label><input class="caption-input" id="captionInput" maxlength="32" placeholder="good days ♡" value="${escapeHtml(state.caption)}"><select id="captionFontSelect" class="mini-select" style="margin-top:10px">${fonts.map(f=>`<option value="${f}" ${state.captionFont===f?'selected':''}>${f}</option>`).join('')}</select><div class="sub-control" style="margin-top:10px"><div class="control-head"><span>Caption size</span><b id="captionSizeValue">${state.captionSize}%</b></div><input id="captionSize" type="range" min="70" max="220" value="${state.captionSize}"></div><small class="control-help">“1989 Sparkle” now uses a custom bitmap alphabet built from your sample.</small></div></div>`;$$('.frame-btn').forEach(b=>b.onclick=()=>{commit();state.frame=b.dataset.frame;state.presetAutoFrame=false;renderFramePanel();renderPhoto();updateLiveFrame();saveSettings();haptic()});$$('[data-tone]').forEach(b=>b.onclick=()=>{commit();state.frameTone=b.dataset.tone;renderFramePanel();renderPhoto();saveSettings()});[['#frameWidth','frameWidth'],['#frameCorner','frameCorner'],['#captionSize','captionSize']].forEach(([s,k])=>{const e=$(s);rangeHistory(e);e.oninput=()=>{state[k]=Number(e.value);if(k==='captionSize')$('#captionSizeValue').textContent=`${state.captionSize}%`;scheduleRender()};e.onchange=()=>{finishRangeHistory();renderFramePanel();saveSettings()}});$('#captionInput').addEventListener('focus',startRangeHistory);$('#captionInput').oninput=e=>{state.caption=e.target.value;scheduleRender()};$('#captionInput').onchange=()=>{finishRangeHistory();saveSettings()};$('#captionFontSelect').addEventListener('focus',startRangeHistory);$('#captionFontSelect').onchange=e=>{state.captionFont=e.target.value;finishRangeHistory();renderPhoto();saveSettings()}}
   function renderDatePanel(){const styles=['Classic','Digicam 98','Tiny Digital','2000s','Japanese','Date + Time','Camcorder','Film Lab','Custom'];const colors=['Orange','Red','White','Green','Blue','Yellow','Pink'];const positions=['Bottom Right','Bottom Center','Bottom Left','Top Right','Top Center','Top Left'];$('#tool-date').innerHTML=`<div class="date-grid control-card"><label class="setting-row"><span>Show date stamp</span><input type="checkbox" id="dateEnabled" ${state.dateEnabled?'checked':''}></label><div class="inline-grid-2"><label>Style<select id="dateStyle">${styles.map(s=>`<option ${state.dateStyle===s?'selected':''}>${s}</option>`).join('')}</select></label><label>Date<input type="date" id="dateValue" value="${state.dateValue}"></label></div><label>Custom text<input class="date-custom-input" id="dateCustomText" maxlength="32" placeholder="AUG 11 2004" value="${escapeHtml(state.dateCustomText)}"></label><div><div class="effect-control-title">Stamp color</div><div class="date-color-grid">${colors.map(c=>`<button class="option-chip ${state.dateColor===c?'active':''}" data-date-color="${c}">${c}</button>`).join('')}</div></div><div><div class="effect-control-title">Position</div><div class="date-position-grid">${positions.map(p=>`<button class="option-chip ${state.datePosition===p?'active':''}" data-date-pos="${p}">${p.replace(' ','<br>')}</button>`).join('')}</div></div></div>`;$('#dateEnabled').onchange=e=>{commit();state.dateEnabled=e.target.checked;state.presetAutoDate=false;updateLiveDateStamp();renderPhoto();saveSettings()};$('#dateStyle').onchange=e=>{commit();state.dateStyle=e.target.value;state.presetAutoDate=false;updateLiveDateStamp();renderPhoto();saveSettings()};$('#dateValue').onchange=e=>{commit();state.dateValue=e.target.value;state.presetAutoDate=false;updateLiveDateStamp();renderPhoto();saveSettings()};$('#dateCustomText').addEventListener('focus',startRangeHistory);$('#dateCustomText').oninput=e=>{state.dateCustomText=e.target.value;state.presetAutoDate=false;updateLiveDateStamp();scheduleRender()};$('#dateCustomText').onchange=()=>{finishRangeHistory();saveSettings()};$$('[data-date-color]').forEach(b=>b.onclick=()=>{commit();state.dateColor=b.dataset.dateColor;state.presetAutoDate=false;updateLiveDateStamp();renderDatePanel();renderPhoto();saveSettings()});$$('[data-date-pos]').forEach(b=>b.onclick=()=>{commit();state.datePosition=b.dataset.datePos;state.presetAutoDate=false;updateLiveDateStamp();renderDatePanel();renderPhoto();saveSettings()})}
   function renderComparePanel(){$('#tool-compare').innerHTML='<div class="compare-card"><div class="compare-preview">Press and hold below to see the untouched original.<br><button class="secondary-btn" id="compareHoldBtn">Hold for Original</button></div></div>';const b=$('#compareHoldBtn'),on=()=>{state.compare=true;renderPhoto()},off=()=>{state.compare=false;renderPhoto()};b.addEventListener('pointerdown',on);['pointerup','pointercancel','pointerleave'].forEach(x=>b.addEventListener(x,off))}
   function renderFilmLabPanel(){const selected=state.recipes.find(x=>x.id===state.selectedRecipeId);$('#tool-film-lab').innerHTML=`<div class="film-lab-current"><div class="film-lab-eyebrow">Current Look</div><h3>${escapeHtml(selected?.name||state.activeFilter)}</h3><p>${selected?'Saved recipe':'Build a reusable recipe from everything currently applied to this photo.'}</p><input class="recipe-name-input" id="recipeNameInput" maxlength="28" placeholder="name this look" value="${escapeHtml(selected?.name||'')}"><div class="recipe-actions three"><button class="primary-btn" id="saveRecipeBtn">Save New</button><button class="secondary-btn" id="updateRecipeBtn">Update</button><button class="secondary-btn" id="duplicateRecipeBtn">Duplicate</button></div></div><div class="film-lab-section-head"><strong>My Recipes</strong><small>${state.recipes.length} saved</small></div><div class="recipe-list">${state.recipes.length?state.recipes.sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned)).map(r=>`<div class="recipe-card ${state.selectedRecipeId===r.id?'active':''}" data-recipe-card="${r.id}"><div class="recipe-top"><div class="recipe-title"><span class="recipe-dot"></span><div>${escapeHtml(r.name)}<small>${escapeHtml(r.snapshot.activeFilter)} • ${r.pinned?'Pinned':'Custom recipe'}</small></div></div><button class="tiny-btn ${r.pinned?'rose':''}" data-pin-recipe="${r.id}">${r.pinned?'♥':'♡'}</button></div><div class="recipe-meta"><span>Strength ${r.snapshot.filterIntensity}</span><span>${escapeHtml(r.snapshot.frame)}</span><span>${r.snapshot.dateEnabled?escapeHtml(r.snapshot.dateStyle):'No date'}</span></div><div class="recipe-btn-row"><button class="tiny-btn rose" data-apply-recipe="${r.id}">Apply</button><button class="tiny-btn" data-fill-recipe="${r.id}">Edit</button><button class="tiny-btn" data-dup-recipe="${r.id}">Copy</button><button class="tiny-btn" data-del-recipe="${r.id}">Delete</button></div></div>`).join(''):'<div class="notice">No recipes yet. Name the current look above and tap Save New.</div>'}</div>`;
@@ -336,6 +336,73 @@
   function applySparkle(ctx,w,h,s,type){ctx.save();ctx.globalAlpha=Math.min(.5,s/100);ctx.strokeStyle=type==='Heart'?'#ffd5e5':'#fff2df';ctx.fillStyle=type==='Heart'?'rgba(255,215,232,.6)':'rgba(255,251,241,.55)';for(let i=0;i<Math.max(3,Math.round(s/3));i++){const x=seeded(i+410)*w,y=seeded(i+510)*h,rad=1.5+seeded(i+610)*Math.max(2,s/8);if(type==='Heart'){ctx.beginPath();ctx.moveTo(x,y+rad*.8);ctx.bezierCurveTo(x-rad*1.4,y-rad*.6,x-rad*2.2,y+rad*.7,x,y+rad*2);ctx.bezierCurveTo(x+rad*2.2,y+rad*.7,x+rad*1.4,y-rad*.6,x,y+rad*.8);ctx.fill()}else{ctx.beginPath();ctx.moveTo(x-rad,y);ctx.lineTo(x+rad,y);ctx.moveTo(x,y-rad);ctx.lineTo(x,y+rad);if(type==='Dream'){ctx.moveTo(x-rad*.7,y-rad*.7);ctx.lineTo(x+rad*.7,y+rad*.7);ctx.moveTo(x-rad*.7,y+rad*.7);ctx.lineTo(x+rad*.7,y-rad*.7)}ctx.stroke()}}ctx.restore()}
   function applySharpness(ctx,w,h,s){if(s<3)return;ctx.save();ctx.globalCompositeOperation='overlay';ctx.globalAlpha=Math.min(.16,s/190);ctx.filter='contrast(145%)';ctx.drawImage(ctx.canvas,0,0,w,h);ctx.restore()}
   function roundPath(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+
+  const kira1989GlyphManifest={"A": {"file": "65.png", "w": 85, "h": 101}, "a": {"file": "97.png", "w": 78, "h": 64}, "B": {"file": "66.png", "w": 102, "h": 100}, "b": {"file": "98.png", "w": 81, "h": 94}, "C": {"file": "67.png", "w": 106, "h": 99}, "c": {"file": "99.png", "w": 72, "h": 71}, "D": {"file": "68.png", "w": 102, "h": 102}, "d": {"file": "100.png", "w": 59, "h": 101}, "E": {"file": "69.png", "w": 93, "h": 98}, "e": {"file": "101.png", "w": 69, "h": 74}, "F": {"file": "70.png", "w": 78, "h": 99}, "f": {"file": "102.png", "w": 62, "h": 102}, "G": {"file": "71.png", "w": 94, "h": 101}, "g": {"file": "103.png", "w": 68, "h": 100}, "H": {"file": "72.png", "w": 92, "h": 102}, "h": {"file": "104.png", "w": 88, "h": 102}, "I": {"file": "73.png", "w": 104, "h": 94}, "i": {"file": "105.png", "w": 39, "h": 98}, "J": {"file": "74.png", "w": 77, "h": 102}, "j": {"file": "106.png", "w": 51, "h": 128}, "K": {"file": "75.png", "w": 88, "h": 99}, "k": {"file": "107.png", "w": 80, "h": 91}, "L": {"file": "76.png", "w": 88, "h": 92}, "l": {"file": "108.png", "w": 33, "h": 100}, "M": {"file": "77.png", "w": 107, "h": 97}, "m": {"file": "109.png", "w": 111, "h": 66}, "N": {"file": "78.png", "w": 89, "h": 97}, "n": {"file": "110.png", "w": 80, "h": 72}, "O": {"file": "79.png", "w": 98, "h": 102}, "o": {"file": "111.png", "w": 66, "h": 67}, "P": {"file": "80.png", "w": 79, "h": 101}, "p": {"file": "112.png", "w": 90, "h": 101}, "Q": {"file": "81.png", "w": 98, "h": 100}, "q": {"file": "113.png", "w": 87, "h": 92}, "R": {"file": "82.png", "w": 113, "h": 98}, "r": {"file": "114.png", "w": 73, "h": 75}, "S": {"file": "83.png", "w": 62, "h": 97}, "s": {"file": "115.png", "w": 51, "h": 74}, "T": {"file": "84.png", "w": 125, "h": 107}, "t": {"file": "116.png", "w": 92, "h": 103}, "U": {"file": "85.png", "w": 95, "h": 102}, "u": {"file": "117.png", "w": 79, "h": 71}, "V": {"file": "86.png", "w": 99, "h": 100}, "v": {"file": "118.png", "w": 83, "h": 72}, "W": {"file": "87.png", "w": 122, "h": 96}, "w": {"file": "119.png", "w": 106, "h": 68}, "X": {"file": "88.png", "w": 77, "h": 92}, "x": {"file": "120.png", "w": 92, "h": 74}, "Y": {"file": "89.png", "w": 70, "h": 101}, "y": {"file": "121.png", "w": 68, "h": 102}, "Z": {"file": "90.png", "w": 91, "h": 94}, "z": {"file": "122.png", "w": 85, "h": 77}, "1": {"file": "49.png", "w": 85, "h": 91}, "2": {"file": "50.png", "w": 38, "h": 101}, "3": {"file": "51.png", "w": 83, "h": 92}, "4": {"file": "52.png", "w": 69, "h": 97}, "5": {"file": "53.png", "w": 68, "h": 100}, "6": {"file": "54.png", "w": 93, "h": 99}, "7": {"file": "55.png", "w": 70, "h": 98}, "8": {"file": "56.png", "w": 83, "h": 96}, "9": {"file": "57.png", "w": 70, "h": 98}, " ": {"file": null, "w": 42, "h": 80}, "0": {"file": "48.png", "w": 98, "h": 102}};
+  const kira1989GlyphCache={};
+  let kira1989GlyphPromise=null;
+  function ensure1989Glyphs(){
+    if(kira1989GlyphPromise)return kira1989GlyphPromise;
+    const entries=Object.entries(kira1989GlyphManifest).filter(([,meta])=>meta&&meta.file);
+    kira1989GlyphPromise=Promise.all(entries.map(([ch,meta])=>new Promise(resolve=>{
+      const img=new Image();
+      img.onload=()=>{kira1989GlyphCache[ch]={img,w:meta.w,h:meta.h};resolve();};
+      img.onerror=()=>resolve();
+      img.src=`./assets/fonts1989/${meta.file}`;
+    }))).then(()=>true).catch(()=>false);
+    return kira1989GlyphPromise;
+  }
+  function measure1989Text(text,size){
+    const spacing=Math.max(2,size*0.08);
+    let width=0;
+    for(const ch of String(text||'')){
+      if(ch===' '){width+=size*0.38+spacing;continue;}
+      const meta=kira1989GlyphManifest[ch];
+      if(meta&&meta.w&&meta.h)width+=size*(meta.w/meta.h)+spacing;
+      else width+=size*0.55+spacing;
+    }
+    return Math.max(0,width-spacing);
+  }
+  function draw1989Text(ctx,text,x,y,size,color,maxWidth,align='center'){
+    text=String(text||'').trim();
+    if(!text)return;
+    const rawWidth=measure1989Text(text,size);
+    const scale=(maxWidth&&rawWidth>maxWidth)?(maxWidth/rawWidth):1;
+    const drawSize=size*scale;
+    const spacing=Math.max(2,drawSize*0.08);
+    const totalWidth=measure1989Text(text,drawSize);
+    let cursor=x;
+    if(align==='center')cursor=x-totalWidth/2;
+    else if(align==='right')cursor=x-totalWidth;
+    const baselineTop=y-drawSize/2;
+    ctx.save();
+    for(const ch of text){
+      if(ch===' '){cursor+=drawSize*0.38+spacing;continue;}
+      const glyph=kira1989GlyphCache[ch];
+      const meta=kira1989GlyphManifest[ch];
+      if(glyph&&meta){
+        const gw=drawSize*(meta.w/meta.h), gh=drawSize;
+        const c=document.createElement('canvas'); c.width=Math.max(1,Math.round(gw)); c.height=Math.max(1,Math.round(gh));
+        const gctx=c.getContext('2d');
+        gctx.drawImage(glyph.img,0,0,c.width,c.height);
+        gctx.globalCompositeOperation='source-in'; gctx.fillStyle=color; gctx.fillRect(0,0,c.width,c.height);
+        ctx.drawImage(c,Math.round(cursor),Math.round(baselineTop),c.width,c.height);
+        cursor+=gw+spacing;
+      }else{
+        ctx.fillStyle=color;
+        ctx.font=`${Math.max(12,drawSize*0.9)}px 'Marker Felt', 'Comic Sans MS', cursive`;
+        ctx.textAlign='left'; ctx.textBaseline='middle';
+        ctx.fillText(ch,cursor,y);
+        cursor+=drawSize*0.55+spacing;
+      }
+    }
+    ctx.restore();
+  }
+  function drawCaptionText(ctx,text,fontName,size,color,x,y,maxWidth,align='center'){
+    if(fontName==='1989 Sparkle' && Object.keys(kira1989GlyphCache).length){
+      draw1989Text(ctx,text,x,y,size,color,maxWidth,align); return;
+    }
+    ctx.fillStyle=color; ctx.textAlign=align; ctx.textBaseline='middle'; ctx.font=captionFontCss(fontName,size); ctx.fillText(text,x,y,maxWidth);
+  }
   function captionFontCss(name,size){const map={'Classic Serif':`italic ${size}px Georgia, 'Times New Roman', serif`,'1989 Sparkle':`600 ${size}px 'Chalkboard SE', 'Chalkboard', 'Marker Felt', 'Noteworthy', 'Comic Sans MS', cursive`,'Typewriter':`${size}px 'Courier New', 'American Typewriter', ui-monospace, monospace`,'Marker':`italic ${size}px 'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive`,'Mono Label':`${size}px ui-monospace, SFMono-Regular, Menlo, Monaco, monospace`};return map[name]||map['Classic Serif']}
   function isInstantCaptionFrame(frame){return ['Polaroid','Instant Square','Instant Wide','Instant Mini','Instant Black'].includes(frame)}
   function drawFrame(ctx,w,h){
@@ -356,7 +423,7 @@
         if(state.frame==='Postcard')pct=.10;
         const footer=Math.round(h*pct+state.frameWidth*1.4);
         ctx.fillStyle=tone;ctx.fillRect(0,h-footer,w,footer);
-        if(state.caption){ctx.fillStyle=black?'#f8eee7':state.frame==='Postcard'?'#8b5d4b':'#6a4d4e';ctx.textAlign='center';ctx.textBaseline='middle';const capScale=(state.captionSize||125)/100;ctx.font=captionFontCss(state.captionFont,Math.max(16,Math.round(w*.034*capScale)));ctx.fillText(state.caption,w/2,h-footer*.36)}
+        if(state.caption){const capColor=black?'#f8eee7':state.frame==='Postcard'?'#8b5d4b':'#6a4d4e';const capScale=(state.captionSize||165)/100;drawCaptionText(ctx,state.caption,state.captionFont,Math.max(16,Math.round(w*.04*capScale)),capColor,w/2,h-footer*.36,w*.82,'center')}
       }
       if(state.frame==='Postcard'){ctx.strokeStyle='rgba(106,77,78,.24)';ctx.beginPath();ctx.moveTo(w*.55,m*1.6);ctx.lineTo(w*.55,h-m*1.6);ctx.moveTo(w*.65,h*.25);ctx.lineTo(w*.88,h*.25);ctx.stroke()}
       ctx.restore();
@@ -365,7 +432,7 @@
     }else if(state.frame==='Film Strip'||state.frame==='Negative Edge'){
       ctx.save();ctx.fillStyle='#111';const side=Math.round(w*(.045+state.frameWidth/230));ctx.fillRect(0,0,side,h);ctx.fillRect(w-side,0,side,h);ctx.fillStyle=state.frame==='Negative Edge'?'#ffb54c':'#e8d9c8';const hole=Math.max(4,Math.round(side*.25));for(let y=hole;y<h;y+=hole*2.2){ctx.fillRect(side*.25,y,hole,hole*.7);ctx.fillRect(w-side*.7,y,hole,hole*.7)}ctx.restore();
     }else if(state.frame==='Photo Booth'){
-      ctx.save();ctx.fillStyle=state.frameTone;const gap=Math.round(w*.03),col=Math.round(w*.22),stripX=w-col-gap,innerX=stripX+gap,innerW=col-gap*2,imgH=(h-gap*4)/3;ctx.fillRect(stripX,0,col,h);for(let i=0;i<3;i++){ctx.strokeStyle='rgba(120,92,94,.25)';ctx.strokeRect(innerX,gap*(i+1)+imgH*i,innerW,imgH)}if(state.caption){ctx.fillStyle='#6a4d4e';const stripScale=(state.captionSize||125)/100;ctx.font=captionFontCss(state.captionFont,Math.max(12,Math.round(w*.025*stripScale)));ctx.fillText(state.caption,innerX+6,h-gap*1.5)}ctx.restore();
+      ctx.save();ctx.fillStyle=state.frameTone;const gap=Math.round(w*.03),col=Math.round(w*.22),stripX=w-col-gap,innerX=stripX+gap,innerW=col-gap*2,imgH=(h-gap*4)/3;ctx.fillRect(stripX,0,col,h);for(let i=0;i<3;i++){ctx.strokeStyle='rgba(120,92,94,.25)';ctx.strokeRect(innerX,gap*(i+1)+imgH*i,innerW,imgH)}if(state.caption){const stripScale=(state.captionSize||165)/100;drawCaptionText(ctx,state.caption,state.captionFont,Math.max(12,Math.round(w*.025*stripScale)),'#6a4d4e',innerX+6,h-gap*1.5,innerW-12,'left')}ctx.restore();
     }else if(state.frame==='Contact Print'){
       ctx.save();ctx.fillStyle=state.frameTone;ctx.fillRect(0,0,w,h);ctx.strokeStyle='rgba(70,52,54,.14)';const cols=4,rows=4,margin=w*.06,cellW=(w-margin*2)/cols,cellH=(h-margin*2)/rows;for(let r=0;r<rows;r++){for(let c=0;c<cols;c++){ctx.strokeRect(margin+c*cellW,margin+r*cellH,cellW-4,cellH-4)}}ctx.fillStyle='#8d6e70';ctx.font=`${Math.max(12,Math.round(w*.025))}px monospace`;ctx.fillText('CONTACT PRINT',margin,h-margin*.35);ctx.restore();
     }
@@ -621,13 +688,14 @@
     const sizeValue=$('#photoCaptionSizeValue');
     if(captionInput)captionInput.value=item.caption ?? item.snapshot?.caption ?? '';
     if(fontSelect)fontSelect.value=item.captionFont || item.snapshot?.captionFont || 'Classic Serif';
-    const captionSize=Number(item.captionSize || item.snapshot?.captionSize || 125);
+    const captionSize=Number(item.captionSize || item.snapshot?.captionSize || 165);
     if(sizeInput)sizeInput.value=captionSize;
     if(sizeValue)sizeValue.textContent=`${captionSize}%`;
   }
   async function renderInstantCaptionBlob(item){
     const frame=modalCaptionFrame(item);
     if(!modalCaptionEnabled(item) || !item?.blob)return item?.blob || null;
+    if((item.captionFont||item.snapshot?.captionFont)==='1989 Sparkle')await ensure1989Glyphs();
 
     const source=await decodePhotoBlob(item.blob);
     try{
@@ -661,18 +729,18 @@
 
       const caption=String(item.caption||'').trim();
       if(caption){
-        ctx.fillStyle=black?'#f8eee7':'#6a4d4e';
-        ctx.textAlign='center';
-        ctx.textBaseline='middle';
-        const capScale=(Number(item.captionSize || item.snapshot?.captionSize || 125))/100;ctx.font=captionFontCss(item.captionFont||'Classic Serif',Math.max(16,Math.round(sw*.034*capScale)));
-
+        const capColor=black?'#f8eee7':'#6a4d4e';
+        const capScale=(Number(item.captionSize || item.snapshot?.captionSize || 165))/100;
         const maxWidth=sw*.82;
         let text=caption;
-        if(ctx.measureText(text).width>maxWidth){
-          while(text.length>1 && ctx.measureText(text+'…').width>maxWidth)text=text.slice(0,-1);
-          text+='…';
+        if((item.captionFont||'Classic Serif')!=='1989 Sparkle'){
+          ctx.font=captionFontCss(item.captionFont||'Classic Serif',Math.max(16,Math.round(sw*.04*capScale)));
+          if(ctx.measureText(text).width>maxWidth){
+            while(text.length>1 && ctx.measureText(text+'…').width>maxWidth)text=text.slice(0,-1);
+            text+='…';
+          }
         }
-        ctx.fillText(text,sw/2,sh-footer*.36,maxWidth);
+        drawCaptionText(ctx,text,item.captionFont||'Classic Serif',Math.max(16,Math.round(sw*.04*capScale)),capColor,sw/2,sh-footer*.36,maxWidth,'center');
       }
 
       return await new Promise((resolve,reject)=>{
@@ -798,7 +866,7 @@
   function selectAllCurrent(){const items=currentRollItems().filter(x=>!isVideoItem(x));const limit=16;items.slice(0,limit).forEach(x=>state.selectedPhotoIds.add(String(x.id)));renderRolls();if(items.length>limit)toast('Selected the first 16 photos.')}
 
   function openPhotoModal(id){const item=state.rolls.find(x=>String(x.id)===String(id));if(!item)return;state.photoModalId=String(id);const im=$('#photoModalImage'),vid=$('#photoModalVideo'),video=isVideoItem(item);for(const media of [im,vid]){if(media?.dataset.objectUrl){URL.revokeObjectURL(media.dataset.objectUrl);delete media.dataset.objectUrl}}const u=URL.createObjectURL(item.blob);if(video){im.classList.add('hidden');vid.classList.remove('hidden');vid.src=u;vid.dataset.objectUrl=u}else{vid.pause();vid.classList.add('hidden');im.classList.remove('hidden');im.src=u;im.dataset.objectUrl=u}$('#photoDetailMeta').innerHTML=`<div><b>Roll</b>${escapeHtml(rollName(item.rollId))}</div><div><b>${video?'Preview look':'Look'}</b>${escapeHtml(video?(item.videoPreviewLook||item.filter||'Original'):item.kind==='edited'?(item.filter||'Edited'):'Original')}</div><div><b>Type</b>${video?'Video':item.kind==='edited'?'Edited':'Original'}</div><div><b>Date</b>${new Date(item.createdAt).toLocaleDateString()}</div>`;renderRollSelectors();$('#photoRollSelect').value=(item.rollId&&($('#photoRollSelect option[value="'+item.rollId+'"]')))?item.rollId:'unfiled';$('#photoTitleInput').value=item.title||'';$('#photoNotesInput').value=item.notes||'';$('#photoTagsInput').value=(Array.isArray(item.tags)?item.tags:[]).join(', ');try{syncPhotoCaptionUi(item)}catch(err){console.warn('Kira caption UI:',err);$('#photoCaptionTools')?.classList.add('hidden')}$('#photoFavoriteBtn').textContent=item.favorite?'♥ Favorited':'♡ Favorite';$('#photoUseLookBtn').disabled=video||!item.snapshot;$('#photoModal').classList.remove('hidden')}
-  async function savePhotoDetails(){const item=currentModalPhoto();if(!item)return;item.title=$('#photoTitleInput').value.trim();item.notes=$('#photoNotesInput').value.trim();item.tags=$('#photoTagsInput').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,20);let captionSaved=false;try{if(modalCaptionEnabled(item)){item.caption=$('#photoCaptionInput')?.value.trim()||'';item.captionFont=$('#photoCaptionFontSelect')?.value||'Classic Serif';item.captionSize=Number($('#photoCaptionSize')?.value||125);item.captionFrame=modalCaptionFrame(item);if(item.snapshot){item.snapshot.caption=item.caption;item.snapshot.captionFont=item.captionFont;item.snapshot.captionSize=item.captionSize}const nextBlob=await renderInstantCaptionBlob(item);if(nextBlob)item.blob=nextBlob;captionSaved=true}}catch(err){console.error('Kira caption save:',err);toast('Details saved, but the Polaroid caption could not be rendered.')}await updateRollItem(item);if(!captionSaved)toast('Memory details saved.');else toast('Memory details and caption saved.');safeOpenPhotoModal(item.id)}
+  async function savePhotoDetails(){const item=currentModalPhoto();if(!item)return;item.title=$('#photoTitleInput').value.trim();item.notes=$('#photoNotesInput').value.trim();item.tags=$('#photoTagsInput').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,20);let captionSaved=false;try{if(modalCaptionEnabled(item)){item.caption=$('#photoCaptionInput')?.value.trim()||'';item.captionFont=$('#photoCaptionFontSelect')?.value||'Classic Serif';item.captionSize=Number($('#photoCaptionSize')?.value||165);item.captionFrame=modalCaptionFrame(item);if(item.snapshot){item.snapshot.caption=item.caption;item.snapshot.captionFont=item.captionFont;item.snapshot.captionSize=item.captionSize}const nextBlob=await renderInstantCaptionBlob(item);if(nextBlob)item.blob=nextBlob;captionSaved=true}}catch(err){console.error('Kira caption save:',err);toast('Details saved, but the Polaroid caption could not be rendered.')}await updateRollItem(item);if(!captionSaved)toast('Memory details saved.');else toast('Memory details and caption saved.');safeOpenPhotoModal(item.id)}
   function currentModalPhoto(){return state.rolls.find(x=>String(x.id)===String(state.photoModalId))}
   async function moveModalPhoto(){const item=currentModalPhoto();if(!item)return;item.rollId=$('#photoRollSelect').value;await updateRollItem(item);safeOpenPhotoModal(item.id);toast('Photo moved.')}
   async function favoriteModalPhoto(){const item=currentModalPhoto();if(!item)return;item.favorite=!item.favorite;await updateRollItem(item);safeOpenPhotoModal(item.id)}
@@ -867,7 +935,7 @@
   async function setupServiceWorkerUpdates(){
     if(!('serviceWorker' in navigator))return;
     try{
-      const reg=await navigator.serviceWorker.register('./service-worker.js?v=11.0.0');
+      const reg=await navigator.serviceWorker.register('./service-worker.js?v=11.5.0');
       kiraSwRegistration=reg;
       if(reg.waiting&&navigator.serviceWorker.controller)showAppUpdateBanner(reg);
       reg.addEventListener('updatefound',()=>{
@@ -906,6 +974,6 @@
 
   function setupInstall(){window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.deferredInstallPrompt=e;$('#installBtn').hidden=false});$('#installBtn').onclick=async()=>{if(!state.deferredInstallPrompt){toast(isIOS()?'On iPhone: Share → Add to Home Screen':'Use your browser menu → Install app');return}state.deferredInstallPrompt.prompt();await state.deferredInstallPrompt.userChoice;state.deferredInstallPrompt=null;$('#installBtn').hidden=true}}
   function preventZoom(){const stop=e=>e.preventDefault();['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,stop,{passive:false}));document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});let last=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-last<=320)e.preventDefault();last=n},{passive:false});document.addEventListener('dblclick',stop,{passive:false});document.addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault()},{passive:false})}
-  function init(){saveNamedRolls();setCaptureMode(state.settings.defaultCaptureMode||'photo');if(!state.selectedRecipeId)applyPresetExtras(state.activeFilter);renderRollSelectors();updateCameraHUD();renderCameraCategories();renderCameraFilters();setupToolTabs();bindInputs();bindSettings();applySettings();setupInstall();preventZoom();refreshRolls();updateHistoryButtons();updatePhotosQueueUI();document.body.classList.add('camera-mode');updateCameraViewport();setupOnboarding();const onViewport=()=>requestAnimationFrame(updateCameraViewport);window.addEventListener('resize',onViewport,{passive:true});window.visualViewport?.addEventListener('resize',onViewport,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state.recording)stopVideoRecording();else stopCamera()}else if($('#screen-camera')?.classList.contains('active')){updateCameraViewport();bootCameraSafely()}});setupServiceWorkerUpdates();setTimeout(()=>{updateCameraViewport();bootCameraSafely()},120)}
+  function init(){saveNamedRolls();ensure1989Glyphs().then(()=>{try{renderPhoto()}catch(_){}});setCaptureMode(state.settings.defaultCaptureMode||'photo');if(!state.selectedRecipeId)applyPresetExtras(state.activeFilter);renderRollSelectors();updateCameraHUD();renderCameraCategories();renderCameraFilters();setupToolTabs();bindInputs();bindSettings();applySettings();setupInstall();preventZoom();refreshRolls();updateHistoryButtons();updatePhotosQueueUI();document.body.classList.add('camera-mode');updateCameraViewport();setupOnboarding();const onViewport=()=>requestAnimationFrame(updateCameraViewport);window.addEventListener('resize',onViewport,{passive:true});window.visualViewport?.addEventListener('resize',onViewport,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state.recording)stopVideoRecording();else stopCamera()}else if($('#screen-camera')?.classList.contains('active')){updateCameraViewport();bootCameraSafely()}});setupServiceWorkerUpdates();setTimeout(()=>{updateCameraViewport();bootCameraSafely()},120)}
   init();
 })();
