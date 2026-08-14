@@ -34,11 +34,13 @@ for name, (old_cat, new_cat) in moves.items():
     new = f"['{name}','{new_cat}',"
     app = replace_exact(app, old, new, f'{name} category')
 
-film_stock_token = ",'Film Stock',"
+# Match only built-in filter rows. The old category UI arrays also contain
+# the words “Film Stock”, so counting the broad token would incorrectly see 22.
+film_stock_token = ",'Film Stock','#"
 film_stock_count = app.count(film_stock_token)
 if film_stock_count != 20:
-    raise SystemExit(f'Film Stock merge: expected 20 filters, found {film_stock_count}')
-app = app.replace(film_stock_token, ",'Film',")
+    raise SystemExit(f'Film Stock merge: expected 20 filter rows, found {film_stock_count}')
+app = app.replace(film_stock_token, ",'Film','#")
 
 old_cats = "const cats=['Kira','Beauty','Mood','Lo-Fi','Recolor','Mono','Flash Night','Recent','Favorites','Camera Packs','Instant','Vintage','Date Cam','Film','Film Stock','CCD','Y2K','Dream','Japan','My Recipes','All'];"
 new_cats = "const cats=['Kira','Beauty','Film','Instant','Vintage','CCD','Date Cam','Y2K','Dream','Japan','Lo-Fi','Recolor','Mono','Flash Night','Camera Packs','Recent','Favorites','My Recipes','All'];"
