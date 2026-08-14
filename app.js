@@ -285,7 +285,7 @@
     namedRolls:loadNamedRolls(),activeNamedRollId:localStorage.getItem('kira.activeRoll')||'unfiled',rollViewId:'all',rollSearch:'',rollSort:'newest',recentLooks:JSON.parse(localStorage.getItem('kira.recentLooks')||'[]'),
     rolls:[],deferredInstallPrompt:null,activeRollFilter:'all',history:[],future:[],pendingSnapshot:null,cameraStream:null,cameraFacing:'environment',cameraReady:false,activeCameraCategory:'Kira',cameraThumbTimer:null,lastThumbPaint:0,thumbPaintPending:false,
     cameraRatio:localStorage.getItem('kira.cameraRatio')||'3:4',cameraTimer:Number(localStorage.getItem('kira.cameraTimer')||0),timerRunning:false,
-    contactMode:false,selectedPhotoIds:new Set(),bulkSelectMode:false,bulkSelectedIds:new Set(),contactBlob:null,photoModalId:null,rollModalId:null,presetAutoDate:false,presetAutoFrame:false,captureMode:'photo',mediaRecorder:null,videoChunks:[],recording:false,recordStartedAt:0,recordTimer:null,videoAudioStream:null,pendingShareFile:null,pendingShareTitle:'',photosQueueIds:[],photoProcessQueue:[],photoProcessing:false,captureSequence:0,cameraTorchOn:false,cameraCapabilities:null,cameraZoomTimer:null,developInitialized:false,cameraImmersive:false,livePhotoEnabled:localStorage.getItem('kira.livePhoto')==='1',liveCaptureBusy:false
+    contactMode:false,selectedPhotoIds:new Set(),bulkSelectMode:false,bulkSelectedIds:new Set(),contactBlob:null,photoModalId:null,rollModalId:null,presetAutoDate:false,presetAutoFrame:false,captureMode:'photo',mediaRecorder:null,videoChunks:[],recording:false,recordStartedAt:0,recordTimer:null,videoAudioStream:null,pendingShareFile:null,pendingShareTitle:'',photosQueueIds:[],photoProcessQueue:[],photoProcessing:false,captureSequence:0,cameraTorchOn:false,cameraCapabilities:null,cameraZoomTimer:null,developInitialized:false,cameraImmersive:false
   };
   if(state.activeNamedRollId!=='unfiled'&&!state.namedRolls.some(r=>r.id===state.activeNamedRollId))state.activeNamedRollId='unfiled';
   if(state.settings.rememberFilter){const sf=localStorage.getItem('kira.lastFilter');if(sf&&allPresets().some(f=>f.name===sf))state.activeFilter=sf;}
@@ -320,7 +320,7 @@
   function ensureDevelopReady(){if(state.developInitialized)return;renderAllPanels();state.developInitialized=true}
   function openDrawer(){document.body.classList.add('drawer-open');$('#appDrawer')?.classList.add('open');$('#drawerBackdrop')?.classList.remove('hidden');$('#appDrawer')?.setAttribute('aria-hidden','false');$('#menuBtn')?.setAttribute('aria-expanded','true')}
   function closeDrawer(){document.body.classList.remove('drawer-open');$('#appDrawer')?.classList.remove('open');$('#drawerBackdrop')?.classList.add('hidden');$('#appDrawer')?.setAttribute('aria-hidden','true');$('#menuBtn')?.setAttribute('aria-expanded','false')}
-  function switchScreen(name){if(state.recording&&name!=='camera'){toast('Stop recording before leaving Camera.');return}if(state.liveCaptureBusy&&name!=='camera'){toast('Live Photo is finishing…');return}if(name!=='camera'&&state.cameraImmersive)setCameraImmersive(false);$$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));$$('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.target===name));$$('.drawer-nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.menuAction===name));document.body.classList.toggle('camera-mode',name==='camera');window.scrollTo(0,0);closeDrawer();if(name==='rolls'){renderNamedRollBar();renderRolls()}if(name==='camera'){renderCameraCategories();renderCameraFilters();updateCameraViewport();applyCameraRatio();bootCameraSafely()}else{stopCamera();if(name==='develop'){ensureDevelopReady();renderPhoto()}}renderRollSelectors();if(name==='settings'){updateStorageEstimate()}}
+  function switchScreen(name){if(state.recording&&name!=='camera'){toast('Stop recording before leaving Camera.');return}if(name!=='camera'&&state.cameraImmersive)setCameraImmersive(false);$$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));$$('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.target===name));$$('.drawer-nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.menuAction===name));document.body.classList.toggle('camera-mode',name==='camera');window.scrollTo(0,0);closeDrawer();if(name==='rolls'){renderNamedRollBar();renderRolls()}if(name==='camera'){renderCameraCategories();renderCameraFilters();updateCameraViewport();applyCameraRatio();bootCameraSafely()}else{stopCamera();if(name==='develop'){ensureDevelopReady();renderPhoto()}}renderRollSelectors();if(name==='settings'){updateStorageEstimate()}}
   function runMenuAction(action){closeDrawer();if(['camera','develop','rolls','settings'].includes(action)){switchScreen(action);return}if(action==='film-lab'){switchScreen('develop');ensureDevelopReady();document.querySelector('[data-tool="film-lab"]')?.click();return}if(action==='favorite-looks'){state.activeCategory='Favorites';switchScreen('develop');ensureDevelopReady();renderCategories();renderFilters();document.querySelector('[data-tool="filter"]')?.click();return}if(action==='surprise'){switchScreen('camera');randomizeLook();return}if(action==='contact-sheet'){switchScreen('rolls');setContactMode(true);return}if(action==='media-favorites'){state.activeRollFilter='favorites';switchScreen('rolls');$$('.roll-tabs .chip').forEach(x=>x.classList.toggle('active',x.dataset.rollFilter==='favorites'));renderRolls();return}if(action==='library-search'){switchScreen('rolls');setTimeout(()=>$('#rollSearch')?.focus(),120);return}if(action==='whats-new'){$('#whatsNewModal')?.classList.remove('hidden');return}if(action==='help'){$('#helpModal')?.classList.remove('hidden');return}if(action==='about'){switchScreen('settings');const d=$('.about-kira-group');if(d){d.open=true;setTimeout(()=>d.scrollIntoView({behavior:'smooth',block:'start'}),80)}return}}
   function presetCard(f){const fav=f.kind==='recipe'?(f.pinned?'♥':''):(state.favoriteFilters.has(f.name)?'♥':'');const label=f.kind==='recipe'?'Recipe':f.cat;return `<button class="preset-card ${state.activeFilter===f.name?'active':''}" data-filter="${escapeHtml(f.name)}" data-kind="${f.kind}" ${f.recipeId?`data-recipe-id="${f.recipeId}"`:''}><div class="preset-thumb" style="background:${f.thumb}"></div><span>${escapeHtml(f.name)}${fav?` <i class="favorite-star">${fav}</i>`:''}</span><small style="font-size:9px;color:#8f7072">${label}</small></button>`}
   function cameraPresetCard(f){const fav=f.kind==='recipe'?(f.pinned?'♥':''):(state.favoriteFilters.has(f.name)?'♥':'');return `<button class="preset-card ${cameraPresetIsActive(f)?'active':''}" data-camera-filter="${escapeHtml(f.name)}" data-kind="${f.kind}" ${f.recipeId?`data-recipe-id="${f.recipeId}"`:''}><div class="preset-thumb camera-swatch" style="background:${f.thumb}"></div><span>${escapeHtml(f.name)}${fav?` <i class="favorite-star">${fav}</i>`:''}</span><small>${f.kind==='recipe'?'Recipe':(f.p?.pack||f.cat)}</small></button>`}
@@ -611,7 +611,6 @@
     $$('[data-capture-mode]').forEach(b=>b.classList.toggle('active',b.dataset.captureMode===state.captureMode));
     const shutter=$('#shutterBtn');
     if(shutter){shutter.classList.toggle('video-mode',state.captureMode==='video');shutter.setAttribute('aria-label',state.captureMode==='video'?'Start video recording':'Take photo')}
-    syncLivePhotoButton();
     if(state.captureMode==='video')toast('Video mode: smooth recording uses the original camera color. Your selected look stays as a live preview.');
   }
   function recorderMime(){
@@ -678,7 +677,7 @@
     try{if(state.mediaRecorder&&state.mediaRecorder.state!=='inactive')state.mediaRecorder.stop()}catch(e){console.warn(e);stopVideoAudio()}
     haptic(20);
   }
-  async function captureOrRecord(){if(state.captureMode==='video'){state.recording?stopVideoRecording():await startVideoRecording();return}if(state.livePhotoEnabled){await captureKiraLivePhoto();return}captureLivePhoto()}
+  async function captureOrRecord(){if(state.captureMode==='video'){state.recording?stopVideoRecording():await startVideoRecording();return}captureLivePhoto()}
   function hideSavePhotosPrompt(){state.pendingShareFile=null;state.pendingShareTitle='';$('#savePhotosPrompt')?.classList.add('hidden')}
   function showSavePhotosPrompt(file,title){
     state.pendingShareFile=file;state.pendingShareTitle=title||'Kira media';
@@ -789,7 +788,7 @@
   function scheduleCameraZoom(value){const track=state.cameraStream?.getVideoTracks?.()[0];if(!track||!state.cameraCapabilities?.zoom)return;clearTimeout(state.cameraZoomTimer);state.cameraZoomTimer=setTimeout(async()=>{try{await track.applyConstraints({advanced:[{zoom:Number(value)}]})}catch(e){console.warn('Kira zoom:',e)}},70);$('#cameraZoomValue')&&($('#cameraZoomValue').textContent=`${Number(value).toFixed(1).replace('.0','')}×`)}
   async function toggleCameraTorch(){const track=state.cameraStream?.getVideoTracks?.()[0];if(!track||!state.cameraCapabilities?.torch){toast('Flashlight is not available on this camera.');return}state.cameraTorchOn=!state.cameraTorchOn;try{await track.applyConstraints({advanced:[{torch:state.cameraTorchOn}]});$('#cameraTorchBtn').textContent=state.cameraTorchOn?'Flashlight On':'Flashlight Off'}catch(e){state.cameraTorchOn=false;$('#cameraTorchBtn').textContent='Flashlight Off';toast('iPhone did not allow flashlight control here.')}}
   function stopCamera(){state.cameraTorchOn=false;state.cameraCapabilities=null;$('#cameraTorchBtn')?.classList.add('hidden');$('#cameraZoomControl')?.classList.add('hidden');if(state.recording)stopVideoRecording();if(state.cameraThumbTimer){clearInterval(state.cameraThumbTimer);state.cameraThumbTimer=null}if(state.cameraStream){state.cameraStream.getTracks().forEach(t=>t.stop());state.cameraStream=null}state.cameraReady=false;const video=$('#cameraVideo');if(video)video.srcObject=null}
-  async function flipCamera(){if(state.liveCaptureBusy){toast('Live Photo is finishing…');return}state.cameraFacing=state.cameraFacing==='environment'?'user':'environment';stopCamera();await startCamera(true);haptic(18)}
+  async function flipCamera(){state.cameraFacing=state.cameraFacing==='environment'?'user':'environment';stopCamera();await startCamera(true);haptic(18)}
   function updateCameraHUD(){const active=state.selectedRecipeId?state.recipes.find(r=>r.id===state.selectedRecipeId)?.name:state.activeFilter;$('#liveFilterName')&&($('#liveFilterName').textContent=active||'Kira');$('#liveIntensityValue')&&($('#liveIntensityValue').textContent=state.filterIntensity);const live=$('#liveFilterIntensity');if(live&&Number(live.value)!==state.filterIntensity)live.value=state.filterIntensity;const fav=$('#cameraFavoriteBtn');if(fav){const on=state.selectedRecipeId?!!state.recipes.find(r=>r.id===state.selectedRecipeId)?.pinned:state.favoriteFilters.has(state.activeFilter);fav.textContent=on?'♥':'♡';fav.classList.toggle('active',on)}const count=state.rolls.filter(x=>(x.rollId||defaultRollId())===state.activeNamedRollId).length;$('#cameraRollCount')&&($('#cameraRollCount').textContent=`${Math.min(count,999)} / 36`);$('#cameraRollBadge')&&($('#cameraRollBadge').textContent=rollName(state.activeNamedRollId));const summary=$('#activeLookSummary');if(summary)summary.textContent=active||'Kira';const si=$('#activeLookIntensity');if(si)si.textContent=`${state.filterIntensity}%`;updateLiveDateStamp()}
   function toggleActiveCameraFavorite(){if(state.selectedRecipeId)toggleRecipePin(state.selectedRecipeId);else toggleFavorite(state.activeFilter);updateCameraHUD()}
   function setCameraImmersive(on){
@@ -801,77 +800,6 @@
     haptic()
   }
   function toggleCameraImmersive(){setCameraImmersive(!state.cameraImmersive)}
-  function syncLivePhotoButton(){
-    const btn=$('#livePhotoBtn');if(!btn)return;
-    const disabled=state.captureMode==='video'||state.recording;
-    btn.disabled=disabled;
-    btn.classList.toggle('active',state.livePhotoEnabled&&!disabled);
-    btn.textContent=state.livePhotoEnabled?'Live On':'Live Off';
-    btn.setAttribute('aria-pressed',String(state.livePhotoEnabled));
-  }
-  function toggleLivePhoto(){
-    if(state.captureMode==='video'||state.recording){toast('Live Photo is available in Photo mode.');return}
-    if(!window.MediaRecorder){toast('Live Photo is not supported by this browser.');return}
-    state.livePhotoEnabled=!state.livePhotoEnabled;
-    localStorage.setItem('kira.livePhoto',state.livePhotoEnabled?'1':'0');
-    syncLivePhotoButton();
-    toast(state.livePhotoEnabled?'Kira Live on • still + motion clip':'Kira Live off');
-    haptic(18)
-  }
-  function livePhotoMime(){
-    if(!window.MediaRecorder)return '';
-    const types=['video/mp4;codecs=avc1.42E01E','video/mp4','video/webm;codecs=vp8','video/webm'];
-    return types.find(t=>!MediaRecorder.isTypeSupported||MediaRecorder.isTypeSupported(t))||''
-  }
-  async function captureLiveMotionClip(duration=2200){
-    if(!state.livePhotoEnabled||state.liveCaptureBusy||!window.MediaRecorder)return null;
-    const sourceTrack=state.cameraStream?.getVideoTracks?.()[0];
-    if(!sourceTrack)return null;
-    const track=sourceTrack.clone(),stream=new MediaStream([track]),chunks=[],mime=livePhotoMime();
-    let recorder;
-    try{recorder=new MediaRecorder(stream,{...(mime?{mimeType:mime}:{}),videoBitsPerSecond:1800000})}
-    catch(e){try{recorder=new MediaRecorder(stream)}catch(err){track.stop();return null}}
-    state.liveCaptureBusy=true;syncLivePhotoButton();
-    return await new Promise(resolve=>{
-      let settled=false;
-      const finish=blob=>{if(settled)return;settled=true;track.stop();state.liveCaptureBusy=false;syncLivePhotoButton();resolve(blob)};
-      recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-      recorder.onerror=()=>finish(null);
-      recorder.onstop=()=>{const type=recorder.mimeType||mime||chunks[0]?.type||'video/mp4';const blob=chunks.length?new Blob(chunks,{type}):null;finish(blob&&blob.size>1000?blob:null)};
-      try{recorder.start(300)}catch(e){finish(null);return}
-      setTimeout(()=>{try{if(recorder.state!=='inactive')recorder.stop();else finish(null)}catch(e){finish(null)}},duration)
-    })
-  }
-  async function saveKiraLivePhoto(stillBlob,motionBlob){
-    const source=await decodePhotoBlob(stillBlob);
-    try{
-      const maxSide=1920,sw=source.width||source.naturalWidth||1080,sh=source.height||source.naturalHeight||1440,scale=Math.min(1,maxSide/Math.max(sw,sh)),c=document.createElement('canvas');
-      c.width=Math.max(1,Math.round(sw*scale));c.height=Math.max(1,Math.round(sh*scale));
-      const snapshot=editSnapshot(),p=filterParamsForSnapshot(snapshot);
-      withVisualSnapshot(snapshot,()=>drawCameraShotFast(c,source,p));
-      const finalBlob=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',.92));
-      if(!finalBlob)throw new Error('Could not encode Live Photo still');
-      const name=`kira-live-${Date.now()}`;
-      const id=await storeRollPhoto(finalBlob,{kind:'edited',mediaType:'live-photo',name,filter:state.activeFilter,favorite:false,snapshot,rollId:state.activeNamedRollId,cameraCapture:true,motionBlob,motionType:motionBlob.type||'video/mp4'});
-      queueRollIdForPhotos(id);
-      toast(state.settings.autoPhotos?'Live Photo saved • still queued for Photos':`Live Photo saved to ${rollName(state.activeNamedRollId)} ✓`);
-    }finally{if(source&&typeof source.close==='function')source.close()}
-  }
-  async function captureKiraLivePhoto(){
-    if(state.timerRunning||state.liveCaptureBusy){if(state.liveCaptureBusy)toast('Live Photo is finishing…');return}
-    if(!state.cameraReady){if(navigator.mediaDevices?.getUserMedia){startCamera(true);toast('Starting camera…')}else $('#cameraInput').click();return}
-    const video=$('#cameraVideo');if(!video.videoWidth||!video.videoHeight){toast('Camera is still getting ready.');return}
-    await runCameraCountdown();if(!state.cameraReady)return;
-    const motionPromise=captureLiveMotionClip(2200);
-    await new Promise(r=>requestAnimationFrame(r));
-    const c=captureCanvasForRatio(video);shotFeedback();
-    const stillBlob=await new Promise(resolve=>c.toBlob(resolve,'image/jpeg',.92));
-    if(!stillBlob){toast('Could not capture photo.');await motionPromise;return}
-    const motionBlob=await motionPromise;
-    if(!motionBlob){enqueueContinuousPhoto(stillBlob,c);toast('Motion clip was unavailable — saved the still photo instead.');return}
-    try{await saveKiraLivePhoto(stillBlob,motionBlob)}catch(e){console.error('Kira Live save:',e);enqueueContinuousPhoto(stillBlob,c);toast('Live motion could not be saved — still photo kept.')}
-  }
-
   function applyCameraRatio(){const stage=$('#cameraStage');if(!stage)return;stage.classList.remove('ratio-3-4','ratio-1-1','ratio-9-16');stage.classList.add(state.cameraRatio==='1:1'?'ratio-1-1':state.cameraRatio==='9:16'?'ratio-9-16':'ratio-3-4');$('#ratioBtn')&&($('#ratioBtn').textContent=state.cameraRatio)}
   function cycleCameraRatio(){const vals=['3:4','1:1','9:16'];state.cameraRatio=vals[(vals.indexOf(state.cameraRatio)+1)%vals.length];localStorage.setItem('kira.cameraRatio',state.cameraRatio);applyCameraRatio();haptic()}
   function cycleCameraTimer(){const vals=[0,3,5,10];state.cameraTimer=vals[(vals.indexOf(state.cameraTimer)+1)%vals.length];localStorage.setItem('kira.cameraTimer',String(state.cameraTimer));$('#timerBtn')&&($('#timerBtn').textContent=state.cameraTimer?`${state.cameraTimer}s`:'Timer Off');haptic()}
@@ -914,7 +842,33 @@
   async function clearRolls(){const db=await openDB();await new Promise((res,rej)=>{const tx=db.transaction('photos','readwrite');tx.objectStore('photos').clear();tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close();state.rolls=[];syncRollUi(rollsVisible())}
   async function importPhotosToRoll(files){const list=[...files].filter(f=>f.type.startsWith('image/'));if(!list.length)return;const db=await openDB();await new Promise((res,rej)=>{const tx=db.transaction('photos','readwrite'),store=tx.objectStore('photos');list.forEach(file=>store.add({blob:file,createdAt:Date.now(),rollId:state.activeNamedRollId,kind:'original',name:(file.name||'photo').replace(/\.[^.]+$/,''),filter:'Original',favorite:false}));tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close();await refreshRolls();toast(`${list.length} photo${list.length===1?'':'s'} imported to ${rollName(state.activeNamedRollId)}`)}
 
-  function isLivePhotoItem(x){return !!x?.motionBlob||x?.mediaType==='live-photo'}
+  async function cleanupRetiredMotionPairs(){
+    localStorage.removeItem('kira.livePhoto');
+    const marker='kira.retiredMotionCleanup12.1';
+    if(localStorage.getItem(marker)==='1')return;
+    let db;
+    try{
+      db=await openDB();
+      await new Promise((resolve,reject)=>{
+        const tx=db.transaction('photos','readwrite'),store=tx.objectStore('photos'),req=store.openCursor();
+        req.onsuccess=e=>{
+          const cursor=e.target.result;
+          if(!cursor)return;
+          const item=cursor.value;
+          if(item&&(item.motionBlob||item.motionType||item.mediaType==='live-photo')){
+            delete item.motionBlob;delete item.motionType;
+            if(item.mediaType==='live-photo')delete item.mediaType;
+            cursor.update(item)
+          }
+          cursor.continue()
+        };
+        req.onerror=()=>reject(req.error);
+        tx.oncomplete=resolve;
+        tx.onerror=()=>reject(tx.error)
+      });
+      localStorage.setItem(marker,'1')
+    }catch(err){console.warn('Kira retired motion cleanup:',err)}finally{try{db?.close()}catch(_){}}
+  }
   function isVideoItem(x){return x?.mediaType==='video'||x?.kind==='video'||x?.blob?.type?.startsWith?.('video/')}
   function modalCaptionFrame(item){
     return item?.captionFrame || item?.snapshot?.frame || 'None';
@@ -1006,7 +960,7 @@
   async function deleteRollFromModal(){const id=state.rollModalId;if(!id)return;const r=state.namedRolls.find(x=>x.id===id);if(!r)return;if(!confirm(`Delete roll "${r.name}"? Photos and videos will move to Unfiled.`))return;for(const item of state.rolls.filter(x=>x.rollId===id)){item.rollId='unfiled';await updateRollItemDirect(item)}state.namedRolls=state.namedRolls.filter(x=>x.id!==id);if(state.activeNamedRollId===id)state.activeNamedRollId='unfiled';if(state.rollViewId===id)state.rollViewId='all';saveNamedRolls();closeModal('rollModal');await refreshRolls();toast('Roll deleted; media kept in Unfiled.')}
   async function updateRollItemDirect(item){const db=await openDB();await new Promise((res,rej)=>{const tx=db.transaction('photos','readwrite');tx.objectStore('photos').put(item);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close()}
 
-  function renderRolls(){if(!$('#rollGrid'))return;const items=currentRollItems();$('#emptyRolls').classList.toggle('hidden',items.length>0);$('#rollGrid').classList.toggle('hidden',items.length===0);$('#contactModeBar').classList.toggle('hidden',!state.contactMode);$('#bulkSelectBar').classList.toggle('hidden',!state.bulkSelectMode);$('#contactSelectedCount').textContent=state.selectedPhotoIds.size;$('#bulkSelectedCount')&&($('#bulkSelectedCount').textContent=state.bulkSelectedIds.size);document.body.classList.toggle('bulk-selecting',state.bulkSelectMode);const selectBtn=$('#bulkSelectBtn');if(selectBtn){selectBtn.textContent=state.bulkSelectMode?'Done':'Select';selectBtn.setAttribute('aria-expanded',String(state.bulkSelectMode))}$('#rollGrid').innerHTML=items.map(x=>{const u=URL.createObjectURL(x.blob);setTimeout(()=>URL.revokeObjectURL(u),60000);const video=isVideoItem(x),livePhoto=isLivePhotoItem(x),contactSel=state.selectedPhotoIds.has(String(x.id)),bulkSel=state.bulkSelectedIds.has(String(x.id)),contactSelectable=state.contactMode&&!video,bulkSelectable=state.bulkSelectMode;const media=video?`<video src="${u}" muted playsinline preload="none"></video>`:`<img src="${u}" alt="Kira photo" loading="lazy" decoding="async">`;const title=x.title?`<span class="media-title-badge">${escapeHtml(x.title)}</span>`:'';const liveBadge=livePhoto?'<span class="live-roll-badge">LIVE</span>':'';let selector='';if(state.bulkSelectMode)selector=`<span class="bulk-selection-check">${bulkSel?'✓':''}</span>`;else if(state.contactMode)selector=video?'<span class="selection-check">—</span>':`<span class="selection-check">${contactSel?'✓':'+'}</span>`;else selector=`<button type="button" class="photo-menu-btn" data-photo-menu="${x.id}" aria-label="Open media details">⋯</button>`;return `<article class="roll-photo ${contactSelectable?'selectable':''} ${contactSel?'selected':''} ${bulkSelectable?'bulk-selectable':''} ${bulkSel?'bulk-selected':''}" role="button" tabindex="0" aria-label="Open ${escapeHtml(video?'video':'photo')} details" data-photo-id="${x.id}">${media}${title}${video?'<span class="video-roll-badge">▶ VIDEO</span>':''}${liveBadge}${selector}<span class="roll-badge">${escapeHtml(video?'Video':x.kind==='edited'?(x.filter||'Edited'):'Original')}</span></article>`}).join('')}
+  function renderRolls(){if(!$('#rollGrid'))return;const items=currentRollItems();$('#emptyRolls').classList.toggle('hidden',items.length>0);$('#rollGrid').classList.toggle('hidden',items.length===0);$('#contactModeBar').classList.toggle('hidden',!state.contactMode);$('#bulkSelectBar').classList.toggle('hidden',!state.bulkSelectMode);$('#contactSelectedCount').textContent=state.selectedPhotoIds.size;$('#bulkSelectedCount')&&($('#bulkSelectedCount').textContent=state.bulkSelectedIds.size);document.body.classList.toggle('bulk-selecting',state.bulkSelectMode);const selectBtn=$('#bulkSelectBtn');if(selectBtn){selectBtn.textContent=state.bulkSelectMode?'Done':'Select';selectBtn.setAttribute('aria-expanded',String(state.bulkSelectMode))}$('#rollGrid').innerHTML=items.map(x=>{const u=URL.createObjectURL(x.blob);setTimeout(()=>URL.revokeObjectURL(u),60000);const video=isVideoItem(x),contactSel=state.selectedPhotoIds.has(String(x.id)),bulkSel=state.bulkSelectedIds.has(String(x.id)),contactSelectable=state.contactMode&&!video,bulkSelectable=state.bulkSelectMode;const media=video?`<video src="${u}" muted playsinline preload="none"></video>`:`<img src="${u}" alt="Kira photo" loading="lazy" decoding="async">`;const title=x.title?`<span class="media-title-badge">${escapeHtml(x.title)}</span>`:'';let selector='';if(state.bulkSelectMode)selector=`<span class="bulk-selection-check">${bulkSel?'✓':''}</span>`;else if(state.contactMode)selector=video?'<span class="selection-check">—</span>':`<span class="selection-check">${contactSel?'✓':'+'}</span>`;else selector=`<button type="button" class="photo-menu-btn" data-photo-menu="${x.id}" aria-label="Open media details">⋯</button>`;return `<article class="roll-photo ${contactSelectable?'selectable':''} ${contactSel?'selected':''} ${bulkSelectable?'bulk-selectable':''} ${bulkSel?'bulk-selected':''}" role="button" tabindex="0" aria-label="Open ${escapeHtml(video?'video':'photo')} details" data-photo-id="${x.id}">${media}${title}${video?'<span class="video-roll-badge">▶ VIDEO</span>':''}${selector}<span class="roll-badge">${escapeHtml(video?'Video':x.kind==='edited'?(x.filter||'Edited'):'Original')}</span></article>`}).join('')}
   function toggleBulkSelection(id){const key=String(id);state.bulkSelectedIds.has(key)?state.bulkSelectedIds.delete(key):state.bulkSelectedIds.add(key);renderRolls()}
   function safeOpenPhotoModal(id){
     try{
@@ -1111,18 +1065,7 @@
   function setContactMode(on){state.contactMode=on;if(on){state.bulkSelectMode=false;state.bulkSelectedIds.clear()}if(!on)state.selectedPhotoIds.clear();renderRolls()}
   function selectAllCurrent(){const items=currentRollItems().filter(x=>!isVideoItem(x));const limit=16;items.slice(0,limit).forEach(x=>state.selectedPhotoIds.add(String(x.id)));renderRolls();if(items.length>limit)toast('Selected the first 16 photos.')}
 
-  function openPhotoModal(id){const item=state.rolls.find(x=>String(x.id)===String(id));if(!item)return;state.photoModalId=String(id);const im=$('#photoModalImage'),vid=$('#photoModalVideo'),video=isVideoItem(item),livePhoto=isLivePhotoItem(item);for(const media of [im,vid]){if(media?.dataset.objectUrl){URL.revokeObjectURL(media.dataset.objectUrl);delete media.dataset.objectUrl}}const u=URL.createObjectURL(item.blob);if(video){im.classList.add('hidden');vid.classList.remove('hidden');vid.src=u;vid.dataset.objectUrl=u}else{vid.pause();vid.classList.add('hidden');im.classList.remove('hidden');im.src=u;im.dataset.objectUrl=u}$('#photoDetailMeta').innerHTML=`<div><b>Roll</b>${escapeHtml(rollName(item.rollId))}</div><div><b>${video?'Preview look':'Look'}</b>${escapeHtml(video?(item.videoPreviewLook||item.filter||'Original'):item.kind==='edited'?(item.filter||'Edited'):'Original')}</div><div><b>Type</b>${video?'Video':livePhoto?'Live Photo':item.kind==='edited'?'Edited':'Original'}</div><div><b>Date</b>${new Date(item.createdAt).toLocaleDateString()}</div>`;renderRollSelectors();$('#photoRollSelect').value=(item.rollId&&($('#photoRollSelect option[value="'+item.rollId+'"]')))?item.rollId:'unfiled';$('#photoTitleInput').value=item.title||'';$('#photoNotesInput').value=item.notes||'';$('#photoTagsInput').value=(Array.isArray(item.tags)?item.tags:[]).join(', ');try{syncPhotoCaptionUi(item)}catch(err){console.warn('Kira caption UI:',err);$('#photoCaptionTools')?.classList.add('hidden')}const liveBtn=$('#photoLivePlayBtn');if(liveBtn){liveBtn.classList.toggle('hidden',!livePhoto);liveBtn.textContent='▶ Play Live';liveBtn.dataset.mode='photo'}$('#photoFavoriteBtn').textContent=item.favorite?'♥ Favorited':'♡ Favorite';$('#photoUseLookBtn').disabled=video||!item.snapshot;$('#photoModal').classList.remove('hidden')}
-  function toggleModalLivePlayback(){
-    const item=currentModalPhoto(),btn=$('#photoLivePlayBtn'),im=$('#photoModalImage'),vid=$('#photoModalVideo');
-    if(!item||!isLivePhotoItem(item)||!btn||!im||!vid)return;
-    if(btn.dataset.mode==='live'){
-      safeOpenPhotoModal(item.id);return
-    }
-    if(vid.dataset.objectUrl){URL.revokeObjectURL(vid.dataset.objectUrl);delete vid.dataset.objectUrl}
-    const u=URL.createObjectURL(item.motionBlob);vid.src=u;vid.dataset.objectUrl=u;vid.classList.remove('hidden');im.classList.add('hidden');btn.dataset.mode='live';btn.textContent='▣ Show Photo';
-    vid.currentTime=0;vid.play().catch(()=>{})
-  }
-
+  function openPhotoModal(id){const item=state.rolls.find(x=>String(x.id)===String(id));if(!item)return;state.photoModalId=String(id);const im=$('#photoModalImage'),vid=$('#photoModalVideo'),video=isVideoItem(item);for(const media of [im,vid]){if(media?.dataset.objectUrl){URL.revokeObjectURL(media.dataset.objectUrl);delete media.dataset.objectUrl}}const u=URL.createObjectURL(item.blob);if(video){im.classList.add('hidden');vid.classList.remove('hidden');vid.src=u;vid.dataset.objectUrl=u}else{vid.pause();vid.classList.add('hidden');im.classList.remove('hidden');im.src=u;im.dataset.objectUrl=u}$('#photoDetailMeta').innerHTML=`<div><b>Roll</b>${escapeHtml(rollName(item.rollId))}</div><div><b>${video?'Preview look':'Look'}</b>${escapeHtml(video?(item.videoPreviewLook||item.filter||'Original'):item.kind==='edited'?(item.filter||'Edited'):'Original')}</div><div><b>Type</b>${video?'Video':item.kind==='edited'?'Edited':'Original'}</div><div><b>Date</b>${new Date(item.createdAt).toLocaleDateString()}</div>`;renderRollSelectors();$('#photoRollSelect').value=(item.rollId&&($('#photoRollSelect option[value="'+item.rollId+'"]')))?item.rollId:'unfiled';$('#photoTitleInput').value=item.title||'';$('#photoNotesInput').value=item.notes||'';$('#photoTagsInput').value=(Array.isArray(item.tags)?item.tags:[]).join(', ');try{syncPhotoCaptionUi(item)}catch(err){console.warn('Kira caption UI:',err);$('#photoCaptionTools')?.classList.add('hidden')}$('#photoFavoriteBtn').textContent=item.favorite?'♥ Favorited':'♡ Favorite';$('#photoUseLookBtn').disabled=video||!item.snapshot;$('#photoModal').classList.remove('hidden')}
   async function savePhotoDetails(){const item=currentModalPhoto();if(!item)return;item.title=$('#photoTitleInput').value.trim();item.notes=$('#photoNotesInput').value.trim();item.tags=$('#photoTagsInput').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,20);let captionSaved=false;try{if(modalCaptionEnabled(item)){item.caption=$('#photoCaptionInput')?.value.trim()||'';item.captionFont=$('#photoCaptionFontSelect')?.value||'Classic Serif';item.captionSize=Number($('#photoCaptionSize')?.value||165);item.captionFrame=modalCaptionFrame(item);if(item.snapshot){item.snapshot.caption=item.caption;item.snapshot.captionFont=item.captionFont;item.snapshot.captionSize=item.captionSize}const nextBlob=await renderInstantCaptionBlob(item);if(nextBlob)item.blob=nextBlob;captionSaved=true}}catch(err){console.error('Kira caption save:',err);toast('Details saved, but the Polaroid caption could not be rendered.')}await updateRollItem(item);if(!captionSaved)toast('Memory details saved.');else toast('Memory details and caption saved.');safeOpenPhotoModal(item.id)}
   function currentModalPhoto(){return state.rolls.find(x=>String(x.id)===String(state.photoModalId))}
   async function moveModalPhoto(){const item=currentModalPhoto();if(!item)return;item.rollId=$('#photoRollSelect').value;await updateRollItem(item);safeOpenPhotoModal(item.id);toast('Photo moved.')}
@@ -1140,7 +1083,7 @@
   function escapeHtml(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
   function bindInputs(){bindRollGridInteractions();bindCameraBeautyControls();
-    $('#menuBtn')&&($('#menuBtn').onclick=openDrawer);$('#drawerCloseBtn')&&($('#drawerCloseBtn').onclick=closeDrawer);$('#drawerBackdrop')&&($('#drawerBackdrop').onclick=closeDrawer);$$('[data-menu-action]').forEach(b=>b.onclick=()=>runMenuAction(b.dataset.menuAction));$('#surpriseLookBtn')&&($('#surpriseLookBtn').onclick=randomizeLook);$('#cameraTorchBtn')&&($('#cameraTorchBtn').onclick=toggleCameraTorch);const zoom=$('#cameraZoom');if(zoom)zoom.oninput=e=>scheduleCameraZoom(e.target.value);const rs=$('#rollSearch');if(rs)rs.oninput=e=>{state.rollSearch=e.target.value;renderRolls()};$('#cameraImmersiveBtn')&&($('#cameraImmersiveBtn').onclick=toggleCameraImmersive);$('#livePhotoBtn')&&($('#livePhotoBtn').onclick=toggleLivePhoto);$('#photoLivePlayBtn')&&($('#photoLivePlayBtn').onclick=toggleModalLivePlayback);const rsort=$('#rollSort');if(rsort){rsort.value=state.rollSort;rsort.onchange=e=>{state.rollSort=e.target.value;renderRolls()}};$('#savePhotoDetailsBtn')&&($('#savePhotoDetailsBtn').onclick=savePhotoDetails);const pcs=$('#photoCaptionSize');if(pcs){pcs.oninput=e=>{$('#photoCaptionSizeValue')&&($('#photoCaptionSizeValue').textContent=`${e.target.value}%`)};}
+    $('#menuBtn')&&($('#menuBtn').onclick=openDrawer);$('#drawerCloseBtn')&&($('#drawerCloseBtn').onclick=closeDrawer);$('#drawerBackdrop')&&($('#drawerBackdrop').onclick=closeDrawer);$$('[data-menu-action]').forEach(b=>b.onclick=()=>runMenuAction(b.dataset.menuAction));$('#surpriseLookBtn')&&($('#surpriseLookBtn').onclick=randomizeLook);$('#cameraTorchBtn')&&($('#cameraTorchBtn').onclick=toggleCameraTorch);const zoom=$('#cameraZoom');if(zoom)zoom.oninput=e=>scheduleCameraZoom(e.target.value);const rs=$('#rollSearch');if(rs)rs.oninput=e=>{state.rollSearch=e.target.value;renderRolls()};$('#cameraImmersiveBtn')&&($('#cameraImmersiveBtn').onclick=toggleCameraImmersive);const rsort=$('#rollSort');if(rsort){rsort.value=state.rollSort;rsort.onchange=e=>{state.rollSort=e.target.value;renderRolls()}};$('#savePhotoDetailsBtn')&&($('#savePhotoDetailsBtn').onclick=savePhotoDetails);const pcs=$('#photoCaptionSize');if(pcs){pcs.oninput=e=>{$('#photoCaptionSizeValue')&&($('#photoCaptionSizeValue').textContent=`${e.target.value}%`)};}
     const cameraControls=$('#cameraControlsBtn'),cameraPanel=$('#cameraAdvancedPanel');if(cameraControls&&cameraPanel)cameraControls.onclick=()=>{const open=cameraPanel.classList.toggle('hidden')===false;cameraControls.setAttribute('aria-expanded',String(open));cameraControls.textContent=open?'Controls⌃':'Controls⌄';haptic()};
     
     const rollActions=$('#rollActionsBtn'),rollPanel=$('#rollUtilityPanel');if(rollActions&&rollPanel)rollActions.onclick=()=>{const open=rollPanel.classList.toggle('hidden')===false;rollActions.setAttribute('aria-expanded',String(open));rollActions.textContent=open?'Actions⌃':'Actions⌄';haptic()};
@@ -1192,7 +1135,7 @@
   async function setupServiceWorkerUpdates(){
     if(!('serviceWorker' in navigator))return;
     try{
-      const reg=await navigator.serviceWorker.register('./service-worker.js?v=12.0.0');
+      const reg=await navigator.serviceWorker.register('./service-worker.js?v=12.1.0');
       kiraSwRegistration=reg;
       if(reg.waiting&&navigator.serviceWorker.controller)showAppUpdateBanner(reg);
       reg.addEventListener('updatefound',()=>{
@@ -1231,6 +1174,6 @@
 
   function setupInstall(){window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.deferredInstallPrompt=e;$('#installBtn').hidden=false});$('#installBtn').onclick=async()=>{if(!state.deferredInstallPrompt){toast(isIOS()?'On iPhone: Share → Add to Home Screen':'Use your browser menu → Install app');return}state.deferredInstallPrompt.prompt();await state.deferredInstallPrompt.userChoice;state.deferredInstallPrompt=null;$('#installBtn').hidden=true}}
   function preventZoom(){const stop=e=>e.preventDefault();['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,stop,{passive:false}));document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});let last=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-last<=320)e.preventDefault();last=n},{passive:false});document.addEventListener('dblclick',stop,{passive:false});document.addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault()},{passive:false})}
-  function init(){saveNamedRolls();syncLivePhotoButton();ensure1989Glyphs().then(()=>{try{renderPhoto()}catch(_){}});setCaptureMode(state.settings.defaultCaptureMode||'photo');if(!state.selectedRecipeId)applyPresetExtras(state.activeFilter);renderRollSelectors();updateCameraHUD();renderCameraCategories();renderCameraFilters();setupToolTabs();bindInputs();bindSettings();applySettings();setupInstall();preventZoom();refreshRolls();updateHistoryButtons();updatePhotosQueueUI();document.body.classList.add('camera-mode');updateCameraViewport();setupOnboarding();const onViewport=()=>requestAnimationFrame(updateCameraViewport);window.addEventListener('resize',onViewport,{passive:true});window.visualViewport?.addEventListener('resize',onViewport,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state.recording)stopVideoRecording();else stopCamera()}else if($('#screen-camera')?.classList.contains('active')){updateCameraViewport();bootCameraSafely()}});setupServiceWorkerUpdates();setTimeout(()=>{updateCameraViewport();bootCameraSafely()},120)}
+  function init(){saveNamedRolls();ensure1989Glyphs().then(()=>{try{renderPhoto()}catch(_){}});setCaptureMode(state.settings.defaultCaptureMode||'photo');if(!state.selectedRecipeId)applyPresetExtras(state.activeFilter);renderRollSelectors();updateCameraHUD();renderCameraCategories();renderCameraFilters();setupToolTabs();bindInputs();bindSettings();applySettings();setupInstall();preventZoom();cleanupRetiredMotionPairs().finally(()=>refreshRolls());updateHistoryButtons();updatePhotosQueueUI();document.body.classList.add('camera-mode');updateCameraViewport();setupOnboarding();const onViewport=()=>requestAnimationFrame(updateCameraViewport);window.addEventListener('resize',onViewport,{passive:true});window.visualViewport?.addEventListener('resize',onViewport,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state.recording)stopVideoRecording();else stopCamera()}else if($('#screen-camera')?.classList.contains('active')){updateCameraViewport();bootCameraSafely()}});setupServiceWorkerUpdates();setTimeout(()=>{updateCameraViewport();bootCameraSafely()},120)}
   init();
 })();

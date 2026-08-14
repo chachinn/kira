@@ -1059,13 +1059,9 @@ body.theme-lavender{--cream:#f6f1f7;--paper:#ece3ef;--white:#fcf8fc}body.theme-s
 @media(max-width:360px){.clean-tool-tabs .tool-tab{font-size:7px;padding-left:0;padding-right:0}.camera-beauty-row{grid-template-columns:52px minmax(0,1fr) 24px}}
 
 
-/* === BUILD 12.0: CAMERA BEAUTY + IMMERSIVE + KIRA LIVE === */
-#livePhotoBtn.active{background:rgba(255,211,92,.92);border-color:rgba(255,232,157,.95);color:#4a3820;font-weight:800}
-#livePhotoBtn:disabled{opacity:.48}
-.live-roll-badge{position:absolute;z-index:4;right:8px;bottom:8px;background:rgba(255,210,78,.92);color:#3b2c18;border-radius:999px;padding:5px 7px;font-size:8px;font-weight:900;letter-spacing:.05em;pointer-events:none}
-.live-photo-play{width:100%;margin:8px 0 2px;padding:10px 12px}
+/* === BUILD 12.1: CAMERA BEAUTY + IMMERSIVE === */
 
-/* Five compact camera pills must stay reachable without forcing horizontal page scroll. */
+/* Four compact camera pills must stay reachable without forcing horizontal page scroll. */
 .camera-top-tools{left:8px;right:8px;gap:5px;justify-content:center;flex-wrap:wrap;align-content:flex-start}
 .camera-top-tools .mini-pill{padding:6px 8px;font-size:9px;min-height:30px;white-space:nowrap}
 
