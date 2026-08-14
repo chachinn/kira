@@ -36,6 +36,7 @@
           <video id="cameraVideo" class="live-video" autoplay muted playsinline></video>
           <div id="liveToneOverlay" class="live-overlay live-tone-overlay"></div>
           <div id="liveFadeOverlay" class="live-overlay live-fade-overlay"></div>
+          <div id="liveTextureOverlay" class="live-overlay live-texture-overlay" style="mix-blend-mode:overlay"></div>
           <div id="liveVignetteOverlay" class="live-overlay live-vignette-overlay"></div>
           <div id="liveFrameOverlay" class="live-frame-overlay hidden" aria-hidden="true"></div>
           <div class="camera-empty" id="cameraEmpty">
@@ -338,7 +339,7 @@
                 <p>Kira comes from <em>kirakira</em> (キラキラ), meaning “sparkling” or “glittering.” It fits a camera made to capture, style, and save the little moments that shine.</p>
               </div>
             </div>
-            <div class="setting-row"><span>Current version</span><b>Build 11.7</b></div>
+            <div class="setting-row"><span>Current version</span><b>Build 11.8</b></div>
           </div>
         </details>
       </section>
@@ -468,15 +469,15 @@
   <div class="modal-backdrop hidden" id="whatsNewModal">
     <div class="modal-card info-modal-card">
       <div class="modal-title-row"><h3>What’s New</h3><button class="modal-close" data-close-modal="whatsNewModal">×</button></div>
-      <div class="release-badge">BUILD 11.7</div>
-      <h4>Filters that finally feel unmistakably different.</h4>
+      <div class="release-badge">BUILD 11.8</div>
+      <h4>A much bigger camera shelf: 48 new looks.</h4>
       <div class="info-list">
-        <div><b>◐</b><span>Filter calibration overhaul: stronger separation in color, contrast, warmth, tint, monochrome, and mood.</span></div>
-        <div><b>✦</b><span>Six new Mood looks: Violet Hour, Amber Memory, Midnight Blue, Rose Noir, Silver Soft, and Deep Mono.</span></div>
-        <div><b>100</b><span>Looks now open at their intended 100% strength instead of being softened to 70% by default.</span></div>
-        <div><b>◌</b><span>Preset-specific grain and bloom styles now render correctly instead of being overridden by generic defaults.</span></div>
-        <div><b>⚡</b><span>Captured photos keep the exact look that was active when the shutter was pressed, even while the save queue is busy.</span></div>
-        <div><b>□</b><span>Kira Original is neutral again: no hidden default grain or vignette is added.</span></div>
+        <div><b>48</b><span>Forty-eight additional filters across Lo-Fi, Recolor, Mono, and Flash Night collections.</span></div>
+        <div><b>▦</b><span>Lo-Fi cameras now simulate downsampled resolution, softness, scanlines, cheap digital noise, flash bloom, color casts, and RGB drift.</span></div>
+        <div><b>◐</b><span>Recolor adds strong blue, teal, matcha, lavender, cherry, aqua, mint, crimson, grape, emerald, plum, and warm-tone transformations.</span></div>
+        <div><b>◻</b><span>Eight dedicated monochrome looks range from soft silver prints to rough Newspaper and Noir 400.</span></div>
+        <div><b>✦</b><span>Flash Night adds club, mirror, street, blue-flash, red-room, after-party, paparazzi, and convenience-store looks.</span></div>
+        <div><b>⚡</b><span>Low-quality texture work is applied only to the selected live look and final still render—no extra camera streams or live thumbnail canvases.</span></div>
       </div>
     </div>
   </div>
@@ -504,6 +505,6 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=11.7.0"></script>
+  <script src="./app.js?v=11.8.0"></script>
 </body>
 </html>
