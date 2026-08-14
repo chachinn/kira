@@ -1,0 +1,175 @@
+name: Kira 12.4 filter cleanup rerun
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kira124-filter-cleanup-rerun.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Capture production filter baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('fs');
+          const src=fs.readFileSync('app.js','utf8');
+          const s=src.indexOf('const builtins='),e=src.indexOf('  ].map(([name,cat,c,p])=>',s);
+          if(s<0||e<0)throw new Error('builtins array not found');
+          const rows=Function('return ('+src.slice(s+'const builtins='.length,e+3)+')')();
+          const names=rows.map(r=>r[0]);
+          if(new Set(names).size!==names.length)throw new Error('duplicate filter names in baseline');
+          const counts={};for(const r of rows)counts[r[1]]=(counts[r[1]]||0)+1;
+          if(rows.length!==233)throw new Error('expected 233 built-in filters, got '+rows.length);
+          if(counts['Film Stock']!==20||counts['Mood']!==6)throw new Error('baseline taxonomy changed unexpectedly: '+JSON.stringify(counts));
+          fs.writeFileSync('/tmp/kira-filter-names.json',JSON.stringify(names));
+          console.log('Baseline:',rows.length,'filters',JSON.stringify(counts));
+          NODE
+
+      - name: Apply taxonomy cleanup
+        run: python .github/kira124_filter_cleanup.py
+
+      - name: JavaScript syntax
+        run: node --check app.js
+
+      - name: Filter and production regression audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,re,struct
+          from pathlib import Path
+
+          app=Path('app.js').read_text(encoding='utf-8')
+          index=Path('index.html').read_text(encoding='utf-8')
+          css=Path('style.css').read_text(encoding='utf-8')
+          sw=Path('service-worker.js').read_text(encoding='utf-8')
+          assert sw==Path('sw.js').read_text(encoding='utf-8'), 'service workers diverged'
+
+          # Parse the static built-in filter array with Node so JS object syntax remains authoritative.
+          Path('/tmp/read-filters.js').write_text(r'''const fs=require('fs');const src=fs.readFileSync('app.js','utf8');const s=src.indexOf('const builtins='),e=src.indexOf('  ].map(([name,cat,c,p])=>',s);const rows=Function('return ('+src.slice(s+'const builtins='.length,e+3)+')')();console.log(JSON.stringify(rows));''',encoding='utf-8')
+          import subprocess
+          rows=json.loads(subprocess.check_output(['node','/tmp/read-filters.js'],text=True))
+          names=[r[0] for r in rows]
+          before=json.loads(Path('/tmp/kira-filter-names.json').read_text())
+          assert len(rows)==233, f'filter count changed: {len(rows)}'
+          assert names==before, 'filter names/order changed; no filter may be renamed/deleted in this cleanup'
+          assert len(names)==len(set(names)), 'duplicate filter names'
+          counts={}
+          for r in rows: counts[r[1]]=counts.get(r[1],0)+1
+          expected={'Kira':7,'Beauty':19,'Film':28,'Instant':25,'Vintage':34,'CCD':7,'Date Cam':24,'Y2K':6,'Dream':6,'Japan':8,'Lo-Fi':16,'Recolor':17,'Mono':10,'Flash Night':10,'Camera Packs':16}
+          assert counts==expected, f'category counts wrong: {counts}'
+          by_name={r[0]:r[1] for r in rows}
+          moves={'Violet Hour':'Recolor','Amber Memory':'Vintage','Midnight Blue':'Flash Night','Rose Noir':'Flash Night','Silver Soft':'Mono','Deep Mono':'Mono'}
+          for name,cat in moves.items(): assert by_name.get(name)==cat, f'{name} not in {cat}'
+
+          cat_lists=re.findall(r"const cats=\[([^\]]+)\];",app)
+          assert len(cat_lists)==2, f'expected 2 category UI lists, found {len(cat_lists)}'
+          expected_ui=['Kira','Beauty','Film','Instant','Vintage','CCD','Date Cam','Y2K','Dream','Japan','Lo-Fi','Recolor','Mono','Flash Night','Camera Packs','Recent','Favorites','My Recipes','All']
+          for raw in cat_lists:
+              vals=re.findall(r"'([^']+)'",raw)
+              assert vals==expected_ui, f'category UI mismatch: {vals}'
+
+          # Version / PWA / update banner.
+          assert './app.js?v=12.4.0' in index and './style.css?v=12.4.0' in index
+          assert 'BUILD 12.4' in index and '<b>Build 12.4</b>' in index
+          assert "service-worker.js?v=12.4.0" in app
+          assert 'kira-build12-4-filter-cleanup-20260815' in sw
+          assert 'maximum-scale=1' in index and 'user-scalable=no' in index
+          assert 'An update is available. Refresh to update.' in index
+
+          # DOM/runtime dependencies.
+          ids=re.findall(r'\bid="([^"]+)"',index)
+          dups=sorted({x for x in ids if ids.count(x)>1})
+          assert not dups, f'duplicate DOM ids: {dups}'
+          critical=['startCamera','stopCamera','bootCameraSafely','captureLivePhoto','startVideoRecording','stopVideoRecording','renderRolls','openPhotoModal','safeOpenPhotoModal','storeRollPhoto','refreshRolls','renderPhoto','applyBeautyPass','buildBeautyLayer','detectBeautyFaceBox','renderLiveBeautyFrame','stopLiveBeautyPreview','setCameraControlsOpen','toggleCameraImmersive','cleanupRetiredMotionPairs','draw1989Text','drawCaptionText','renderInstantCaptionBlob','shareQueuedPhotos','saveAllCurrent','preventZoom']
+          for fn in critical: assert re.search(rf'function\s+{re.escape(fn)}\s*\(',app), f'missing critical function {fn}'
+
+          # Camera/Beauty performance architecture and Build 12.2 controls fix.
+          live=re.search(r'function\s+applyLiveFilter\s*\(\)\{(.*?)\n\s*function\s+updateCameraViewport',app,re.S)
+          assert live, 'applyLiveFilter block missing'
+          live=live.group(1)
+          assert 'beautyBlur' not in live
+          assert 'video.style.filter=cameraCssFromParams(p)' in live and 'scheduleLiveBeautyPreview(0)' in live
+          assert index.count('id="liveBeautyCanvas"')==1 and '.live-beauty-canvas' in css
+          assert 'const LIVE_BEAUTY_INTERVAL=145' in app and 'longSide=260' in app and "buildBeautyLayer(source,liveBeauty,280,'live')" in app
+          assert 'if(state.recording||document.hidden' in app
+          assert app.count('navigator.mediaDevices.getUserMedia(constraints)')==1, 'extra video camera stream path detected'
+          for token in ['detectBeautyFaceBox','beautyFaceWeight','featureKeep','acneMix=clamp(bl*mask','rr+=(hr-rr)*acneMix',"buildBeautyLayer(ctx.canvas,beauty,920,'still')"]: assert token in app, f'missing Beauty token {token}'
+          assert 'id="cameraControlsCloseBtn"' in index and 'id="cameraControlsDoneBtn"' in index
+          assert '.camera-controls-close-btn' in css and 'max-height:min(58dvh,640px)' in css
+          assert 'if(on)setCameraControlsOpen(false)' in app
+
+          # Kira Live stays retired; first install stays clean.
+          for token in ['livePhotoBtn','photoLivePlayBtn','captureKiraLivePhoto','captureLiveMotionClip','toggleLivePhoto','livePhotoEnabled','liveCaptureBusy','live-roll-badge','Play Live']:
+              assert token not in app+index+css, f'retired Live residue {token}'
+          assert "localStorage.getItem('kira.recipes')||'[]'" in app
+          assert "localStorage.getItem('kira.namedRolls')||'[]'" in app and 'rolls:[]' in app
+
+          # 1989 Sparkle exact digit/alphabet coverage.
+          glyph=json.loads(Path('assets/fonts1989/manifest.json').read_text())
+          chars=set(glyph)
+          expected_chars=set('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz')
+          assert expected_chars<=chars, f'1989 glyphs missing {sorted(expected_chars-chars)}'
+          for sample in ('1989','0123456789','ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'):
+              assert all(ch in chars for ch in sample), sample
+          for digit,file_no in zip('0123456789',range(48,58)):
+              assert f'"{digit}":{{"file":"{file_no}.png"' in app, f'wrong digit map {digit}'
+
+          # Manifest/icon integrity.
+          manifest=json.loads(Path('manifest.json').read_text())
+          for icon in manifest.get('icons',[]): assert Path(icon['src'].lstrip('./')).is_file(), icon['src']
+          def png_size(p):
+              b=Path(p).read_bytes()[:24];assert b[:8]==b'\x89PNG\r\n\x1a\n';return struct.unpack('>II',b[16:24])
+          for n in (32,48,72,96,128,144,152,180,192,384,512): assert png_size(f'icons/icon-{n}.png')==(n,n)
+          assert png_size('icons/icon-192-maskable.png')==(192,192) and png_size('icons/icon-512-maskable.png')==(512,512)
+
+          # Repo junk audit.
+          junk=[]
+          for p in Path('.').rglob('*'):
+              if not p.is_file() or '.git' in p.parts: continue
+              low=p.name.lower()
+              if p.suffix.lower() in {'.zip','.bak','.orig','.rej','.tmp','.log'} or low=='.ds_store' or 'screenshot' in low: junk.append(str(p))
+          assert not junk, f'repository junk: {junk}'
+          print('Kira 12.4 QA passed:',len(rows),'filters; categories',counts)
+          PY
+
+      - name: Local PWA smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          python -m http.server 8765 >/tmp/kira-http.log 2>&1 &
+          PID=$!; trap 'kill $PID || true' EXIT; sleep 1
+          curl -fsS http://127.0.0.1:8765/index.html -o /tmp/index.html
+          curl -fsS http://127.0.0.1:8765/app.js -o /tmp/app.js
+          curl -fsS http://127.0.0.1:8765/style.css -o /tmp/style.css
+          curl -fsS http://127.0.0.1:8765/service-worker.js -o /tmp/sw.js
+          grep -q 'BUILD 12.4' /tmp/index.html
+          grep -q 'Film Stock has been folded into Film' /tmp/index.html
+          grep -q 'liveBeautyCanvas' /tmp/index.html
+          grep -q 'detectBeautyFaceBox' /tmp/app.js
+          ! grep -q "'Mood'" /tmp/app.js
+          ! grep -q "'Film Stock'" /tmp/app.js
+          grep -q 'kira-build12-4-filter-cleanup-20260815' /tmp/sw.js
+
+      - name: Commit production maintenance release
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js index.html service-worker.js sw.js
+          git diff --cached --check
+          git commit -m "Kira 12.4: clean and recategorize filter library"
+          git push origin HEAD:main
