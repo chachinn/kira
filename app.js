@@ -21,12 +21,12 @@
     ['Rose Flash','Kira','#b96c80,#f4cad0',{brightness:13,contrast:7,saturation:4,tint:12,bloom:12,bloomType:'Flash'}],
 
     // Build 11.7 — visibly distinct looks calibrated from the user's supplied references.
-    ['Violet Hour','Mood','#67678f,#b4a9c8',{brightness:4,contrast:10,saturation:5,warmth:-13,tint:20,hue:7,castColor:'#7770a8',castStrength:27,castMode:'soft-light',noise:3,sharpness:4}],
-    ['Amber Memory','Mood','#8b5d3f,#d8aa78',{brightness:6,contrast:7,saturation:-8,warmth:28,tint:-3,sepia:25,hue:-4,castColor:'#c27845',castStrength:28,castMode:'soft-light',fade:4,grain:4,grainType:'Fine'}],
-    ['Midnight Blue','Mood','#172f48,#526b86',{brightness:-15,contrast:34,saturation:-24,warmth:-35,tint:-8,hue:-8,castColor:'#173b60',castStrength:40,castMode:'soft-light',noise:6,sharpness:5,vignette:17}],
-    ['Rose Noir','Mood','#412a34,#815263',{brightness:-14,contrast:30,saturation:-14,warmth:-5,tint:29,hue:10,castColor:'#713347',castStrength:36,castMode:'soft-light',noise:5,vignette:16}],
-    ['Silver Soft','Mood','#777777,#d7d7d7',{brightness:8,contrast:7,saturation:-100,highlights:6,shadows:5,fade:5,grain:3,grainType:'Fine',sharpness:2}],
-    ['Deep Mono','Mood','#252525,#8f8f8f',{brightness:-12,contrast:40,saturation:-100,highlights:8,shadows:-9,grain:9,grainType:'Classic',sharpness:8,vignette:19}],
+    ['Violet Hour','Recolor','#67678f,#b4a9c8',{brightness:4,contrast:10,saturation:5,warmth:-13,tint:20,hue:7,castColor:'#7770a8',castStrength:27,castMode:'soft-light',noise:3,sharpness:4}],
+    ['Amber Memory','Vintage','#8b5d3f,#d8aa78',{brightness:6,contrast:7,saturation:-8,warmth:28,tint:-3,sepia:25,hue:-4,castColor:'#c27845',castStrength:28,castMode:'soft-light',fade:4,grain:4,grainType:'Fine'}],
+    ['Midnight Blue','Flash Night','#172f48,#526b86',{brightness:-15,contrast:34,saturation:-24,warmth:-35,tint:-8,hue:-8,castColor:'#173b60',castStrength:40,castMode:'soft-light',noise:6,sharpness:5,vignette:17}],
+    ['Rose Noir','Flash Night','#412a34,#815263',{brightness:-14,contrast:30,saturation:-14,warmth:-5,tint:29,hue:10,castColor:'#713347',castStrength:36,castMode:'soft-light',noise:5,vignette:16}],
+    ['Silver Soft','Mono','#777777,#d7d7d7',{brightness:8,contrast:7,saturation:-100,highlights:6,shadows:5,fade:5,grain:3,grainType:'Fine',sharpness:2}],
+    ['Deep Mono','Mono','#252525,#8f8f8f',{brightness:-12,contrast:40,saturation:-100,highlights:8,shadows:-9,grain:9,grainType:'Classic',sharpness:8,vignette:19}],
 
 
     // Build 12 — Beauty Only keeps the camera color neutral while using the stronger skin pass.
@@ -194,26 +194,26 @@
     ['Instant Mini 90','Instant','#9a7e76,#e4cdbf',{brightness:8,contrast:-6,saturation:-7,warmth:10,fade:11,grain:8,autoFrame:'Instant Mini'}],
     ['Instant Black Frame','Instant','#64565d,#d7aab5',{brightness:6,contrast:10,saturation:4,warmth:-4,tint:7,grain:8,autoFrame:'Instant Black'}],
 
-    ['Daylight 50','Film Stock','#7c7869,#cfc4a6',{brightness:5,contrast:13,saturation:8,warmth:6,grain:3,grainType:'Fine',sharpness:5}],
-    ['Daylight 100','Film Stock','#807669,#d6c2a9',{brightness:6,contrast:10,saturation:4,warmth:7,grain:5,grainType:'Fine'}],
-    ['Color 200','Film Stock','#746e66,#c7b7a7',{brightness:4,contrast:8,saturation:1,warmth:5,grain:8,grainType:'Fine'}],
-    ['Color 400','Film Stock','#665d56,#b9a18e',{brightness:2,contrast:11,saturation:-3,warmth:7,grain:14,grainType:'Classic',vignette:6}],
-    ['Color 800','Film Stock','#51494b,#a98986',{brightness:-1,contrast:16,saturation:-6,warmth:5,grain:23,grainType:'Rough',vignette:10}],
-    ['Portrait 160','Film Stock','#ad8476,#e2bca8',{brightness:8,contrast:-5,saturation:-4,warmth:12,shadows:7,grain:4,grainType:'Fine'}],
-    ['Portrait 400','Film Stock','#967269,#d3aa9b',{brightness:6,contrast:-2,saturation:-5,warmth:13,shadows:8,grain:10,grainType:'Fine'}],
-    ['Tungsten 500','Film Stock','#3f5366,#8b9aae',{brightness:1,contrast:13,saturation:-4,warmth:-25,tint:3,grain:15,bloom:5}],
-    ['Cinema Warm 200','Film Stock','#76513f,#c88862',{brightness:1,contrast:14,saturation:-2,warmth:24,highlights:-8,shadows:5,grain:8}],
-    ['Cinema Cool 500','Film Stock','#405765,#8196a0',{brightness:0,contrast:16,saturation:-11,warmth:-19,highlights:-8,grain:12}],
-    ['Slide Vivid','Film Stock','#625e50,#c2a75e',{contrast:23,saturation:22,warmth:9,highlights:-12,grain:6}],
-    ['Slide Soft','Film Stock','#7a756e,#c8bfac',{brightness:3,contrast:8,saturation:-5,warmth:5,fade:6,grain:5}],
-    ['Expired 100','Film Stock','#8c7f75,#cbb9a8',{brightness:7,contrast:-10,saturation:-18,warmth:9,fade:20,grain:10,dust:3}],
-    ['Expired 200','Film Stock','#7e8069,#c6ba91',{brightness:5,contrast:-5,saturation:-13,warmth:4,tint:-8,fade:18,grain:13,dust:5}],
-    ['Expired 400','Film Stock','#80696f,#bc969d',{brightness:4,contrast:1,saturation:-9,warmth:2,tint:8,fade:17,grain:17,dust:6}],
-    ['Expired Purple','Film Stock','#66546d,#b695c3',{brightness:4,contrast:4,saturation:-3,warmth:-8,tint:18,fade:12,grain:15,dust:4}],
-    ['Monochrome 100','Film Stock','#6e6e6e,#d4d4d4',{brightness:5,contrast:18,saturation:-100,grain:4,grainType:'Fine',sharpness:5}],
-    ['Monochrome 400','Film Stock','#505050,#b5b5b5',{brightness:1,contrast:25,saturation:-100,grain:16,grainType:'Classic',vignette:7}],
-    ['Monochrome 1600','Film Stock','#303030,#999999',{brightness:-4,contrast:32,saturation:-100,grain:30,grainType:'Rough',vignette:15}],
-    ['Sepia Roll','Film Stock','#6e4e38,#c79661',{brightness:3,contrast:8,saturation:-45,warmth:31,fade:12,grain:14,dust:3}],
+    ['Daylight 50','Film','#7c7869,#cfc4a6',{brightness:5,contrast:13,saturation:8,warmth:6,grain:3,grainType:'Fine',sharpness:5}],
+    ['Daylight 100','Film','#807669,#d6c2a9',{brightness:6,contrast:10,saturation:4,warmth:7,grain:5,grainType:'Fine'}],
+    ['Color 200','Film','#746e66,#c7b7a7',{brightness:4,contrast:8,saturation:1,warmth:5,grain:8,grainType:'Fine'}],
+    ['Color 400','Film','#665d56,#b9a18e',{brightness:2,contrast:11,saturation:-3,warmth:7,grain:14,grainType:'Classic',vignette:6}],
+    ['Color 800','Film','#51494b,#a98986',{brightness:-1,contrast:16,saturation:-6,warmth:5,grain:23,grainType:'Rough',vignette:10}],
+    ['Portrait 160','Film','#ad8476,#e2bca8',{brightness:8,contrast:-5,saturation:-4,warmth:12,shadows:7,grain:4,grainType:'Fine'}],
+    ['Portrait 400','Film','#967269,#d3aa9b',{brightness:6,contrast:-2,saturation:-5,warmth:13,shadows:8,grain:10,grainType:'Fine'}],
+    ['Tungsten 500','Film','#3f5366,#8b9aae',{brightness:1,contrast:13,saturation:-4,warmth:-25,tint:3,grain:15,bloom:5}],
+    ['Cinema Warm 200','Film','#76513f,#c88862',{brightness:1,contrast:14,saturation:-2,warmth:24,highlights:-8,shadows:5,grain:8}],
+    ['Cinema Cool 500','Film','#405765,#8196a0',{brightness:0,contrast:16,saturation:-11,warmth:-19,highlights:-8,grain:12}],
+    ['Slide Vivid','Film','#625e50,#c2a75e',{contrast:23,saturation:22,warmth:9,highlights:-12,grain:6}],
+    ['Slide Soft','Film','#7a756e,#c8bfac',{brightness:3,contrast:8,saturation:-5,warmth:5,fade:6,grain:5}],
+    ['Expired 100','Film','#8c7f75,#cbb9a8',{brightness:7,contrast:-10,saturation:-18,warmth:9,fade:20,grain:10,dust:3}],
+    ['Expired 200','Film','#7e8069,#c6ba91',{brightness:5,contrast:-5,saturation:-13,warmth:4,tint:-8,fade:18,grain:13,dust:5}],
+    ['Expired 400','Film','#80696f,#bc969d',{brightness:4,contrast:1,saturation:-9,warmth:2,tint:8,fade:17,grain:17,dust:6}],
+    ['Expired Purple','Film','#66546d,#b695c3',{brightness:4,contrast:4,saturation:-3,warmth:-8,tint:18,fade:12,grain:15,dust:4}],
+    ['Monochrome 100','Film','#6e6e6e,#d4d4d4',{brightness:5,contrast:18,saturation:-100,grain:4,grainType:'Fine',sharpness:5}],
+    ['Monochrome 400','Film','#505050,#b5b5b5',{brightness:1,contrast:25,saturation:-100,grain:16,grainType:'Classic',vignette:7}],
+    ['Monochrome 1600','Film','#303030,#999999',{brightness:-4,contrast:32,saturation:-100,grain:30,grainType:'Rough',vignette:15}],
+    ['Sepia Roll','Film','#6e4e38,#c79661',{brightness:3,contrast:8,saturation:-45,warmth:31,fade:12,grain:14,dust:3}],
 
     ['1963 Sunday','Vintage','#786451,#c3a170',{brightness:3,contrast:-1,saturation:-26,warmth:25,fade:21,grain:15,dust:8,vignette:9}],
     ['1968 Summer Slide','Vintage','#665c43,#c5a24d',{brightness:4,contrast:18,saturation:12,warmth:18,highlights:-10,grain:9}],
@@ -330,12 +330,12 @@
   function randomizeLook(){const choices=allPresets().filter(f=>f.kind==='builtin');if(!choices.length)return;const f=choices[Math.floor(Math.random()*choices.length)];state.activeCameraCategory='Recent';fastCameraSelect(f.name);renderCameraCategories();renderCameraFilters();applyLiveFilter();toast(`Surprise: ${f.name} ✦`)}
   function visiblePresets(){let list=state.activeCategory==='Recent'?recentPresetList():allPresets();if(state.activeCategory==='Favorites')list=list.filter(f=>f.kind==='recipe'?f.pinned:state.favoriteFilters.has(f.name));else if(!['All','Recent'].includes(state.activeCategory))list=list.filter(f=>f.cat===state.activeCategory);const q=state.filterSearch.trim().toLowerCase();if(q)list=list.filter(f=>f.name.toLowerCase().includes(q)||f.cat.toLowerCase().includes(q));if(state.activeCategory==='My Recipes')list.sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned));return list}
   function visibleCameraPresets(){const cat=state.activeCameraCategory;let list=cat==='Recent'?recentPresetList():allPresets();if(cat==='Favorites')list=list.filter(f=>f.kind==='recipe'?f.pinned:state.favoriteFilters.has(f.name));else if(!['All','Recent'].includes(cat))list=list.filter(f=>f.cat===cat);if(cat==='My Recipes')list.sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned));return list}
-  function renderCameraCategories(){const cats=['Kira','Beauty','Mood','Lo-Fi','Recolor','Mono','Flash Night','Recent','Favorites','Camera Packs','Instant','Vintage','Date Cam','Film','Film Stock','CCD','Y2K','Dream','Japan','My Recipes','All'];const area=$('#cameraCategories');if(!area)return;if(!area.children.length){area.innerHTML=cats.map(c=>`<button class="chip ${state.activeCameraCategory===c?'active':''}" data-camera-cat="${c}">${c}</button>`).join('');area.onclick=e=>{const b=e.target.closest('[data-camera-cat]');if(!b||state.activeCameraCategory===b.dataset.cameraCat)return;state.activeCameraCategory=b.dataset.cameraCat;$$('[data-camera-cat]',area).forEach(x=>x.classList.toggle('active',x===b));renderCameraFilters();haptic()}}else{$$('[data-camera-cat]',area).forEach(x=>x.classList.toggle('active',x.dataset.cameraCat===state.activeCameraCategory))}}
+  function renderCameraCategories(){const cats=['Kira','Beauty','Film','Instant','Vintage','CCD','Date Cam','Y2K','Dream','Japan','Lo-Fi','Recolor','Mono','Flash Night','Camera Packs','Recent','Favorites','My Recipes','All'];const area=$('#cameraCategories');if(!area)return;if(!area.children.length){area.innerHTML=cats.map(c=>`<button class="chip ${state.activeCameraCategory===c?'active':''}" data-camera-cat="${c}">${c}</button>`).join('');area.onclick=e=>{const b=e.target.closest('[data-camera-cat]');if(!b||state.activeCameraCategory===b.dataset.cameraCat)return;state.activeCameraCategory=b.dataset.cameraCat;$$('[data-camera-cat]',area).forEach(x=>x.classList.toggle('active',x===b));renderCameraFilters();haptic()}}else{$$('[data-camera-cat]',area).forEach(x=>x.classList.toggle('active',x.dataset.cameraCat===state.activeCameraCategory))}}
   function renderCameraFilters(){const area=$('#cameraStrip');if(!area)return;const list=visibleCameraPresets();area.innerHTML=list.length?list.map(cameraPresetCard).join(''):'<div class="notice">No filters saved in this category yet.</div>';$$('[data-camera-filter]',area).forEach(btn=>btn.onclick=()=>{if(state.recording){toast('Finish recording before changing looks.');return}if(btn.dataset.kind==='recipe'&&btn.dataset.recipeId){fastCameraApplyRecipe(btn.dataset.recipeId)}else{fastCameraSelect(btn.dataset.cameraFilter)}syncCameraActiveCards();applyLiveFilter();updateLiveFrame()})}
   function syncCameraActiveCards(){$$('#cameraStrip [data-camera-filter]').forEach(btn=>{const active=btn.dataset.kind==='recipe'?state.selectedRecipeId===btn.dataset.recipeId:(!state.selectedRecipeId&&state.activeFilter===btn.dataset.cameraFilter);btn.classList.toggle('active',active)})}
   function fastCameraSelect(name){rememberRecentLook(name);state.activeFilter=name;state.selectedRecipeId=null;applyPresetExtras(name);if(state.settings.rememberFilter)localStorage.setItem('kira.lastFilter',name);updateCameraHUD();updateLiveFrame();saveSettings();haptic()}
   function fastCameraApplyRecipe(id){const recipe=state.recipes.find(x=>x.id===id);if(!recipe)return;rememberRecentLook(recipe.name);const snap=JSON.parse(JSON.stringify(recipe.snapshot||{}));Object.assign(state,snap);state.selectedRecipeId=id;state.presetAutoDate=false;state.presetAutoFrame=false;updateCameraHUD();updateLiveFrame();saveSettings();haptic()}
-  function renderCategories(){const cats=['Kira','Beauty','Mood','Lo-Fi','Recolor','Mono','Flash Night','Recent','Favorites','Camera Packs','Instant','Vintage','Date Cam','Film','Film Stock','CCD','Y2K','Dream','Japan','My Recipes','All'];$('#filterCategories').innerHTML=cats.map(c=>`<button class="chip ${state.activeCategory===c?'active':''}" data-cat="${c}">${c}</button>`).join('');$('#filterCategories').onclick=e=>{const b=e.target.closest('[data-cat]');if(!b)return;state.activeCategory=b.dataset.cat;renderCategories();renderFilters();haptic()}}
+  function renderCategories(){const cats=['Kira','Beauty','Film','Instant','Vintage','CCD','Date Cam','Y2K','Dream','Japan','Lo-Fi','Recolor','Mono','Flash Night','Camera Packs','Recent','Favorites','My Recipes','All'];$('#filterCategories').innerHTML=cats.map(c=>`<button class="chip ${state.activeCategory===c?'active':''}" data-cat="${c}">${c}</button>`).join('');$('#filterCategories').onclick=e=>{const b=e.target.closest('[data-cat]');if(!b)return;state.activeCategory=b.dataset.cat;renderCategories();renderFilters();haptic()}}
   function renderFilters(){const list=visiblePresets();$('#filterRow').innerHTML=list.length?list.map(presetCard).join(''):'<div class="notice">No matching filters or recipes yet.</div>';$$('#filterRow .preset-card').forEach(btn=>{btn.onclick=()=>handlePresetSelect(btn.dataset.kind,btn.dataset.filter,btn.dataset.recipeId);let t;btn.addEventListener('pointerdown',()=>t=setTimeout(()=>btn.dataset.kind==='recipe'?toggleRecipePin(btn.dataset.recipeId):toggleFavorite(btn.dataset.filter),650));['pointerup','pointercancel','pointerleave'].forEach(x=>btn.addEventListener(x,()=>clearTimeout(t)))})}
   function handlePresetSelect(kind,name,recipeId){if(kind==='recipe'&&recipeId)return applyRecipe(recipeId,true);selectFilter(name)}
   function applyPresetExtras(name){const f=builtins.find(x=>x.name===name);if(!f)return;const p=f.p||{};if(state.presetAutoFrame&&!p.autoFrame&&state.frame===state.presetAutoFrame)state.frame='None';if(state.presetAutoDate&&!p.autoDate)state.dateEnabled=false;if(p.autoFrame){state.frame=p.autoFrame;state.presetAutoFrame=p.autoFrame}else state.presetAutoFrame=false;if(p.autoDate){state.dateEnabled=true;state.dateStyle=p.autoDate.style||'Classic';state.dateColor=p.autoDate.color||'Orange';state.datePosition=p.autoDate.position||'Bottom Right';state.dateValue=today();state.presetAutoDate=true}else state.presetAutoDate=false;if(p.beauty){state.beauty=Object.assign(defaultBeauty(),p.beauty);saveBeauty();syncCameraBeautyControls()}updateLiveDateStamp()}
@@ -1187,7 +1187,7 @@
   async function setupServiceWorkerUpdates(){
     if(!('serviceWorker' in navigator))return;
     try{
-      const reg=await navigator.serviceWorker.register('./service-worker.js?v=12.3.0');
+      const reg=await navigator.serviceWorker.register('./service-worker.js?v=12.4.0');
       kiraSwRegistration=reg;
       if(reg.waiting&&navigator.serviceWorker.controller)showAppUpdateBanner(reg);
       reg.addEventListener('updatefound',()=>{
