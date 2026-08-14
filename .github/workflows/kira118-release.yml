@@ -44,9 +44,12 @@ jobs:
           SERVER_PID=$!
           trap 'kill $SERVER_PID || true' EXIT
           sleep 1
-          curl -fsS http://127.0.0.1:8765/index.html | grep -q 'BUILD 11.8'
-          curl -fsS http://127.0.0.1:8765/app.js | grep -q 'Toy Cam 1998'
-          curl -fsS http://127.0.0.1:8765/service-worker.js | grep -q 'kira-build11-8-mega-filter-library-20260814'
+          curl -fsS http://127.0.0.1:8765/index.html -o /tmp/kira-index.html
+          curl -fsS http://127.0.0.1:8765/app.js -o /tmp/kira-app.js
+          curl -fsS http://127.0.0.1:8765/service-worker.js -o /tmp/kira-sw.js
+          grep -q 'BUILD 11.8' /tmp/kira-index.html
+          grep -q 'Toy Cam 1998' /tmp/kira-app.js
+          grep -q 'kira-build11-8-mega-filter-library-20260814' /tmp/kira-sw.js
 
       - name: Commit Kira 11.8 to main
         shell: bash
