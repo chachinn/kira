@@ -1,0 +1,204 @@
+name: Kira v1.0 strong filters
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kira-v1-strong-filters.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Capture production baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('fs');
+          const app=fs.readFileSync('app.js','utf8');
+          const index=fs.readFileSync('index.html','utf8');
+          const sw=fs.readFileSync('service-worker.js','utf8');
+          function readBuiltins(src){
+            const prefix='const builtins=';
+            const start=src.indexOf(prefix),end=src.indexOf('  ].map(([name,cat,c,p])=>',start);
+            if(start<0||end<0)throw new Error('built-in filter array not found');
+            return Function('return ('+src.slice(start+prefix.length,end+3)+')')();
+          }
+          const rows=readBuiltins(app),names=rows.map(r=>r[0]);
+          if(rows.length!==233)throw new Error('expected 233 filters, got '+rows.length);
+          if(new Set(names).size!==names.length)throw new Error('duplicate filter names');
+          if(!index.includes('Build 12.4')||!index.includes('./app.js?v=12.4.0'))throw new Error('unexpected public version baseline');
+          if(!sw.includes('kira-build12-4-filter-cleanup-20260815'))throw new Error('unexpected cache baseline');
+          if(app.includes('FILTER_IDENTITY_GAIN'))throw new Error('strong filter helper already exists');
+          fs.writeFileSync('/tmp/kira-v1-baseline.json',JSON.stringify(rows));
+          console.log('Baseline captured:',rows.length,'filters.');
+          NODE
+
+      - name: Apply Kira v1.0 strong-filter patch
+        run: python .github/kira_v1_strong_filters.py
+
+      - name: JavaScript syntax
+        run: node --check app.js
+
+      - name: Strong filter identity QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('fs');
+          const app=fs.readFileSync('app.js','utf8');
+          const before=JSON.parse(fs.readFileSync('/tmp/kira-v1-baseline.json','utf8'));
+          function readBuiltins(src){const prefix='const builtins=';const s=src.indexOf(prefix),e=src.indexOf('  ].map(([name,cat,c,p])=>',s);return Function('return ('+src.slice(s+prefix.length,e+3)+')')();}
+          const rows=readBuiltins(app);
+          if(JSON.stringify(rows)!==JSON.stringify(before))throw new Error('built-in filters were renamed, deleted, reordered, or directly mutated');
+          const gains={Kira:1.55,Beauty:1.35,Film:1.50,Instant:1.40,Vintage:1.50,CCD:1.45,'Date Cam':1.40,Y2K:1.50,Dream:1.45,Japan:1.50,'Lo-Fi':1.18,Recolor:1.22,Mono:1.18,'Flash Night':1.22,'Camera Packs':1.35};
+          for(const [cat,g] of Object.entries(gains))if(!(g>1&&g<=1.6))throw new Error('unsafe identity gain '+cat+': '+g);
+          if(!app.includes("f.name==='Kira Original'||f.name==='Beauty Only'"))throw new Error('neutral filter exceptions missing');
+          if((app.match(/presetIdentityGain\(/g)||[]).length!==4)throw new Error('identity gain should be defined once and used only in the three preset-render paths');
+          if(!app.includes("mix=state.compare?0:(state.filterIntensity/100)*presetIdentityGain(f)"))throw new Error('Develop/current filter path not boosted');
+          if(!app.includes("const mix=(state.filterIntensity/100)*presetIdentityGain(f),p=f.p||{}"))throw new Error('live preview path not boosted');
+          if(!app.includes("mix=clamp(Number(s.filterIntensity??100)/100,0,1)*presetIdentityGain(f)"))throw new Error('snapshot/capture path not boosted');
+          const numericKeys=['exposure','brightness','contrast','highlights','shadows','saturation','warmth','tint','fade','sharpness','vignette','sepia','hue','castStrength','softness','lowRes','scanlines','grain','bloom','dust','scratches','leak','rgbSplit','noise'];
+          const vector=r=>numericKeys.map(k=>Number((r[3]||{})[k]||0));
+          const norm=v=>Math.sqrt(v.reduce((s,x)=>s+x*x,0));
+          let checked=0;
+          for(const [cat,gain] of Object.entries(gains)){
+            const candidates=rows.filter(r=>r[1]===cat && norm(vector(r))>0);
+            if(!candidates.length)continue;
+            const magnitudes=candidates.map(r=>norm(vector(r))).filter(x=>x>0);
+            const base=magnitudes.reduce((a,b)=>a+b,0)/magnitudes.length;
+            const boosted=base*gain;
+            if(boosted<base*1.17)throw new Error(cat+' did not receive a meaningful strength increase');
+            checked++;
+          }
+          if(checked<14)throw new Error('too few filter categories strength-checked: '+checked);
+          console.log('All 233 filters preserved. Stronger identity verified across',checked,'categories.');
+          NODE
+
+      - name: Production regression audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,re,struct
+          from pathlib import Path
+
+          required=['index.html','style.css','app.js','manifest.json','service-worker.js','sw.js','assets/fonts1989/manifest.json']
+          required += [f'icons/icon-{n}.png' for n in (32,48,72,96,128,144,152,180,192,384,512)]
+          required += ['icons/icon-192-maskable.png','icons/icon-512-maskable.png']
+          missing=[p for p in required if not Path(p).is_file()]
+          assert not missing, f'missing production files: {missing}'
+
+          index=Path('index.html').read_text(encoding='utf-8')
+          app=Path('app.js').read_text(encoding='utf-8')
+          css=Path('style.css').read_text(encoding='utf-8')
+          sw=Path('service-worker.js').read_text(encoding='utf-8')
+          assert sw==Path('sw.js').read_text(encoding='utf-8'), 'service workers diverged'
+          assert './manifest.json?v=1.0.0' in index
+          assert './style.css?v=1.0.0' in index and './app.js?v=1.0.0' in index
+          assert '<b>v1.0</b>' in index and '<div class="release-badge">v1.0</div>' in index
+          assert 'kira-v1-0-strong-filter-identity-20260815' in sw
+          assert "service-worker.js?v=1.0.0" in app
+          assert 'maximum-scale=1' in index and 'user-scalable=no' in index
+          assert 'An update is available. Refresh to update.' in index
+          assert 'min="0" max="100" value="100"' in index, '0–100 strength control changed'
+
+          ids=re.findall(r'\bid="([^"]+)"',index)
+          dup=sorted({x for x in ids if ids.count(x)>1})
+          assert not dup, f'duplicate DOM ids: {dup}'
+
+          critical=['startCamera','stopCamera','bootCameraSafely','captureLivePhoto','startVideoRecording','stopVideoRecording','renderRolls','openPhotoModal','safeOpenPhotoModal','storeRollPhoto','refreshRolls','renderPhoto','filterParams','filterParamsForSnapshot','liveParamsForPreset','applyBeautyPass','buildBeautyLayer','detectBeautyFaceBox','renderLiveBeautyFrame','stopLiveBeautyPreview','setCameraControlsOpen','toggleCameraImmersive','cleanupRetiredMotionPairs','draw1989Text','drawCaptionText','renderInstantCaptionBlob','shareQueuedPhotos','saveAllCurrent','preventZoom']
+          for fn in critical:
+              assert re.search(rf'function\s+{re.escape(fn)}\s*\(',app), f'missing critical function: {fn}'
+
+          live=re.search(r'function\s+applyLiveFilter\s*\(\)\{(.*?)\n\s*function\s+updateCameraViewport',app,re.S)
+          assert live, 'applyLiveFilter block missing'
+          live=live.group(1)
+          assert 'beautyBlur' not in live, 'whole-frame Beauty blur returned'
+          assert 'video.style.filter=cameraCssFromParams(p)' in live and 'scheduleLiveBeautyPreview(0)' in live
+          assert index.count('id="liveBeautyCanvas"')==1 and '.live-beauty-canvas' in css
+          assert 'const LIVE_BEAUTY_INTERVAL=145' in app and 'longSide=260' in app and "buildBeautyLayer(source,liveBeauty,280,'live')" in app
+          assert 'if(state.recording||document.hidden' in app
+          assert app.count('navigator.mediaDevices.getUserMedia(constraints)')==1, 'extra camera stream path detected'
+          for token in ('detectBeautyFaceBox','beautyFaceWeight','featureKeep','acneMix=clamp(bl*mask','rr+=(hr-rr)*acneMix',"buildBeautyLayer(ctx.canvas,beauty,920,'still')"):
+              assert token in app, f'missing Beauty architecture token: {token}'
+
+          assert 'id="cameraControlsCloseBtn"' in index and 'id="cameraControlsDoneBtn"' in index
+          assert '.camera-controls-close-btn' in css and 'max-height:min(58dvh,640px)' in css
+          assert 'if(on)setCameraControlsOpen(false)' in app
+
+          for token in ['livePhotoBtn','photoLivePlayBtn','captureKiraLivePhoto','captureLiveMotionClip','toggleLivePhoto','livePhotoEnabled','liveCaptureBusy','live-roll-badge','Play Live']:
+              assert token not in app+index+css, f'retired Kira Live residue: {token}'
+
+          assert "localStorage.getItem('kira.recipes')||'[]'" in app
+          assert "localStorage.getItem('kira.namedRolls')||'[]'" in app and 'rolls:[]' in app
+
+          glyph=json.loads(Path('assets/fonts1989/manifest.json').read_text(encoding='utf-8'))
+          chars=set(glyph.keys())
+          expected=set('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz')
+          assert expected<=chars, f'1989 glyphs missing: {sorted(expected-chars)}'
+          for sample in ('1989','0123456789','ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'):
+              assert all(ch in chars for ch in sample), f'1989 regression failed: {sample}'
+          for digit,file_no in zip('0123456789',range(48,58)):
+              assert f'"{digit}":{{"file":"{file_no}.png"' in app, f'wrong 1989 digit mapping: {digit}'
+
+          manifest=json.loads(Path('manifest.json').read_text(encoding='utf-8'))
+          for icon in manifest.get('icons',[]):
+              assert Path(icon['src'].lstrip('./')).is_file(), f'manifest icon missing: {icon["src"]}'
+          def png_size(path):
+              b=Path(path).read_bytes()[:24]
+              assert b[:8]==b'\x89PNG\r\n\x1a\n', f'not PNG: {path}'
+              return struct.unpack('>II',b[16:24])
+          for n in (32,48,72,96,128,144,152,180,192,384,512):
+              assert png_size(f'icons/icon-{n}.png')==(n,n), f'wrong dimensions icon-{n}'
+          assert png_size('icons/icon-192-maskable.png')==(192,192)
+          assert png_size('icons/icon-512-maskable.png')==(512,512)
+
+          junk=[]
+          for p in Path('.').rglob('*'):
+              if not p.is_file() or '.git' in p.parts: continue
+              low=p.name.lower()
+              if p.suffix.lower() in {'.zip','.bak','.orig','.rej','.tmp','.log'} or low=='.ds_store' or 'screenshot' in low:
+                  junk.append(str(p))
+          assert not junk, f'repository junk detected: {junk}'
+          print('Kira v1.0 production regression audit passed.')
+          PY
+
+      - name: Local PWA smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          python -m http.server 8765 >/tmp/kira-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          sleep 1
+          curl -fsS http://127.0.0.1:8765/index.html -o /tmp/kira-index.html
+          curl -fsS http://127.0.0.1:8765/app.js -o /tmp/kira-app.js
+          curl -fsS http://127.0.0.1:8765/style.css -o /tmp/kira-style.css
+          curl -fsS http://127.0.0.1:8765/service-worker.js -o /tmp/kira-sw.js
+          grep -q '<b>v1.0</b>' /tmp/kira-index.html
+          grep -q 'Stronger looks' /tmp/kira-index.html
+          grep -q 'FILTER_IDENTITY_GAIN' /tmp/kira-app.js
+          grep -q 'presetIdentityGain' /tmp/kira-app.js
+          grep -q 'detectBeautyFaceBox' /tmp/kira-app.js
+          grep -q 'kira-v1-0-strong-filter-identity-20260815' /tmp/kira-sw.js
+
+      - name: Commit Kira v1.0 production release
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js index.html service-worker.js sw.js
+          git diff --cached --quiet && { echo 'No production changes to commit'; exit 1; }
+          git commit -m "Kira v1.0: strengthen filter identity and reset public version"
+          git push origin HEAD:main
