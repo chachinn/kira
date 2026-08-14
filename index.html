@@ -13,7 +13,7 @@
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=11.9.0" />
+  <link rel="stylesheet" href="./style.css?v=12.0.0" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -50,6 +50,8 @@
             <button class="mini-pill" id="timerBtn">Timer Off</button>
             <button class="mini-pill" id="ratioBtn">3:4</button>
             <button class="mini-pill" id="gridBtn">Grid</button>
+            <button class="mini-pill" id="livePhotoBtn" aria-pressed="false">Live Off</button>
+            <button class="mini-pill" id="cameraImmersiveBtn" aria-pressed="false">Full</button>
           </div>
           <div class="live-filter-name" id="liveFilterName">Old Rose</div>
           <div class="live-date-stamp hidden" id="liveDateStamp"></div>
@@ -418,6 +420,7 @@
       <div class="modal-title-row"><h3>Media Details</h3><button class="modal-close" data-close-modal="photoModal">×</button></div>
       <img id="photoModalImage" class="photo-detail-image" alt="Kira photo">
       <video id="photoModalVideo" class="photo-detail-image hidden" controls playsinline preload="metadata"></video>
+      <button class="secondary-btn live-photo-play hidden" id="photoLivePlayBtn">▶ Play Live</button>
       <div class="photo-detail-meta" id="photoDetailMeta"></div>
       <div class="media-memory-fields">
         <label class="modal-label">Title<input id="photoTitleInput" class="filter-search-input" maxlength="60" placeholder="Give this moment a title"></label>
@@ -483,15 +486,15 @@
   <div class="modal-backdrop hidden" id="whatsNewModal">
     <div class="modal-card info-modal-card">
       <div class="modal-title-row"><h3>What’s New</h3><button class="modal-close" data-close-modal="whatsNewModal">×</button></div>
-      <div class="release-badge">BUILD 11.9</div>
-      <h4>Beauty that stays adjustable — including acne / blemish softening.</h4>
+      <div class="release-badge">BUILD 12.0</div>
+      <h4>A more iPhone-like camera — stronger Beauty, full-screen shooting, and Kira Live.</h4>
       <div class="info-list">
-        <div><b>♡</b><span>Eighteen new cute Beauty looks, from Barely Blush and Rosy Milk to Soft Princess, Sakura Skin, and Dreamy Selfie.</span></div>
-        <div><b>100</b><span>Five independent 0–100 beauty controls: Smooth skin, Acne / blemish, Redness, Brighten, and Glow.</span></div>
-        <div><b>◎</b><span>Acne / blemish selectively softens uneven red or dark skin texture instead of simply blurring the whole photo.</span></div>
-        <div><b>◐</b><span>Beauty settings are preserved in captures, Undo / Redo, and Film Lab recipes.</span></div>
-        <div><b>⚡</b><span>The live camera uses a lightweight approximation; the selective beauty pass runs only for still photos and Develop to protect iPhone camera smoothness.</span></div>
-        <div><b>□</b><span>Beauty starts at zero on a clean install and can be reset at any time.</span></div>
+        <div><b>♡</b><span>Beauty Only gives you a normal, neutral camera look with smoothing and blemish reduction but no film color grade.</span></div>
+        <div><b>◎</b><span>Smooth and Acne / blemish now use a stronger selective skin pass, including better handling of red and darker uneven spots.</span></div>
+        <div><b>⛶</b><span>Full camera view expands the live preview to the whole iPhone-style screen while keeping shutter, mode, ratio, timer, grid, Live, and flip controls reachable.</span></div>
+        <div><b>LIVE</b><span>Kira Live saves one still photo plus a short motion clip and lets you play it from Media Details.</span></div>
+        <div><b>⚡</b><span>Live processing stays off unless you enable it, and the heavy Beauty pass still runs only on saved stills / Develop to protect camera smoothness.</span></div>
+        <div><b>iOS</b><span>Apple's proprietary Live Photo pair cannot be written directly by a PWA, so Kira Live remains an in-app motion photo while the still can still be sent to Photos.</span></div>
       </div>
     </div>
   </div>
@@ -519,6 +522,6 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=11.9.0"></script>
+  <script src="./app.js?v=12.0.0"></script>
 </body>
 </html>

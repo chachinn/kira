@@ -1057,3 +1057,41 @@ body.theme-lavender{--cream:#f6f1f7;--paper:#ece3ef;--white:#fcf8fc}body.theme-s
 .camera-beauty-controls small{font-size:8px;line-height:1.4;color:#927477}.camera-beauty-controls .compact-btn{width:100%;padding:8px}
 .beauty-panel-card{display:grid;gap:10px;background:var(--soft-surface);border:1px solid var(--hairline);border-radius:20px;padding:12px}.beauty-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.beauty-panel-head strong{display:block;font-family:Georgia,serif;color:var(--rose-dark);font-size:18px}.beauty-panel-head small{display:block;font-size:8px;color:#98797b;margin-top:2px}.beauty-panel-head>span{background:var(--paper);border-radius:999px;padding:5px 8px;font-size:8px;color:var(--rose-dark);font-weight:800}.beauty-slider-list{padding:0;border:0;background:transparent}.beauty-help{font-size:9px;line-height:1.5;color:#8d7072;background:rgba(239,226,212,.65);border-radius:13px;padding:9px}
 @media(max-width:360px){.clean-tool-tabs .tool-tab{font-size:7px;padding-left:0;padding-right:0}.camera-beauty-row{grid-template-columns:52px minmax(0,1fr) 24px}}
+
+
+/* === BUILD 12.0: CAMERA BEAUTY + IMMERSIVE + KIRA LIVE === */
+#livePhotoBtn.active{background:rgba(255,211,92,.92);border-color:rgba(255,232,157,.95);color:#4a3820;font-weight:800}
+#livePhotoBtn:disabled{opacity:.48}
+.live-roll-badge{position:absolute;z-index:4;right:8px;bottom:8px;background:rgba(255,210,78,.92);color:#3b2c18;border-radius:999px;padding:5px 7px;font-size:8px;font-weight:900;letter-spacing:.05em;pointer-events:none}
+.live-photo-play{width:100%;margin:8px 0 2px;padding:10px 12px}
+
+/* Five compact camera pills must stay reachable without forcing horizontal page scroll. */
+.camera-top-tools{left:8px;right:8px;gap:5px;justify-content:center;flex-wrap:wrap;align-content:flex-start}
+.camera-top-tools .mini-pill{padding:6px 8px;font-size:9px;min-height:30px;white-space:nowrap}
+
+/* Immersive view is deliberately CSS-only: no extra stream, no second live canvas. */
+body.camera-mode.camera-immersive{overflow:hidden;background:#000}
+body.camera-mode.camera-immersive .app-shell{position:fixed!important;inset:0!important;width:100%!important;max-width:none!important;height:100dvh!important;min-height:100dvh!important;margin:0!important;padding:0!important;border-radius:0!important;box-shadow:none!important;background:#000!important;overflow:hidden!important;z-index:300}
+body.camera-mode.camera-immersive .topbar,
+body.camera-mode.camera-immersive .bottom-nav,
+body.camera-mode.camera-immersive .camera-look-section,
+body.camera-mode.camera-immersive .camera-advanced-panel{display:none!important}
+body.camera-mode.camera-immersive main{position:absolute!important;inset:0!important;padding:0!important;margin:0!important;width:100%!important;height:100%!important;overflow:hidden!important}
+body.camera-mode.camera-immersive .clean-camera-screen{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;padding:0!important;margin:0!important;background:#000!important}
+body.camera-mode.camera-immersive #cameraStage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;aspect-ratio:auto!important;border-radius:0!important;box-shadow:none!important;background:#000!important}
+body.camera-mode.camera-immersive #cameraStage.ratio-3-4,
+body.camera-mode.camera-immersive #cameraStage.ratio-1-1,
+body.camera-mode.camera-immersive #cameraStage.ratio-9-16{aspect-ratio:auto!important}
+body.camera-mode.camera-immersive #cameraVideo{width:100%!important;height:100%!important;object-fit:cover!important}
+body.camera-mode.camera-immersive .camera-top-tools{top:calc(10px + env(safe-area-inset-top))!important;z-index:45!important}
+body.camera-mode.camera-immersive .live-filter-name{bottom:calc(126px + env(safe-area-inset-bottom))!important;z-index:44!important}
+body.camera-mode.camera-immersive .clean-camera-actions{position:absolute!important;z-index:50!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;height:116px!important;padding:4px 14px calc(10px + env(safe-area-inset-bottom))!important;grid-template-columns:1fr 78px 1fr!important;grid-template-rows:30px 72px!important;background:linear-gradient(to top,rgba(0,0,0,.74),rgba(0,0,0,.08))!important}
+body.camera-mode.camera-immersive .clean-camera-actions .round-label-btn{color:#fff!important;text-shadow:0 1px 8px rgba(0,0,0,.45)!important}
+body.camera-mode.camera-immersive .clean-camera-actions .shutter{width:68px!important;height:68px!important;border-color:#fff!important;box-shadow:inset 0 0 0 5px rgba(255,255,255,.78),0 5px 18px rgba(0,0,0,.34)!important}
+body.camera-mode.camera-immersive .capture-mode-switch{background:rgba(15,15,15,.42)!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:999px!important}
+body.camera-mode.camera-immersive .capture-mode-switch button{color:#ddd!important}
+body.camera-mode.camera-immersive .capture-mode-switch button.active{color:#ffd66d!important}
+body.camera-mode.camera-immersive .camera-empty{z-index:35!important;background:rgba(0,0,0,.38)!important}
+body.camera-mode.camera-immersive .camera-countdown,
+body.camera-mode.camera-immersive .recording-hud{z-index:55!important}
+@media(max-width:380px){.camera-top-tools .mini-pill{padding:5px 7px;font-size:8px}.camera-top-tools{gap:4px}}
