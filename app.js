@@ -276,7 +276,7 @@
   const loadRecipes=()=>JSON.parse(localStorage.getItem('kira.recipes')||'[]');
   const loadNamedRolls=()=>{try{const v=JSON.parse(localStorage.getItem('kira.namedRolls')||'[]');return Array.isArray(v)?v:[]}catch(e){return []}};
   const state={
-    image:null,imageName:'kira-photo',activeFilter:'Old Rose',activeCategory:'Kira',filterIntensity:100,filterSearch:'',
+    image:null,imageName:'kira-photo',activeFilter:'Old Rose',activeCategory:'Kira',filterIntensity:50,filterSearch:'',
     adjustments:defaultAdjust(),effects:defaultEffects(),beauty:loadBeauty(),frame:'None',frameTone:'#fff8f1',frameWidth:8,frameCorner:8,caption:'',captionFont:'Classic Serif',captionSize:165,
     dateEnabled:false,dateStyle:'Classic',dateValue:today(),dateColor:'Orange',datePosition:'Bottom Right',dateCustomText:'',
     compare:false,exportQuality:'High',selectedRecipeId:null,
@@ -1192,7 +1192,7 @@
   async function setupServiceWorkerUpdates(){
     if(!('serviceWorker' in navigator))return;
     try{
-      const reg=await navigator.serviceWorker.register('./service-worker.js?v=1.0.0');
+      const reg=await navigator.serviceWorker.register('./service-worker.js?v=1.0.1');
       kiraSwRegistration=reg;
       if(reg.waiting&&navigator.serviceWorker.controller)showAppUpdateBanner(reg);
       reg.addEventListener('updatefound',()=>{
