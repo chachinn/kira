@@ -435,19 +435,19 @@
     const cbScore=1-clamp(Math.abs(cb-110)/56,0,1),crScore=1-clamp(Math.abs(cr-152)/60,0,1);
     const spread=Math.max(r,g,b)-Math.min(r,g,b);
     if(spread<2)return 0;
-    return clamp(Math.min(cbScore,crScore)*1.58,0,1)
+    return clamp(Math.min(cbScore,crScore)*2.05,0,1)
   }
   function applyBeautyPass(ctx,w,h,beauty=state.beauty){
     const b=Object.assign(defaultBeauty(),beauty||{});
     if(state.compare||!beautyDefs.some(([k])=>Number(b[k]||0)>0))return;
-    const maxSide=Math.max(w,h),target=Math.min(maxSide,820),scale=target/maxSide,tw=Math.max(1,Math.round(w*scale)),th=Math.max(1,Math.round(h*scale));
+    const maxSide=Math.max(w,h),target=Math.min(maxSide,920),scale=target/maxSide,tw=Math.max(1,Math.round(w*scale)),th=Math.max(1,Math.round(h*scale));
     const src=applyBeautyPass.src||(applyBeautyPass.src=document.createElement('canvas')),blur=applyBeautyPass.blur||(applyBeautyPass.blur=document.createElement('canvas')),layer=applyBeautyPass.layer||(applyBeautyPass.layer=document.createElement('canvas'));
     for(const c of [src,blur,layer]){if(c.width!==tw)c.width=tw;if(c.height!==th)c.height=th}
     const sctx=src.getContext('2d',{alpha:false}),bctx=blur.getContext('2d',{alpha:false}),lctx=layer.getContext('2d');
     if(!sctx||!bctx||!lctx)return;
     sctx.clearRect(0,0,tw,th);sctx.imageSmoothingEnabled=true;sctx.drawImage(ctx.canvas,0,0,w,h,0,0,tw,th);
-    const radius=2+Number(b.smooth||0)*.07+Number(b.blemish||0)*.065;
-    bctx.clearRect(0,0,tw,th);bctx.filter=`blur(${Math.min(11,radius).toFixed(2)}px)`;bctx.drawImage(src,0,0);bctx.filter='none';
+    const radius=2.5+Number(b.smooth||0)*.09+Number(b.blemish||0)*.08;
+    bctx.clearRect(0,0,tw,th);bctx.filter=`blur(${Math.min(14,radius).toFixed(2)}px)`;bctx.drawImage(src,0,0);bctx.filter='none';
     let orig,soft;try{orig=sctx.getImageData(0,0,tw,th);soft=bctx.getImageData(0,0,tw,th)}catch(e){return}
     const out=lctx.createImageData(tw,th),od=orig.data,sd=soft.data,dd=out.data;
     const sm=clamp(Number(b.smooth||0)/100,0,1),bl=clamp(Number(b.blemish||0)/100,0,1),red=clamp(Number(b.redness||0)/100,0,1),bright=clamp(Number(b.brighten||0)/100,0,1),glow=clamp(Number(b.glow||0)/100,0,1);
@@ -458,19 +458,19 @@
       const detail=(Math.abs(r-sr)+Math.abs(g-sg)+Math.abs(bb-sb))/3;
       const lum=.299*r+.587*g+.114*bb,softLum=.299*sr+.587*sg+.114*sb;
       const redExcess=Math.max(0,r-(g+bb)*.5),darkSpot=Math.max(0,softLum-lum)/48;
-      const blemishTarget=clamp((detail-2)/26+redExcess/52+darkSpot*.88,0,1);
-      const soften=clamp(sm*.62+bl*.16+bl*.84*blemishTarget,0,.96);
+      const blemishTarget=clamp((detail-1)/18+redExcess/34+darkSpot*1.15,0,1);
+      const soften=clamp(sm*.82+bl*.22+bl*1.08*blemishTarget,0,.985);
       let rr=r+(sr-r)*soften,gg=g+(sg-g)*soften,bbb=bb+(sb-bb)*soften;
       if(bl>0&&blemishTarget>0){
         const local=(sg+sb)*.5,excess=Math.max(0,rr-local);
-        rr-=excess*bl*blemishTarget*.30;
-        const lift=Math.max(0,softLum-(.299*rr+.587*gg+.114*bbb))*bl*blemishTarget*.28;
+        rr-=excess*bl*blemishTarget*.52;
+        const lift=Math.max(0,softLum-(.299*rr+.587*gg+.114*bbb))*bl*blemishTarget*.46;
         rr+=lift;gg+=lift;bbb+=lift;
       }
-      if(red>0){const excess=Math.max(0,rr-(gg+bbb)*.5);rr-=excess*red*.72;gg+=excess*red*.10}
+      if(red>0){const excess=Math.max(0,rr-(gg+bbb)*.5);rr-=excess*red*.82;gg+=excess*red*.13}
       if(bright>0){const lift=(8+20*(1-(.299*rr+.587*gg+.114*bbb)/255))*bright;rr+=lift;gg+=lift*.96;bbb+=lift*.92}
       if(glow>0){rr+=(255-rr)*glow*.052;gg+=(247-gg)*glow*.046;bbb+=(244-bbb)*glow*.046}
-      const alpha=clamp(skin*(sm*.58+bl*(.18+.72*blemishTarget)+red*.27+bright*.24+glow*.20),0,.95);
+      const alpha=clamp(skin*1.16*(sm*.76+bl*(.24+.98*blemishTarget)+red*.32+bright*.24+glow*.20),0,.985);
       dd[i]=clamp(rr,0,255);dd[i+1]=clamp(gg,0,255);dd[i+2]=clamp(bbb,0,255);dd[i+3]=Math.round(alpha*255)
     }
     lctx.clearRect(0,0,tw,th);lctx.putImageData(out,0,0);
@@ -603,7 +603,7 @@
   function updateLiveFrame(){const el=$('#liveFrameOverlay');if(!el)return;const map={'Polaroid':'frame-polaroid','Instant Square':'frame-instant-square','Instant Wide':'frame-instant-wide','Instant Mini':'frame-instant-mini','Instant Black':'frame-instant-black','Classic':'frame-classic','35mm':'frame-35mm','Film Strip':'frame-film-strip'};el.className='live-frame-overlay';const cls=map[state.frame];if(!cls){el.classList.add('hidden');return}el.classList.add(cls);el.classList.remove('hidden')}
   let liveFilterFrame=0;
   function scheduleLiveFilter(){if(liveFilterFrame)return;liveFilterFrame=requestAnimationFrame(()=>{liveFilterFrame=0;applyLiveFilter()})}
-  function applyLiveFilter(){const video=$('#cameraVideo');if(!video)return;const p=currentLiveParams(),b=Object.assign(defaultBeauty(),state.beauty||{}),beautyBlur=Math.min(1.08,Number(b.smooth||0)*.0068+Number(b.blemish||0)*.0036),beautyBright=Number(b.brighten||0)*.052,beautySat=Math.max(91,100-Number(b.redness||0)*.06);video.style.filter=`${cameraCssFromParams(p)} brightness(${(100+beautyBright).toFixed(2)}%) saturate(${beautySat.toFixed(2)}%) blur(${beautyBlur.toFixed(2)}px)`;video.style.imageRendering=Number(p.lowRes||0)>55?'pixelated':'auto';const tone=$('#liveToneOverlay'),fade=$('#liveFadeOverlay'),vig=$('#liveVignetteOverlay'),texture=$('#liveTextureOverlay');if(tone){if(p.castColor&&Number(p.castStrength)>0){tone.style.background=p.castColor;tone.style.opacity=String(Math.min(.55,Number(p.castStrength)/100));tone.style.mixBlendMode=p.castMode||'soft-light'}else{const warm=Number(p.warmth||0),tint=Number(p.tint||0);let c='255,151,94',op=Math.min(.28,Math.abs(warm)/115);if(warm<0)c='76,145,205';if(Math.abs(tint)>Math.abs(warm)){c=tint>0?'230,112,155':'92,162,118';op=Math.min(.22,Math.abs(tint)/135)}tone.style.background=`rgb(${c})`;tone.style.opacity=String(op);tone.style.mixBlendMode='soft-light'}}if(fade)fade.style.opacity=String(Math.min(.28,Math.max(0,p.fade||0)/130));if(vig)vig.style.opacity=String(Math.min(.62,Math.max(0,p.vignette||0)/58));if(texture){const scan=Number(p.scanlines||0),low=Number(p.lowRes||0),layers=[];if(scan>0)layers.push('repeating-linear-gradient(to bottom,rgba(255,255,255,.08) 0 1px,rgba(0,0,0,.20) 1px 2px,transparent 2px 5px)');if(low>22)layers.push('repeating-linear-gradient(to right,rgba(255,255,255,.035) 0 1px,transparent 1px 4px)');texture.style.background=layers.length?layers.join(','):'none';texture.style.opacity=String(layers.length?Math.min(.30,scan/150+low/500):0);texture.style.mixBlendMode='overlay'}syncCameraBeautyControls()}
+  function applyLiveFilter(){const video=$('#cameraVideo');if(!video)return;const p=currentLiveParams(),b=Object.assign(defaultBeauty(),state.beauty||{}),beautyBlur=Math.min(1.65,Number(b.smooth||0)*.0105+Number(b.blemish||0)*.0056),beautyBright=Number(b.brighten||0)*.058,beautySat=Math.max(89,100-Number(b.redness||0)*.075);video.style.filter=`${cameraCssFromParams(p)} brightness(${(100+beautyBright).toFixed(2)}%) saturate(${beautySat.toFixed(2)}%) blur(${beautyBlur.toFixed(2)}px)`;video.style.imageRendering=Number(p.lowRes||0)>55?'pixelated':'auto';const tone=$('#liveToneOverlay'),fade=$('#liveFadeOverlay'),vig=$('#liveVignetteOverlay'),texture=$('#liveTextureOverlay');if(tone){if(p.castColor&&Number(p.castStrength)>0){tone.style.background=p.castColor;tone.style.opacity=String(Math.min(.55,Number(p.castStrength)/100));tone.style.mixBlendMode=p.castMode||'soft-light'}else{const warm=Number(p.warmth||0),tint=Number(p.tint||0);let c='255,151,94',op=Math.min(.28,Math.abs(warm)/115);if(warm<0)c='76,145,205';if(Math.abs(tint)>Math.abs(warm)){c=tint>0?'230,112,155':'92,162,118';op=Math.min(.22,Math.abs(tint)/135)}tone.style.background=`rgb(${c})`;tone.style.opacity=String(op);tone.style.mixBlendMode='soft-light'}}if(fade)fade.style.opacity=String(Math.min(.28,Math.max(0,p.fade||0)/130));if(vig)vig.style.opacity=String(Math.min(.62,Math.max(0,p.vignette||0)/58));if(texture){const scan=Number(p.scanlines||0),low=Number(p.lowRes||0),layers=[];if(scan>0)layers.push('repeating-linear-gradient(to bottom,rgba(255,255,255,.08) 0 1px,rgba(0,0,0,.20) 1px 2px,transparent 2px 5px)');if(low>22)layers.push('repeating-linear-gradient(to right,rgba(255,255,255,.035) 0 1px,transparent 1px 4px)');texture.style.background=layers.length?layers.join(','):'none';texture.style.opacity=String(layers.length?Math.min(.30,scan/150+low/500):0);texture.style.mixBlendMode='overlay'}syncCameraBeautyControls()}
   function updateCameraViewport(){if(!$('#screen-camera')?.classList.contains('active'))return;const top=$('.topbar')?.getBoundingClientRect().bottom||0,navH=$('.bottom-nav')?.getBoundingClientRect().height||70,vh=window.visualViewport?.height||window.innerHeight;const h=Math.max(420,Math.floor(vh-top-navH));document.documentElement.style.setProperty('--camera-screen-h',h+'px')}
   function setCaptureMode(mode){
     if(state.recording)return;
@@ -792,6 +792,7 @@
   function updateCameraHUD(){const active=state.selectedRecipeId?state.recipes.find(r=>r.id===state.selectedRecipeId)?.name:state.activeFilter;$('#liveFilterName')&&($('#liveFilterName').textContent=active||'Kira');$('#liveIntensityValue')&&($('#liveIntensityValue').textContent=state.filterIntensity);const live=$('#liveFilterIntensity');if(live&&Number(live.value)!==state.filterIntensity)live.value=state.filterIntensity;const fav=$('#cameraFavoriteBtn');if(fav){const on=state.selectedRecipeId?!!state.recipes.find(r=>r.id===state.selectedRecipeId)?.pinned:state.favoriteFilters.has(state.activeFilter);fav.textContent=on?'♥':'♡';fav.classList.toggle('active',on)}const count=state.rolls.filter(x=>(x.rollId||defaultRollId())===state.activeNamedRollId).length;$('#cameraRollCount')&&($('#cameraRollCount').textContent=`${Math.min(count,999)} / 36`);$('#cameraRollBadge')&&($('#cameraRollBadge').textContent=rollName(state.activeNamedRollId));const summary=$('#activeLookSummary');if(summary)summary.textContent=active||'Kira';const si=$('#activeLookIntensity');if(si)si.textContent=`${state.filterIntensity}%`;updateLiveDateStamp()}
   function toggleActiveCameraFavorite(){if(state.selectedRecipeId)toggleRecipePin(state.selectedRecipeId);else toggleFavorite(state.activeFilter);updateCameraHUD()}
   function setCameraImmersive(on){
+    if(on)setCameraControlsOpen(false);
     state.cameraImmersive=!!on;
     document.body.classList.toggle('camera-immersive',state.cameraImmersive);
     const btn=$('#cameraImmersiveBtn');
@@ -1082,9 +1083,20 @@
 
   function escapeHtml(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
+  function setCameraControlsOpen(open,restoreFocus=false){
+    const btn=$('#cameraControlsBtn'),panel=$('#cameraAdvancedPanel');
+    if(!btn||!panel)return;
+    const next=!!open;
+    panel.classList.toggle('hidden',!next);
+    btn.setAttribute('aria-expanded',String(next));
+    btn.textContent=next?'Controls⌃':'Controls⌄';
+    document.body.classList.toggle('camera-controls-open',next);
+    if(!next&&restoreFocus){try{btn.focus({preventScroll:true})}catch(_){btn.focus()}}
+  }
+
   function bindInputs(){bindRollGridInteractions();bindCameraBeautyControls();
     $('#menuBtn')&&($('#menuBtn').onclick=openDrawer);$('#drawerCloseBtn')&&($('#drawerCloseBtn').onclick=closeDrawer);$('#drawerBackdrop')&&($('#drawerBackdrop').onclick=closeDrawer);$$('[data-menu-action]').forEach(b=>b.onclick=()=>runMenuAction(b.dataset.menuAction));$('#surpriseLookBtn')&&($('#surpriseLookBtn').onclick=randomizeLook);$('#cameraTorchBtn')&&($('#cameraTorchBtn').onclick=toggleCameraTorch);const zoom=$('#cameraZoom');if(zoom)zoom.oninput=e=>scheduleCameraZoom(e.target.value);const rs=$('#rollSearch');if(rs)rs.oninput=e=>{state.rollSearch=e.target.value;renderRolls()};$('#cameraImmersiveBtn')&&($('#cameraImmersiveBtn').onclick=toggleCameraImmersive);const rsort=$('#rollSort');if(rsort){rsort.value=state.rollSort;rsort.onchange=e=>{state.rollSort=e.target.value;renderRolls()}};$('#savePhotoDetailsBtn')&&($('#savePhotoDetailsBtn').onclick=savePhotoDetails);const pcs=$('#photoCaptionSize');if(pcs){pcs.oninput=e=>{$('#photoCaptionSizeValue')&&($('#photoCaptionSizeValue').textContent=`${e.target.value}%`)};}
-    const cameraControls=$('#cameraControlsBtn'),cameraPanel=$('#cameraAdvancedPanel');if(cameraControls&&cameraPanel)cameraControls.onclick=()=>{const open=cameraPanel.classList.toggle('hidden')===false;cameraControls.setAttribute('aria-expanded',String(open));cameraControls.textContent=open?'Controls⌃':'Controls⌄';haptic()};
+    const cameraControls=$('#cameraControlsBtn'),cameraPanel=$('#cameraAdvancedPanel');if(cameraControls&&cameraPanel)cameraControls.onclick=()=>{setCameraControlsOpen(cameraPanel.classList.contains('hidden'));haptic()};$('#cameraControlsCloseBtn')&&($('#cameraControlsCloseBtn').onclick=()=>{setCameraControlsOpen(false,true);haptic()});$('#cameraControlsDoneBtn')&&($('#cameraControlsDoneBtn').onclick=()=>{setCameraControlsOpen(false,true);haptic()});
     
     const rollActions=$('#rollActionsBtn'),rollPanel=$('#rollUtilityPanel');if(rollActions&&rollPanel)rollActions.onclick=()=>{const open=rollPanel.classList.toggle('hidden')===false;rollActions.setAttribute('aria-expanded',String(open));rollActions.textContent=open?'Actions⌃':'Actions⌄';haptic()};
     const bulkSelect=$('#bulkSelectBtn');if(bulkSelect)bulkSelect.onclick=()=>setBulkSelectMode(!state.bulkSelectMode);$('#bulkSelectAllBtn').onclick=selectAllBulk;$('#bulkSaveSelectedBtn').onclick=saveSelectedBulk;$('#bulkCancelBtn').onclick=()=>setBulkSelectMode(false);$('#saveAllRollBtn').onclick=saveAllCurrent;
@@ -1135,7 +1147,7 @@
   async function setupServiceWorkerUpdates(){
     if(!('serviceWorker' in navigator))return;
     try{
-      const reg=await navigator.serviceWorker.register('./service-worker.js?v=12.1.0');
+      const reg=await navigator.serviceWorker.register('./service-worker.js?v=12.2.0');
       kiraSwRegistration=reg;
       if(reg.waiting&&navigator.serviceWorker.controller)showAppUpdateBanner(reg);
       reg.addEventListener('updatefound',()=>{

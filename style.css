@@ -1091,3 +1091,46 @@ body.camera-mode.camera-immersive .camera-empty{z-index:35!important;background:
 body.camera-mode.camera-immersive .camera-countdown,
 body.camera-mode.camera-immersive .recording-hud{z-index:55!important}
 @media(max-width:380px){.camera-top-tools .mini-pill{padding:5px 7px;font-size:8px}.camera-top-tools{gap:4px}}
+
+
+/* === BUILD 12.2: CLOSABLE CAMERA CONTROLS + STRONGER BEAUTY UX === */
+body.camera-mode .camera-advanced-panel{
+  max-height:min(58dvh,640px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  padding:0 12px 12px;
+  scrollbar-width:none;
+}
+body.camera-mode .camera-advanced-panel::-webkit-scrollbar{display:none}
+body.camera-mode .camera-advanced-panel .advanced-panel-head{
+  position:sticky;
+  top:0;
+  z-index:5;
+  margin:0 -12px 10px;
+  padding:11px 12px 10px;
+  background:rgba(255,250,246,.985);
+  border-bottom:1px solid var(--hairline);
+  backdrop-filter:blur(18px);
+}
+.advanced-panel-head>div{display:grid;gap:2px;min-width:0}
+.advanced-panel-head>div span{display:block}
+.camera-controls-close-btn{
+  flex:none;
+  min-width:58px;
+  min-height:36px;
+  border:1px solid rgba(183,110,121,.34);
+  border-radius:999px;
+  background:#fff8f4;
+  color:var(--rose-dark);
+  font-size:10px;
+  font-weight:800;
+  padding:7px 12px;
+  touch-action:manipulation;
+}
+.camera-controls-close-btn:active{transform:scale(.97)}
+.camera-controls-done-btn{width:100%;margin-top:10px;min-height:42px}
+body.camera-controls-open .camera-look-section{position:relative;z-index:2}
+@media(max-height:760px){
+  body.camera-mode .camera-advanced-panel{max-height:55dvh!important}
+}

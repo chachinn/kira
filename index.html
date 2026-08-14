@@ -13,7 +13,7 @@
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=12.1.0" />
+  <link rel="stylesheet" href="./style.css?v=12.2.0" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -71,7 +71,7 @@
         </div>
 
         <div class="camera-advanced-panel hidden" id="cameraAdvancedPanel">
-          <div class="advanced-panel-head"><strong>Camera controls</strong><span>optional</span></div>
+          <div class="advanced-panel-head"><div><strong>Camera controls</strong><span>optional</span></div><button type="button" class="camera-controls-close-btn" id="cameraControlsCloseBtn" aria-label="Close Camera controls">Done</button></div>
           <div class="live-camera-controls cleaned">
             <button class="camera-heart-btn" id="cameraFavoriteBtn" title="Favorite active filter">♡</button>
             <div class="live-intensity-control">
@@ -101,6 +101,7 @@
             <input id="cameraZoom" type="range" min="1" max="1" step="0.1" value="1">
           </div>
           <div class="camera-film-counter"><span id="cameraRollBadge">Unfiled</span><b id="cameraRollCount">0 / 36</b></div>
+          <button type="button" class="secondary-btn camera-controls-done-btn" id="cameraControlsDoneBtn">Done</button>
         </div>
 
         <div class="camera-actions clean-camera-actions">
@@ -484,13 +485,13 @@
   <div class="modal-backdrop hidden" id="whatsNewModal">
     <div class="modal-card info-modal-card">
       <div class="modal-title-row"><h3>What’s New</h3><button class="modal-close" data-close-modal="whatsNewModal">×</button></div>
-      <div class="release-badge">BUILD 12.1</div>
-      <h4>A cleaner camera — stronger Beauty, full-screen shooting, and less unnecessary overhead.</h4>
+      <div class="release-badge">BUILD 12.2</div>
+      <h4>Beauty that actually shows — plus Camera controls you can always close.</h4>
       <div class="info-list">
-        <div><b>♡</b><span>Beauty Only gives you a normal, neutral camera look with smoothing and blemish reduction but no film color grade.</span></div>
-        <div><b>◎</b><span>Smooth and Acne / blemish now use a stronger selective skin pass, including better handling of red and darker uneven spots.</span></div>
-        <div><b>⛶</b><span>Full camera view expands the live preview to the whole iPhone-style screen while keeping shutter, mode, ratio, timer, grid, and flip controls reachable.</span></div>
-        <div><b>⚡</b><span>The retired motion-photo recorder has been removed entirely, reducing capture complexity and storage overhead while the heavy Beauty pass still runs only on saved stills / Develop.</span></div>
+        <div><b>◎</b><span>Smooth is visibly stronger at higher settings while saved photos still use selective skin masking instead of simply blurring the entire frame.</span></div>
+        <div><b>♡</b><span>Acne / blemish now reacts more aggressively to local texture, redness, and darker uneven spots, especially from 60–100.</span></div>
+        <div><b>✓</b><span>Camera controls now have sticky Done controls at the top and bottom, so the sheet can always be collapsed even on smaller iPhones.</span></div>
+        <div><b>⚡</b><span>The live Beauty preview remains lightweight for smooth shooting; the stronger selective pass runs on saved stills and in Develop.</span></div>
       </div>
     </div>
   </div>
@@ -518,6 +519,6 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=12.1.0"></script>
+  <script src="./app.js?v=12.2.0"></script>
 </body>
 </html>
