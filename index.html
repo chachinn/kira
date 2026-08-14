@@ -13,7 +13,7 @@
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=11.0.0" />
+  <link rel="stylesheet" href="./style.css?v=11.9.0" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -78,6 +78,18 @@
               <input id="liveFilterIntensity" type="range" min="0" max="100" value="100">
             </div>
           </div>
+          <details class="camera-beauty-details">
+            <summary><span>Beauty</span><b id="cameraBeautyBadge">Off</b></summary>
+            <div class="camera-beauty-controls" id="cameraBeautyControls">
+              <div class="camera-beauty-row"><label>Smooth</label><input data-camera-beauty="smooth" type="range" min="0" max="100" value="0"><output data-camera-beauty-out="smooth">0</output></div>
+              <div class="camera-beauty-row"><label>Acne</label><input data-camera-beauty="blemish" type="range" min="0" max="100" value="0"><output data-camera-beauty-out="blemish">0</output></div>
+              <div class="camera-beauty-row"><label>Redness</label><input data-camera-beauty="redness" type="range" min="0" max="100" value="0"><output data-camera-beauty-out="redness">0</output></div>
+              <div class="camera-beauty-row"><label>Brighten</label><input data-camera-beauty="brighten" type="range" min="0" max="100" value="0"><output data-camera-beauty-out="brighten">0</output></div>
+              <div class="camera-beauty-row"><label>Glow</label><input data-camera-beauty="glow" type="range" min="0" max="100" value="0"><output data-camera-beauty-out="glow">0</output></div>
+              <button class="secondary-btn compact-btn" id="cameraBeautyResetBtn">Reset Beauty</button>
+              <small>Live preview is lightweight. Saved photos use Kira’s selective skin/blemish pass.</small>
+            </div>
+          </details>
           <label class="camera-roll-control"><span>Shooting into</span><select id="cameraRollSelect" class="mini-select" aria-label="Active roll"></select></label>
           <div class="camera-hardware-grid">
             <button class="secondary-btn camera-surprise-btn" id="surpriseLookBtn">✦ Surprise Me</button>
@@ -131,6 +143,7 @@
 
         <div class="tool-tabs clean-tool-tabs">
           <button class="tool-tab active" data-tool="filter">Looks</button>
+          <button class="tool-tab" data-tool="beauty">Beauty</button>
           <button class="tool-tab" data-tool="adjust">Adjust</button>
           <button class="tool-tab" data-tool="effects">Effects</button>
           <button class="tool-tab" data-tool="frame">Frames</button>
@@ -149,6 +162,7 @@
             </div>
           </div>
         </div>
+        <div class="tool-panel" id="tool-beauty"></div>
         <div class="tool-panel" id="tool-adjust"></div>
         <div class="tool-panel" id="tool-effects"></div>
         <div class="tool-panel" id="tool-frame"></div>
@@ -339,7 +353,7 @@
                 <p>Kira comes from <em>kirakira</em> (キラキラ), meaning “sparkling” or “glittering.” It fits a camera made to capture, style, and save the little moments that shine.</p>
               </div>
             </div>
-            <div class="setting-row"><span>Current version</span><b>Build 11.8</b></div>
+            <div class="setting-row"><span>Current version</span><b>Build 11.9</b></div>
           </div>
         </details>
       </section>
@@ -469,15 +483,15 @@
   <div class="modal-backdrop hidden" id="whatsNewModal">
     <div class="modal-card info-modal-card">
       <div class="modal-title-row"><h3>What’s New</h3><button class="modal-close" data-close-modal="whatsNewModal">×</button></div>
-      <div class="release-badge">BUILD 11.8</div>
-      <h4>A much bigger camera shelf: 48 new looks.</h4>
+      <div class="release-badge">BUILD 11.9</div>
+      <h4>Beauty that stays adjustable — including acne / blemish softening.</h4>
       <div class="info-list">
-        <div><b>48</b><span>Forty-eight additional filters across Lo-Fi, Recolor, Mono, and Flash Night collections.</span></div>
-        <div><b>▦</b><span>Lo-Fi cameras now simulate downsampled resolution, softness, scanlines, cheap digital noise, flash bloom, color casts, and RGB drift.</span></div>
-        <div><b>◐</b><span>Recolor adds strong blue, teal, matcha, lavender, cherry, aqua, mint, crimson, grape, emerald, plum, and warm-tone transformations.</span></div>
-        <div><b>◻</b><span>Eight dedicated monochrome looks range from soft silver prints to rough Newspaper and Noir 400.</span></div>
-        <div><b>✦</b><span>Flash Night adds club, mirror, street, blue-flash, red-room, after-party, paparazzi, and convenience-store looks.</span></div>
-        <div><b>⚡</b><span>Low-quality texture work is applied only to the selected live look and final still render—no extra camera streams or live thumbnail canvases.</span></div>
+        <div><b>♡</b><span>Eighteen new cute Beauty looks, from Barely Blush and Rosy Milk to Soft Princess, Sakura Skin, and Dreamy Selfie.</span></div>
+        <div><b>100</b><span>Five independent 0–100 beauty controls: Smooth skin, Acne / blemish, Redness, Brighten, and Glow.</span></div>
+        <div><b>◎</b><span>Acne / blemish selectively softens uneven red or dark skin texture instead of simply blurring the whole photo.</span></div>
+        <div><b>◐</b><span>Beauty settings are preserved in captures, Undo / Redo, and Film Lab recipes.</span></div>
+        <div><b>⚡</b><span>The live camera uses a lightweight approximation; the selective beauty pass runs only for still photos and Develop to protect iPhone camera smoothness.</span></div>
+        <div><b>□</b><span>Beauty starts at zero on a clean install and can be reset at any time.</span></div>
       </div>
     </div>
   </div>
@@ -505,6 +519,6 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=11.8.0"></script>
+  <script src="./app.js?v=11.9.0"></script>
 </body>
 </html>
