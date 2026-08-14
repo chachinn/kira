@@ -1,0 +1,66 @@
+name: Kira 11.9 adjustable beauty release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/kira119-release.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply Kira 11.9 production patch
+        run: python .github/kira119_release.py
+
+      - name: JavaScript and production QA
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          test -f index.html
+          test -f style.css
+          test -f manifest.json
+          test -f service-worker.js
+          test -f sw.js
+          test -f icons/icon-32.png
+          test -f icons/icon-96.png
+          test -f icons/icon-180.png
+          test -f icons/icon-192.png
+          test -f icons/icon-512.png
+          test -f icons/icon-192-maskable.png
+          test -f icons/icon-512-maskable.png
+          test -f assets/fonts1989/manifest.json
+          cmp service-worker.js sw.js
+          git diff --check
+          python -m http.server 8765 >/tmp/kira-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          sleep 1
+          curl -fsS http://127.0.0.1:8765/index.html -o /tmp/kira-index.html
+          curl -fsS http://127.0.0.1:8765/app.js -o /tmp/kira-app.js
+          curl -fsS http://127.0.0.1:8765/style.css -o /tmp/kira-style.css
+          curl -fsS http://127.0.0.1:8765/service-worker.js -o /tmp/kira-sw.js
+          grep -q 'BUILD 11.9' /tmp/kira-index.html
+          grep -q 'Acne / blemish' /tmp/kira-app.js
+          grep -q 'camera-beauty-details' /tmp/kira-style.css
+          grep -q 'kira-build11-9-adjustable-beauty-20260814' /tmp/kira-sw.js
+
+      - name: Commit Kira 11.9 to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js index.html style.css service-worker.js sw.js
+          git diff --cached --check
+          git diff --cached --stat
+          git commit -m "Kira 11.9: add adjustable beauty and acne softening"
+          git push origin HEAD:main
