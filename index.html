@@ -13,7 +13,7 @@
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=12.2.0" />
+  <link rel="stylesheet" href="./style.css?v=12.3.0" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -34,6 +34,7 @@
       <section class="screen active clean-camera-screen" id="screen-camera" data-screen="camera">
         <div class="camera-stage" id="cameraStage">
           <video id="cameraVideo" class="live-video" autoplay muted playsinline></video>
+          <canvas id="liveBeautyCanvas" class="live-beauty-canvas" aria-hidden="true"></canvas>
           <div id="liveToneOverlay" class="live-overlay live-tone-overlay"></div>
           <div id="liveFadeOverlay" class="live-overlay live-fade-overlay"></div>
           <div id="liveTextureOverlay" class="live-overlay live-texture-overlay" style="mix-blend-mode:overlay"></div>
@@ -88,7 +89,7 @@
               <div class="camera-beauty-row"><label>Brighten</label><input data-camera-beauty="brighten" type="range" min="0" max="100" value="0"><output data-camera-beauty-out="brighten">0</output></div>
               <div class="camera-beauty-row"><label>Glow</label><input data-camera-beauty="glow" type="range" min="0" max="100" value="0"><output data-camera-beauty-out="glow">0</output></div>
               <button class="secondary-btn compact-btn" id="cameraBeautyResetBtn">Reset Beauty</button>
-              <small>Live preview is lightweight. Saved photos use Kira’s selective skin/blemish pass.</small>
+              <small>Smooth and Acne target the detected face/skin region. The live preview uses a low-resolution face layer; saved photos use the stronger full-resolution pass.</small>
             </div>
           </details>
           <label class="camera-roll-control"><span>Shooting into</span><select id="cameraRollSelect" class="mini-select" aria-label="Active roll"></select></label>
@@ -355,7 +356,7 @@
                 <p>Kira comes from <em>kirakira</em> (キラキラ), meaning “sparkling” or “glittering.” It fits a camera made to capture, style, and save the little moments that shine.</p>
               </div>
             </div>
-            <div class="setting-row"><span>Current version</span><b>Build 11.9</b></div>
+            <div class="setting-row"><span>Current version</span><b>Build 12.3</b></div>
           </div>
         </details>
       </section>
@@ -485,13 +486,13 @@
   <div class="modal-backdrop hidden" id="whatsNewModal">
     <div class="modal-card info-modal-card">
       <div class="modal-title-row"><h3>What’s New</h3><button class="modal-close" data-close-modal="whatsNewModal">×</button></div>
-      <div class="release-badge">BUILD 12.2</div>
-      <h4>Beauty that actually shows — plus Camera controls you can always close.</h4>
+      <div class="release-badge">BUILD 12.3</div>
+      <h4>Face-targeted Beauty — no more whole-camera blur.</h4>
       <div class="info-list">
-        <div><b>◎</b><span>Smooth is visibly stronger at higher settings while saved photos still use selective skin masking instead of simply blurring the entire frame.</span></div>
-        <div><b>♡</b><span>Acne / blemish now reacts more aggressively to local texture, redness, and darker uneven spots, especially from 60–100.</span></div>
-        <div><b>✓</b><span>Camera controls now have sticky Done controls at the top and bottom, so the sheet can always be collapsed even on smaller iPhones.</span></div>
-        <div><b>⚡</b><span>The live Beauty preview remains lightweight for smooth shooting; the stronger selective pass runs on saved stills and in Develop.</span></div>
+        <div><b>◎</b><span>Smooth no longer blurs the entire live camera. Kira now renders a separate face/skin Beauty layer and leaves the background, hair, and non-skin areas alone.</span></div>
+        <div><b>♡</b><span>Acne / blemish now uses a stronger local healing pass for red, dark, bright, and high-detail spots instead of relying on one generic blur.</span></div>
+        <div><b>◌</b><span>Eyes, brows, lips, hair edges, and other high-contrast features receive extra edge protection so stronger Beauty settings do not simply smear the face.</span></div>
+        <div><b>⚡</b><span>The live face layer is capped at a small resolution and about seven updates per second; the heavier pass still runs only on saved stills / Develop.</span></div>
       </div>
     </div>
   </div>
@@ -519,6 +520,6 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=12.2.0"></script>
+  <script src="./app.js?v=12.3.0"></script>
 </body>
 </html>
