@@ -1,0 +1,128 @@
+name: Kira v1.0 camera ratio fix
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch live camera ratio preview
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          app = Path('app.js')
+          s = app.read_text()
+          old = "function applyCameraRatio(){const stage=$('#cameraStage');if(!stage)return;stage.classList.remove('ratio-3-4','ratio-1-1','ratio-9-16');stage.classList.add(state.cameraRatio==='1:1'?'ratio-1-1':state.cameraRatio==='9:16'?'ratio-9-16':'ratio-3-4');$('#ratioBtn')&&($('#ratioBtn').textContent=state.cameraRatio)}"
+          new = r"""function fitCameraPreviewRatio(){
+    const stage=$('#cameraStage'),screen=$('#screen-camera');
+    if(!stage||!screen)return;
+    stage.style.removeProperty('width');
+    stage.style.removeProperty('height');
+    stage.style.removeProperty('aspect-ratio');
+    if(state.cameraImmersive)return;
+    requestAnimationFrame(()=>{
+      if(state.cameraImmersive||!document.body.classList.contains('camera-mode'))return;
+      const cs=getComputedStyle(screen),rows=cs.gridTemplateRows.trim().split(/\s+/),rowH=parseFloat(rows[0]);
+      const padX=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0);
+      const availableW=Math.max(1,screen.clientWidth-padX);
+      const availableH=Math.max(1,Number.isFinite(rowH)?rowH:stage.parentElement?.clientHeight||stage.clientHeight||1);
+      const ratio=state.cameraRatio==='1:1'?[1,1]:state.cameraRatio==='9:16'?[9,16]:[3,4],target=ratio[0]/ratio[1];
+      let w=availableW,h=w/target;
+      if(h>availableH){h=availableH;w=h*target}
+      stage.style.setProperty('width',`${Math.max(1,Math.floor(w))}px`,'important');
+      stage.style.setProperty('height',`${Math.max(1,Math.floor(h))}px`,'important');
+      stage.style.setProperty('aspect-ratio',`${ratio[0]} / ${ratio[1]}`,'important');
+    });
+  }
+  function applyCameraRatio(){const stage=$('#cameraStage');if(!stage)return;stage.classList.remove('ratio-3-4','ratio-1-1','ratio-9-16');stage.classList.add(state.cameraRatio==='1:1'?'ratio-1-1':state.cameraRatio==='9:16'?'ratio-9-16':'ratio-3-4');$('#ratioBtn')&&($('#ratioBtn').textContent=state.cameraRatio);fitCameraPreviewRatio()}"""
+          if old not in s:
+              raise SystemExit('applyCameraRatio target not found')
+          s = s.replace(old, new, 1)
+          s = s.replace("const onViewport=()=>requestAnimationFrame(updateCameraViewport);", "const onViewport=()=>requestAnimationFrame(()=>{updateCameraViewport();applyCameraRatio()});", 1)
+          s = s.replace("document.body.classList.add('camera-mode');updateCameraViewport();setupOnboarding();", "document.body.classList.add('camera-mode');updateCameraViewport();applyCameraRatio();setupOnboarding();", 1)
+          s = s.replace("service-worker.js?v=1.0.1", "service-worker.js?v=1.0.2", 1)
+          app.write_text(s)
+
+          css = Path('style.css')
+          c = css.read_text()
+          marker = '/* === v1.0 CAMERA RATIO PREVIEW FIX === */'
+          if marker not in c:
+              c += r'''
+
+/* === v1.0 CAMERA RATIO PREVIEW FIX === */
+/* The selected capture ratio must also be the visible live viewfinder ratio.
+   Keep the one-screen Camera layout, but center the correctly sized preview
+   inside its grid row instead of stretching it to the row dimensions. */
+body.camera-mode:not(.camera-immersive) #cameraStage{
+  justify-self:center!important;
+  align-self:center!important;
+  max-width:100%!important;
+  max-height:100%!important;
+}
+'''
+          css.write_text(c)
+
+          html = Path('index.html')
+          h = html.read_text().replace('?v=1.0.1','?v=1.0.2')
+          html.write_text(h)
+
+          for name in ('service-worker.js','sw.js'):
+              p = Path(name)
+              t = p.read_text()
+              t = t.replace("const CACHE='kira-v1-0-default-strength-50-20260815';", "const CACHE='kira-v1-0-camera-ratio-fix-20260815';", 1)
+              p.write_text(t)
+          PY
+      - name: QA camera ratio and critical regressions
+        run: |
+          set -euo pipefail
+          node --check app.js
+          cmp -s service-worker.js sw.js
+          grep -q "filterIntensity:50" app.js
+          grep -q "function fitCameraPreviewRatio" app.js
+          grep -q "stage.style.setProperty('aspect-ratio'" app.js
+          grep -q "state.cameraRatio==='9:16'?\[9,16\]" app.js
+          grep -q "captureCanvasForRatio(video)" app.js
+          grep -q "ratio-9-16" style.css
+          grep -q "v1.0 CAMERA RATIO PREVIEW FIX" style.css
+          grep -q "service-worker.js?v=1.0.2" app.js
+          grep -q "app.js?v=1.0.2" index.html
+          grep -q "Current version</span><b>v1.0</b>" index.html
+          grep -q "liveBeautyCanvas" index.html
+          ! grep -q "Kira Live" index.html
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          h=Path('index.html').read_text()
+          ids=re.findall(r'\bid="([^"]+)"',h)
+          dup=sorted({x for x in ids if ids.count(x)>1})
+          assert not dup, f'duplicate ids: {dup}'
+          a=Path('app.js').read_text()
+          assert "['3:4','1:1','9:16']" in a
+          assert "state.cameraRatio==='1:1'?[1,1]:state.cameraRatio==='9:16'?[9,16]:[3,4]" in a
+          # Model representative Camera grid cells: fitted preview must retain exact ratio and stay bounded.
+          for aw,ah in [(373,420),(390,440),(320,360),(430,520)]:
+              for rw,rh in [(3,4),(1,1),(9,16)]:
+                  target=rw/rh; w=aw; h=w/target
+                  if h>ah: h=ah; w=h*target
+                  assert w<=aw+1e-9 and h<=ah+1e-9
+                  assert abs((w/h)-target)<1e-9
+          print('Kira v1.0 camera-ratio QA passed')
+          PY
+      - name: Commit production fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js style.css index.html service-worker.js sw.js
+          git diff --cached --check
+          git commit -m "Kira v1.0: fix live camera ratio preview"
+          git push origin main
