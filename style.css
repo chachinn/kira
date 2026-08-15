@@ -1140,3 +1140,15 @@ body.camera-controls-open .camera-look-section{position:relative;z-index:2}
 .live-beauty-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;opacity:0;object-fit:cover;image-rendering:auto;transition:opacity .12s linear;will-change:contents,filter}
 .live-overlay{z-index:3}
 body.camera-mode.camera-immersive .live-beauty-canvas{width:100%!important;height:100%!important}
+
+
+/* === v1.0 CAMERA RATIO PREVIEW FIX === */
+/* The selected capture ratio must also be the visible live viewfinder ratio.
+   Keep the one-screen Camera layout, but center the correctly sized preview
+   inside its grid row instead of stretching it to the row dimensions. */
+body.camera-mode:not(.camera-immersive) #cameraStage{
+  justify-self:center!important;
+  align-self:center!important;
+  max-width:100%!important;
+  max-height:100%!important;
+}

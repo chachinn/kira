@@ -846,7 +846,28 @@
     haptic()
   }
   function toggleCameraImmersive(){setCameraImmersive(!state.cameraImmersive)}
-  function applyCameraRatio(){const stage=$('#cameraStage');if(!stage)return;stage.classList.remove('ratio-3-4','ratio-1-1','ratio-9-16');stage.classList.add(state.cameraRatio==='1:1'?'ratio-1-1':state.cameraRatio==='9:16'?'ratio-9-16':'ratio-3-4');$('#ratioBtn')&&($('#ratioBtn').textContent=state.cameraRatio)}
+  function fitCameraPreviewRatio(){
+    const stage=$('#cameraStage'),screen=$('#screen-camera');
+    if(!stage||!screen)return;
+    stage.style.removeProperty('width');
+    stage.style.removeProperty('height');
+    stage.style.removeProperty('aspect-ratio');
+    if(state.cameraImmersive)return;
+    requestAnimationFrame(()=>{
+      if(state.cameraImmersive||!document.body.classList.contains('camera-mode'))return;
+      const cs=getComputedStyle(screen),rows=cs.gridTemplateRows.trim().split(/\s+/),rowH=parseFloat(rows[0]);
+      const padX=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0);
+      const availableW=Math.max(1,screen.clientWidth-padX);
+      const availableH=Math.max(1,Number.isFinite(rowH)?rowH:stage.parentElement?.clientHeight||stage.clientHeight||1);
+      const ratio=state.cameraRatio==='1:1'?[1,1]:state.cameraRatio==='9:16'?[9,16]:[3,4],target=ratio[0]/ratio[1];
+      let w=availableW,h=w/target;
+      if(h>availableH){h=availableH;w=h*target}
+      stage.style.setProperty('width',`${Math.max(1,Math.floor(w))}px`,'important');
+      stage.style.setProperty('height',`${Math.max(1,Math.floor(h))}px`,'important');
+      stage.style.setProperty('aspect-ratio',`${ratio[0]} / ${ratio[1]}`,'important');
+    });
+  }
+  function applyCameraRatio(){const stage=$('#cameraStage');if(!stage)return;stage.classList.remove('ratio-3-4','ratio-1-1','ratio-9-16');stage.classList.add(state.cameraRatio==='1:1'?'ratio-1-1':state.cameraRatio==='9:16'?'ratio-9-16':'ratio-3-4');$('#ratioBtn')&&($('#ratioBtn').textContent=state.cameraRatio);fitCameraPreviewRatio()}
   function cycleCameraRatio(){const vals=['3:4','1:1','9:16'];state.cameraRatio=vals[(vals.indexOf(state.cameraRatio)+1)%vals.length];localStorage.setItem('kira.cameraRatio',state.cameraRatio);applyCameraRatio();haptic()}
   function cycleCameraTimer(){const vals=[0,3,5,10];state.cameraTimer=vals[(vals.indexOf(state.cameraTimer)+1)%vals.length];localStorage.setItem('kira.cameraTimer',String(state.cameraTimer));$('#timerBtn')&&($('#timerBtn').textContent=state.cameraTimer?`${state.cameraTimer}s`:'Timer Off');haptic()}
   function drawVideoCrop(ctx,video,cw,ch){const vw=video.videoWidth||1,vh=video.videoHeight||1,target=cw/ch,src=vw/vh;let sx=0,sy=0,sw=vw,sh=vh;if(src>target){sw=vh*target;sx=(vw-sw)/2}else{sh=vw/target;sy=(vh-sh)/2}if(state.cameraFacing==='user'){ctx.save();ctx.translate(cw,0);ctx.scale(-1,1);ctx.drawImage(video,sx,sy,sw,sh,0,0,cw,ch);ctx.restore()}else ctx.drawImage(video,sx,sy,sw,sh,0,0,cw,ch)}
@@ -1192,7 +1213,7 @@
   async function setupServiceWorkerUpdates(){
     if(!('serviceWorker' in navigator))return;
     try{
-      const reg=await navigator.serviceWorker.register('./service-worker.js?v=1.0.1');
+      const reg=await navigator.serviceWorker.register('./service-worker.js?v=1.0.2');
       kiraSwRegistration=reg;
       if(reg.waiting&&navigator.serviceWorker.controller)showAppUpdateBanner(reg);
       reg.addEventListener('updatefound',()=>{
@@ -1231,6 +1252,6 @@
 
   function setupInstall(){window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();state.deferredInstallPrompt=e;$('#installBtn').hidden=false});$('#installBtn').onclick=async()=>{if(!state.deferredInstallPrompt){toast(isIOS()?'On iPhone: Share → Add to Home Screen':'Use your browser menu → Install app');return}state.deferredInstallPrompt.prompt();await state.deferredInstallPrompt.userChoice;state.deferredInstallPrompt=null;$('#installBtn').hidden=true}}
   function preventZoom(){const stop=e=>e.preventDefault();['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,stop,{passive:false}));document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});let last=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-last<=320)e.preventDefault();last=n},{passive:false});document.addEventListener('dblclick',stop,{passive:false});document.addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault()},{passive:false})}
-  function init(){saveNamedRolls();ensure1989Glyphs().then(()=>{try{renderPhoto()}catch(_){}});setCaptureMode(state.settings.defaultCaptureMode||'photo');if(!state.selectedRecipeId)applyPresetExtras(state.activeFilter);renderRollSelectors();updateCameraHUD();renderCameraCategories();renderCameraFilters();setupToolTabs();bindInputs();bindSettings();applySettings();setupInstall();preventZoom();cleanupRetiredMotionPairs().finally(()=>refreshRolls());updateHistoryButtons();updatePhotosQueueUI();document.body.classList.add('camera-mode');updateCameraViewport();setupOnboarding();const onViewport=()=>requestAnimationFrame(updateCameraViewport);window.addEventListener('resize',onViewport,{passive:true});window.visualViewport?.addEventListener('resize',onViewport,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state.recording)stopVideoRecording();else stopCamera()}else if($('#screen-camera')?.classList.contains('active')){updateCameraViewport();bootCameraSafely()}});setupServiceWorkerUpdates();setTimeout(()=>{updateCameraViewport();bootCameraSafely()},120)}
+  function init(){saveNamedRolls();ensure1989Glyphs().then(()=>{try{renderPhoto()}catch(_){}});setCaptureMode(state.settings.defaultCaptureMode||'photo');if(!state.selectedRecipeId)applyPresetExtras(state.activeFilter);renderRollSelectors();updateCameraHUD();renderCameraCategories();renderCameraFilters();setupToolTabs();bindInputs();bindSettings();applySettings();setupInstall();preventZoom();cleanupRetiredMotionPairs().finally(()=>refreshRolls());updateHistoryButtons();updatePhotosQueueUI();document.body.classList.add('camera-mode');updateCameraViewport();applyCameraRatio();setupOnboarding();const onViewport=()=>requestAnimationFrame(()=>{updateCameraViewport();applyCameraRatio()});window.addEventListener('resize',onViewport,{passive:true});window.visualViewport?.addEventListener('resize',onViewport,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state.recording)stopVideoRecording();else stopCamera()}else if($('#screen-camera')?.classList.contains('active')){updateCameraViewport();bootCameraSafely()}});setupServiceWorkerUpdates();setTimeout(()=>{updateCameraViewport();bootCameraSafely()},120)}
   init();
 })();
