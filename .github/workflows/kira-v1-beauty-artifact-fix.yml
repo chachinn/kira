@@ -96,7 +96,8 @@ jobs:
           ids=re.findall(r'\bid="([^"]+)"',h)
           dup=sorted({x for x in ids if ids.count(x)>1})
           assert not dup, f'duplicate ids: {dup}'
-          assert a.count('navigator.mediaDevices.getUserMedia') == 1, 'camera stream count changed'
+          assert a.count('navigator.mediaDevices.getUserMedia(constraints)') == 1, 'video camera stream call changed'
+          assert a.count('navigator.mediaDevices.getUserMedia({audio:') == 1, 'audio-only stream call changed'
           assert 'liveBeautyCanvas' in h
           assert "state.cameraFacing!=='user'" in a
           assert "if(!face)return null" in a
