@@ -503,11 +503,16 @@
   }
 
   function applyFinalMono(ctx,canvas,w,h){
-    const tmp=applyFinalMono.buffer||(applyFinalMono.buffer=document.createElement('canvas'));
-    if(tmp.width!==w)tmp.width=w;if(tmp.height!==h)tmp.height=h;
-    const t=tmp.getContext('2d',{alpha:false});if(!t)return;
-    t.clearRect(0,0,w,h);t.filter='grayscale(100%)';t.drawImage(canvas,0,0,w,h);t.filter='none';
-    ctx.clearRect(0,0,w,h);ctx.drawImage(tmp,0,0,w,h)
+    // Deterministic pixel conversion: avoid Safari canvas-filter/self-copy inconsistencies.
+    // Rec.709 luminance keeps the ten Mono looks genuinely B&W on saved stills and Develop.
+    let im;
+    try{im=ctx.getImageData(0,0,w,h)}catch(e){console.warn('Kira Mono pixel pass:',e);return}
+    const d=im.data;
+    for(let i=0;i<d.length;i+=4){
+      const y=Math.round(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2]);
+      d[i]=y;d[i+1]=y;d[i+2]=y
+    }
+    try{ctx.putImageData(im,0,0)}catch(e){console.warn('Kira Mono pixel write:',e)}
   }
 
   function applyPresetCast(ctx,w,h,p){const strength=clamp(Number(p.castStrength||0),0,60);if(!p.castColor||strength<=0)return;const allowed=new Set(['soft-light','multiply','screen','overlay','color']);ctx.save();ctx.globalCompositeOperation=allowed.has(p.castMode)?p.castMode:'soft-light';ctx.globalAlpha=Math.min(.58,strength/100);ctx.fillStyle=p.castColor;ctx.fillRect(0,0,w,h);ctx.restore()}
@@ -1273,7 +1278,7 @@
   async function setupServiceWorkerUpdates(){
     if(!('serviceWorker' in navigator))return;
     try{
-      const reg=await navigator.serviceWorker.register('./service-worker.js?v=1.0.6');
+      const reg=await navigator.serviceWorker.register('./service-worker.js?v=1.0.7');
       kiraSwRegistration=reg;
       if(reg.waiting&&navigator.serviceWorker.controller)showAppUpdateBanner(reg);
       reg.addEventListener('updatefound',()=>{
