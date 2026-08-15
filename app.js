@@ -479,7 +479,7 @@
     softCtx.clearRect(0,0,tw,th);softCtx.filter=`blur(${softRadius.toFixed(2)}px)`;softCtx.drawImage(src,0,0);softCtx.filter='none';
     healCtx.clearRect(0,0,tw,th);healCtx.filter=`blur(${healRadius.toFixed(2)}px)`;healCtx.drawImage(src,0,0);healCtx.filter='none';
     let orig,softData,healData;try{orig=sctx.getImageData(0,0,tw,th);softData=softCtx.getImageData(0,0,tw,th);healData=healCtx.getImageData(0,0,tw,th)}catch(e){return null}
-    const od=orig.data,sd=softData.data,hd=healData.data,out=lctx.createImageData(tw,th),dd=out.data,face=detectBeautyFaceBox(od,tw,th)||{cx:tw*.5,cy:th*.44,rx:tw*.33,ry:th*.40};
+    const od=orig.data,sd=softData.data,hd=healData.data,out=lctx.createImageData(tw,th),dd=out.data,face=detectBeautyFaceBox(od,tw,th);if(!face)return null;const effectPeak=Math.max(sm,bl,red,bright,glow);
     for(let y=0;y<th;y++){for(let x=0;x<tw;x++){const i=(y*tw+x)*4,r=od[i],g=od[i+1],bb=od[i+2],skin=skinConfidence(r,g,bb),faceWeight=beautyFaceWeight(x,y,face),mask=skin*faceWeight;if(mask<.045)continue;
       const sr=sd[i],sg=sd[i+1],sb=sd[i+2],hr=hd[i],hg=hd[i+1],hb=hd[i+2],lum=beautyLuma(od,i),healLum=beautyLuma(hd,i);
       const left=x>0?beautyLuma(od,i-4):lum,right=x<tw-1?beautyLuma(od,i+4):lum,up=y>0?beautyLuma(od,i-tw*4):lum,down=y<th-1?beautyLuma(od,i+tw*4):lum,edge=Math.abs(left-right)+Math.abs(up-down),maxc=Math.max(r,g,bb),minc=Math.min(r,g,bb),sat=(maxc-minc)/Math.max(1,maxc),featureKeep=clamp(1-clamp((edge-8)/82,0,1)*.82-clamp((sat-.55)/.35,0,1)*.18,.12,1);
@@ -490,7 +490,7 @@
       if(red>0){const excess=Math.max(0,rr-(gg+bbb)*.5),repair=red*mask;rr-=excess*repair*.86;gg+=excess*repair*.12}
       if(bright>0){const lift=(7+18*(1-(.299*rr+.587*gg+.114*bbb)/255))*bright*mask;rr+=lift;gg+=lift*.96;bbb+=lift*.92}
       if(glow>0){const a=glow*mask;rr+=(255-rr)*a*.048;gg+=(247-gg)*a*.043;bbb+=(244-bbb)*a*.043}
-      dd[i]=clamp(rr,0,255);dd[i+1]=clamp(gg,0,255);dd[i+2]=clamp(bbb,0,255);dd[i+3]=Math.round(clamp(.52+.46*mask,0,.98)*255)
+      dd[i]=clamp(rr,0,255);dd[i+1]=clamp(gg,0,255);dd[i+2]=clamp(bbb,0,255);dd[i+3]=Math.round(clamp(mask*(.30+.62*effectPeak),0,.92)*255)
     }}
     lctx.clearRect(0,0,tw,th);lctx.putImageData(out,0,0);return {layer,tw,th,face}
   }
@@ -631,12 +631,12 @@
   function scheduleLiveBeautyPreview(delay=0){
     if(liveBeautyTimer){clearTimeout(liveBeautyTimer);liveBeautyTimer=0}
     const canvas=$('#liveBeautyCanvas');
-    if(!state.cameraReady||!liveBeautyActive()){if(canvas)canvas.style.opacity='0';return}
+    if(!state.cameraReady||state.cameraFacing!=='user'||!liveBeautyActive()){if(canvas)canvas.style.opacity='0';return}
     liveBeautyTimer=setTimeout(()=>requestAnimationFrame(renderLiveBeautyFrame),Math.max(0,delay))
   }
   function renderLiveBeautyFrame(){
     liveBeautyTimer=0;const video=$('#cameraVideo'),canvas=$('#liveBeautyCanvas'),stage=$('#cameraStage');
-    if(!video||!canvas||!stage||!state.cameraReady||!liveBeautyActive()){if(canvas)canvas.style.opacity='0';return}
+    if(!video||!canvas||!stage||!state.cameraReady||state.cameraFacing!=='user'||!liveBeautyActive()){if(canvas)canvas.style.opacity='0';return}
     if(state.recording||document.hidden||video.readyState<2||!video.videoWidth){canvas.style.opacity='0';scheduleLiveBeautyPreview(300);return}
     if(liveBeautyBusy){scheduleLiveBeautyPreview(LIVE_BEAUTY_INTERVAL);return}
     liveBeautyBusy=true;
@@ -1213,7 +1213,7 @@
   async function setupServiceWorkerUpdates(){
     if(!('serviceWorker' in navigator))return;
     try{
-      const reg=await navigator.serviceWorker.register('./service-worker.js?v=1.0.2');
+      const reg=await navigator.serviceWorker.register('./service-worker.js?v=1.0.3');
       kiraSwRegistration=reg;
       if(reg.waiting&&navigator.serviceWorker.controller)showAppUpdateBanner(reg);
       reg.addEventListener('updatefound',()=>{
