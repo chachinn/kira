@@ -1152,3 +1152,12 @@ body.camera-mode:not(.camera-immersive) #cameraStage{
   max-width:100%!important;
   max-height:100%!important;
 }
+
+
+/* === v1.0 BEAUTY STABILITY + CAPTURE FLASH + ROLLS BULK DELETE === */
+.live-beauty-canvas{will-change:opacity,filter!important;contain:paint}
+.camera-top-tools .mini-pill.active{background:rgba(183,110,121,.82);border-color:rgba(255,255,255,.42)}
+.camera-screen-flash{position:fixed;inset:0;z-index:9999;background:#fff;opacity:0;pointer-events:none;transition:opacity .055s linear}
+.camera-screen-flash.active{opacity:.98}
+.tiny-btn.danger{border-color:rgba(184,76,76,.42);background:#fff4f2;color:#a34444;font-weight:800}
+@media(max-width:430px){.bulk-select-actions{grid-template-columns:1fr 1fr!important}.camera-top-tools{gap:4px}.camera-top-tools .mini-pill{padding:6px 8px;font-size:8px}}

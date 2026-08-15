@@ -8,12 +8,12 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=1.0.3" />
+  <link rel="manifest" href="./manifest.json?v=1.0.4" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=1.0.3" />
+  <link rel="stylesheet" href="./style.css?v=1.0.4" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -49,6 +49,7 @@
           <canvas id="cameraCanvas" class="photo-canvas hidden"></canvas>
           <div class="camera-overlay top-overlay camera-top-tools">
             <button class="mini-pill" id="timerBtn">Timer Off</button>
+            <button class="mini-pill" id="cameraFlashBtn" aria-pressed="false">Flash Off</button>
             <button class="mini-pill" id="ratioBtn">3:4</button>
             <button class="mini-pill" id="gridBtn">Grid</button>
             <button class="mini-pill" id="cameraImmersiveBtn" aria-pressed="false">Full</button>
@@ -89,7 +90,7 @@
               <div class="camera-beauty-row"><label>Brighten</label><input data-camera-beauty="brighten" type="range" min="0" max="100" value="0"><output data-camera-beauty-out="brighten">0</output></div>
               <div class="camera-beauty-row"><label>Glow</label><input data-camera-beauty="glow" type="range" min="0" max="100" value="0"><output data-camera-beauty-out="glow">0</output></div>
               <button class="secondary-btn compact-btn" id="cameraBeautyResetBtn">Reset Beauty</button>
-              <small>Smooth and Acne only render when Kira finds a face. Live Beauty previews on the front camera only to prevent false skin masks on objects and backgrounds; saved photos use the stronger face-targeted pass.</small>
+              <small>Smooth and Acne only render when Kira finds a face. Live Beauty uses stabilized front-camera face tracking to reduce jumping and flicker; saved photos use the stronger face-targeted pass.</small>
             </div>
           </details>
           <label class="camera-roll-control"><span>Shooting into</span><select id="cameraRollSelect" class="mini-select" aria-label="Active roll"></select></label>
@@ -234,6 +235,7 @@
           <div class="bulk-select-actions">
             <button class="tiny-btn" id="bulkSelectAllBtn">Select All</button>
             <button class="tiny-btn rose" id="bulkSaveSelectedBtn">Save Selected</button>
+            <button class="tiny-btn danger" id="bulkDeleteSelectedBtn">Delete</button>
             <button class="tiny-btn" id="bulkCancelBtn">Cancel</button>
           </div>
         </div>
@@ -520,6 +522,6 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=1.0.3"></script>
+  <script src="./app.js?v=1.0.4"></script>
 </body>
 </html>
