@@ -1161,3 +1161,9 @@ body.camera-mode:not(.camera-immersive) #cameraStage{
 .camera-screen-flash.active{opacity:.98}
 .tiny-btn.danger{border-color:rgba(184,76,76,.42);background:#fff4f2;color:#a34444;font-weight:800}
 @media(max-width:430px){.bulk-select-actions{grid-template-columns:1fr 1fr!important}.camera-top-tools{gap:4px}.camera-top-tools .mini-pill{padding:6px 8px;font-size:8px}}
+
+
+/* === v1.0 CAPTURE-SAFE BEAUTY CAMERA === */
+/* Do not composite delayed processed face pixels over a moving selfie feed.
+   Face-targeted Beauty is rendered from the exact captured still / Develop image. */
+.live-beauty-canvas{display:none!important;opacity:0!important}

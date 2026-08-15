@@ -374,7 +374,7 @@
   function beautyActive(){const b=state.beauty||defaultBeauty();return beautyDefs.some(([k])=>Number(b[k]||0)>0)}
   function syncCameraBeautyControls(){const b=Object.assign(defaultBeauty(),state.beauty||{});for(const [k] of beautyDefs){const input=$(`[data-camera-beauty="${k}"]`),out=$(`[data-camera-beauty-out="${k}"]`);if(input&&Number(input.value)!==Number(b[k]))input.value=b[k];if(out)out.textContent=b[k]}const badge=$('#cameraBeautyBadge');if(badge){const max=Math.max(...beautyDefs.map(([k])=>Number(b[k]||0)));badge.textContent=max?`On • ${max}`:'Off'}}
   function bindCameraBeautyControls(){const wrap=$('#cameraBeautyControls');if(!wrap||wrap.dataset.bound==='1')return;wrap.dataset.bound='1';$$('[data-camera-beauty]',wrap).forEach(inp=>{inp.oninput=()=>{const key=inp.dataset.cameraBeauty;state.beauty[key]=Number(inp.value);const out=$(`[data-camera-beauty-out="${key}"]`,wrap);if(out)out.textContent=inp.value;syncCameraBeautyControls();scheduleLiveFilter();if($('#screen-develop')?.classList.contains('active'))scheduleRender()};inp.onchange=()=>{saveBeauty();renderBeautyPanel()}});$('#cameraBeautyResetBtn')&&( $('#cameraBeautyResetBtn').onclick=()=>{state.beauty=defaultBeauty();saveBeauty();syncCameraBeautyControls();renderBeautyPanel();scheduleLiveFilter();if($('#screen-develop')?.classList.contains('active'))renderPhoto();toast('Beauty reset')});syncCameraBeautyControls()}
-  function renderBeautyPanel(){const area=$('#tool-beauty');if(!area)return;state.beauty=Object.assign(defaultBeauty(),state.beauty||{});area.innerHTML=`<div class="beauty-panel-card"><div class="beauty-panel-head"><div><strong>Beauty</strong><small>adjustable • keep it as natural or strong as you like</small></div><span>${beautyActive()?'On':'Off'}</span></div><div class="slider-list beauty-slider-list">${beautyDefs.map(([k,l])=>`<div class="slider-row"><label>${l}</label><input data-beauty="${k}" type="range" min="0" max="100" value="${state.beauty[k]}"><output id="beauty-out-${k}">${state.beauty[k]}</output></div>`).join('')}</div><div class="beauty-help">Smooth and Acne now target Kira’s detected face/skin region. High-contrast facial features are protected from smearing; the live preview uses a small face-only layer while saved photos use the stronger pass.</div><button class="secondary-btn" id="resetBeautyBtn">Reset beauty</button></div>`;$$('[data-beauty]',area).forEach(inp=>{rangeHistory(inp);inp.oninput=()=>{state.beauty[inp.dataset.beauty]=Number(inp.value);$('#beauty-out-'+inp.dataset.beauty).textContent=inp.value;scheduleRender();syncCameraBeautyControls();scheduleLiveFilter()};inp.onchange=()=>{finishRangeHistory();saveBeauty();renderBeautyPanel()}});$('#resetBeautyBtn').onclick=()=>{commit();state.beauty=defaultBeauty();saveBeauty();renderBeautyPanel();syncCameraBeautyControls();renderPhoto();scheduleLiveFilter();toast('Beauty reset')};}
+  function renderBeautyPanel(){const area=$('#tool-beauty');if(!area)return;state.beauty=Object.assign(defaultBeauty(),state.beauty||{});area.innerHTML=`<div class="beauty-panel-card"><div class="beauty-panel-head"><div><strong>Beauty</strong><small>adjustable • keep it as natural or strong as you like</small></div><span>${beautyActive()?'On':'Off'}</span></div><div class="slider-list beauty-slider-list">${beautyDefs.map(([k,l])=>`<div class="slider-row"><label>${l}</label><input data-beauty="${k}" type="range" min="0" max="100" value="${state.beauty[k]}"><output id="beauty-out-${k}">${state.beauty[k]}</output></div>`).join('')}</div><div class="beauty-help">Smooth, Acne, Redness, Brighten, and Glow target Kira’s detected face/skin region on the actual photo. The Camera keeps the moving selfie preview artifact-free, then applies the stronger face-targeted Beauty pass to the captured still and in Develop.</div><button class="secondary-btn" id="resetBeautyBtn">Reset beauty</button></div>`;$$('[data-beauty]',area).forEach(inp=>{rangeHistory(inp);inp.oninput=()=>{state.beauty[inp.dataset.beauty]=Number(inp.value);$('#beauty-out-'+inp.dataset.beauty).textContent=inp.value;scheduleRender();syncCameraBeautyControls();scheduleLiveFilter()};inp.onchange=()=>{finishRangeHistory();saveBeauty();renderBeautyPanel()}});$('#resetBeautyBtn').onclick=()=>{commit();state.beauty=defaultBeauty();saveBeauty();renderBeautyPanel();syncCameraBeautyControls();renderPhoto();scheduleLiveFilter();toast('Beauty reset')};}
 
   function renderEffectsPanel(){
     $('#tool-effects').innerHTML=`<div class="effect-grid">${effectDefs.map(([k,ic,l])=>`<button class="effect-btn ${state.effects[k]>0?'active':''}" data-effect="${k}"><b>${ic}</b>${l}<small style="display:block;margin-top:5px">${state.effects[k]}%</small></button>`).join('')}</div><div class="sub-control"><div class="control-head"><span id="selectedEffectLabel">Grain strength</span><b id="effectValue">${state.effects.grain}</b></div><input id="effectStrength" type="range" min="0" max="45" value="${state.effects.grain}"><div id="effectVariantArea"></div></div>`;
@@ -479,7 +479,7 @@
     softCtx.clearRect(0,0,tw,th);softCtx.filter=`blur(${softRadius.toFixed(2)}px)`;softCtx.drawImage(src,0,0);softCtx.filter='none';
     healCtx.clearRect(0,0,tw,th);healCtx.filter=`blur(${healRadius.toFixed(2)}px)`;healCtx.drawImage(src,0,0);healCtx.filter='none';
     let orig,softData,healData;try{orig=sctx.getImageData(0,0,tw,th);softData=softCtx.getImageData(0,0,tw,th);healData=healCtx.getImageData(0,0,tw,th)}catch(e){return null}
-    const od=orig.data,sd=softData.data,hd=healData.data,out=lctx.createImageData(tw,th),dd=out.data,detectedFace=detectBeautyFaceBox(od,tw,th),face=bucket==='live'?stabilizeLiveBeautyFace(detectedFace,tw,th):detectedFace;if(!face)return null;const effectPeak=Math.max(sm,bl,red,bright,glow);
+    const od=orig.data,sd=softData.data,hd=healData.data,out=lctx.createImageData(tw,th),dd=out.data,face=detectBeautyFaceBox(od,tw,th);if(!face)return null;const effectPeak=Math.max(sm,bl,red,bright,glow);
     for(let y=0;y<th;y++){for(let x=0;x<tw;x++){const i=(y*tw+x)*4,r=od[i],g=od[i+1],bb=od[i+2],skin=skinConfidence(r,g,bb),faceWeight=beautyFaceWeight(x,y,face),mask=skin*faceWeight;if(mask<.045)continue;
       const sr=sd[i],sg=sd[i+1],sb=sd[i+2],hr=hd[i],hg=hd[i+1],hb=hd[i+2],lum=beautyLuma(od,i),healLum=beautyLuma(hd,i);
       const left=x>0?beautyLuma(od,i-4):lum,right=x<tw-1?beautyLuma(od,i+4):lum,up=y>0?beautyLuma(od,i-tw*4):lum,down=y<th-1?beautyLuma(od,i+tw*4):lum,edge=Math.abs(left-right)+Math.abs(up-down),maxc=Math.max(r,g,bb),minc=Math.min(r,g,bb),sat=(maxc-minc)/Math.max(1,maxc),featureKeep=clamp(1-clamp((edge-8)/82,0,1)*.82-clamp((sat-.55)/.35,0,1)*.18,.12,1);
@@ -624,41 +624,15 @@
   function updateLiveFrame(){const el=$('#liveFrameOverlay');if(!el)return;const map={'Polaroid':'frame-polaroid','Instant Square':'frame-instant-square','Instant Wide':'frame-instant-wide','Instant Mini':'frame-instant-mini','Instant Black':'frame-instant-black','Classic':'frame-classic','35mm':'frame-35mm','Film Strip':'frame-film-strip'};el.className='live-frame-overlay';const cls=map[state.frame];if(!cls){el.classList.add('hidden');return}el.classList.add(cls);el.classList.remove('hidden')}
   let liveFilterFrame=0;
   function scheduleLiveFilter(){if(liveFilterFrame)return;liveFilterFrame=requestAnimationFrame(()=>{liveFilterFrame=0;applyLiveFilter()})}
-  const LIVE_BEAUTY_INTERVAL=120;
-  let liveBeautyTimer=0,liveBeautyBusy=false,liveBeautyFaceTrack=null,liveBeautyFaceMisses=0;
-  function resetLiveBeautyTracking(){liveBeautyFaceTrack=null;liveBeautyFaceMisses=0}
-  function stabilizeLiveBeautyFace(face,w,h){
-    if(!face){liveBeautyFaceMisses++;if(liveBeautyFaceTrack&&liveBeautyFaceMisses<=1)return {...liveBeautyFaceTrack};liveBeautyFaceTrack=null;return null}
-    liveBeautyFaceMisses=0;
-    if(!liveBeautyFaceTrack){liveBeautyFaceTrack={...face};return {...face}}
-    const prev=liveBeautyFaceTrack,move=Math.hypot(face.cx-prev.cx,face.cy-prev.cy)/Math.max(1,Math.min(w,h)),a=move>.12?.62:.34,ra=.30;
-    const nx=prev.cx+clamp(face.cx-prev.cx,-w*.14,w*.14)*a,ny=prev.cy+clamp(face.cy-prev.cy,-h*.14,h*.14)*a;
-    const nrx=prev.rx+clamp(face.rx-prev.rx,-prev.rx*.22,prev.rx*.22)*ra,nry=prev.ry+clamp(face.ry-prev.ry,-prev.ry*.22,prev.ry*.22)*ra;
-    liveBeautyFaceTrack={cx:clamp(nx,0,w),cy:clamp(ny,0,h),rx:clamp(nrx,w*.14,w*.42),ry:clamp(nry,h*.16,h*.46)};
-    return {...liveBeautyFaceTrack}
+  function stopLiveBeautyPreview(){
+    const c=$('#liveBeautyCanvas');
+    if(c){
+      c.style.opacity='0';
+      const x=c.getContext('2d');
+      x?.clearRect(0,0,c.width,c.height)
+    }
   }
-  function liveBeautyActive(){const b=state.beauty||defaultBeauty();return beautyDefs.some(([k])=>Number(b[k]||0)>0)}
-  function stopLiveBeautyPreview(){if(liveBeautyTimer){clearTimeout(liveBeautyTimer);liveBeautyTimer=0}liveBeautyBusy=false;resetLiveBeautyTracking();const c=$('#liveBeautyCanvas');if(c){c.style.opacity='0';const x=c.getContext('2d');x?.clearRect(0,0,c.width,c.height)}}
-  function scheduleLiveBeautyPreview(delay=0){
-    if(liveBeautyTimer){clearTimeout(liveBeautyTimer);liveBeautyTimer=0}
-    const canvas=$('#liveBeautyCanvas');
-    if(!state.cameraReady||state.cameraFacing!=='user'||!liveBeautyActive()){if(canvas)canvas.style.opacity='0';resetLiveBeautyTracking();return}
-    liveBeautyTimer=setTimeout(()=>requestAnimationFrame(renderLiveBeautyFrame),Math.max(0,delay))
-  }
-  function renderLiveBeautyFrame(){
-    liveBeautyTimer=0;const video=$('#cameraVideo'),canvas=$('#liveBeautyCanvas'),stage=$('#cameraStage');
-    if(!video||!canvas||!stage||!state.cameraReady||state.cameraFacing!=='user'||!liveBeautyActive()){if(canvas)canvas.style.opacity='0';return}
-    if(state.recording||document.hidden||video.readyState<2||!video.videoWidth){canvas.style.opacity='0';resetLiveBeautyTracking();scheduleLiveBeautyPreview(300);return}
-    if(liveBeautyBusy){scheduleLiveBeautyPreview(LIVE_BEAUTY_INTERVAL);return}
-    liveBeautyBusy=true;
-    try{
-      const rect=stage.getBoundingClientRect(),aspect=Math.max(.25,rect.width/Math.max(1,rect.height)),longSide=260;let cw,ch;if(aspect>=1){cw=longSide;ch=Math.max(96,Math.round(longSide/aspect))}else{ch=longSide;cw=Math.max(96,Math.round(longSide*aspect))}
-      const source=beautyBuffer('live','video',cw,ch),sctx=source.getContext('2d',{alpha:false});if(!sctx)return;sctx.clearRect(0,0,cw,ch);drawVideoCrop(sctx,video,cw,ch);
-      const liveBeauty=Object.assign(defaultBeauty(),state.beauty||{});liveBeauty.smooth=Math.round(Number(liveBeauty.smooth||0)*.82);liveBeauty.blemish=Math.round(Number(liveBeauty.blemish||0)*.92);liveBeauty.redness=Math.round(Number(liveBeauty.redness||0)*.82);liveBeauty.brighten=Math.round(Number(liveBeauty.brighten||0)*.78);liveBeauty.glow=Math.round(Number(liveBeauty.glow||0)*.74);
-      const built=buildBeautyLayer(source,liveBeauty,280,'live');if(!built){canvas.style.opacity='0';return}
-      if(canvas.width!==cw)canvas.width=cw;if(canvas.height!==ch)canvas.height=ch;const cctx=canvas.getContext('2d');if(!cctx)return;cctx.clearRect(0,0,cw,ch);cctx.imageSmoothingEnabled=true;cctx.drawImage(built.layer,0,0,built.tw,built.th,0,0,cw,ch);canvas.style.filter=cameraCssFromParams(currentLiveParams());canvas.style.opacity='1'
-    }catch(e){console.warn('Kira live Beauty:',e);canvas.style.opacity='0'}finally{liveBeautyBusy=false;scheduleLiveBeautyPreview(LIVE_BEAUTY_INTERVAL)}
-  }
+  function scheduleLiveBeautyPreview(){stopLiveBeautyPreview()}
   function applyLiveFilter(){const video=$('#cameraVideo');if(!video)return;const p=currentLiveParams();video.style.filter=cameraCssFromParams(p);video.style.imageRendering=Number(p.lowRes||0)>55?'pixelated':'auto';const tone=$('#liveToneOverlay'),fade=$('#liveFadeOverlay'),vig=$('#liveVignetteOverlay'),texture=$('#liveTextureOverlay');if(tone){if(p.castColor&&Number(p.castStrength)>0){tone.style.background=p.castColor;tone.style.opacity=String(Math.min(.55,Number(p.castStrength)/100));tone.style.mixBlendMode=p.castMode||'soft-light'}else{const warm=Number(p.warmth||0),tint=Number(p.tint||0);let c='255,151,94',op=Math.min(.28,Math.abs(warm)/115);if(warm<0)c='76,145,205';if(Math.abs(tint)>Math.abs(warm)){c=tint>0?'230,112,155':'92,162,118';op=Math.min(.22,Math.abs(tint)/135)}tone.style.background=`rgb(${c})`;tone.style.opacity=String(op);tone.style.mixBlendMode='soft-light'}}if(fade)fade.style.opacity=String(Math.min(.28,Math.max(0,p.fade||0)/130));if(vig)vig.style.opacity=String(Math.min(.62,Math.max(0,p.vignette||0)/58));if(texture){const scan=Number(p.scanlines||0),low=Number(p.lowRes||0),layers=[];if(scan>0)layers.push('repeating-linear-gradient(to bottom,rgba(255,255,255,.08) 0 1px,rgba(0,0,0,.20) 1px 2px,transparent 2px 5px)');if(low>22)layers.push('repeating-linear-gradient(to right,rgba(255,255,255,.035) 0 1px,transparent 1px 4px)');texture.style.background=layers.length?layers.join(','):'none';texture.style.opacity=String(layers.length?Math.min(.30,scan/150+low/500):0);texture.style.mixBlendMode='overlay'}scheduleLiveBeautyPreview(0);syncCameraBeautyControls()}
   function updateCameraViewport(){if(!$('#screen-camera')?.classList.contains('active'))return;const top=$('.topbar')?.getBoundingClientRect().bottom||0,navH=$('.bottom-nav')?.getBoundingClientRect().height||70,vh=window.visualViewport?.height||window.innerHeight;const h=Math.max(420,Math.floor(vh-top-navH));document.documentElement.style.setProperty('--camera-screen-h',h+'px')}
   function setCaptureMode(mode){
@@ -1256,7 +1230,7 @@
   async function setupServiceWorkerUpdates(){
     if(!('serviceWorker' in navigator))return;
     try{
-      const reg=await navigator.serviceWorker.register('./service-worker.js?v=1.0.4');
+      const reg=await navigator.serviceWorker.register('./service-worker.js?v=1.0.5');
       kiraSwRegistration=reg;
       if(reg.waiting&&navigator.serviceWorker.controller)showAppUpdateBanner(reg);
       reg.addEventListener('updatefound',()=>{

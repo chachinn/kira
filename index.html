@@ -8,12 +8,12 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=1.0.4" />
+  <link rel="manifest" href="./manifest.json?v=1.0.5" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=1.0.4" />
+  <link rel="stylesheet" href="./style.css?v=1.0.5" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -90,7 +90,7 @@
               <div class="camera-beauty-row"><label>Brighten</label><input data-camera-beauty="brighten" type="range" min="0" max="100" value="0"><output data-camera-beauty-out="brighten">0</output></div>
               <div class="camera-beauty-row"><label>Glow</label><input data-camera-beauty="glow" type="range" min="0" max="100" value="0"><output data-camera-beauty-out="glow">0</output></div>
               <button class="secondary-btn compact-btn" id="cameraBeautyResetBtn">Reset Beauty</button>
-              <small>Smooth and Acne only render when Kira finds a face. Live Beauty uses stabilized front-camera face tracking to reduce jumping and flicker; saved photos use the stronger face-targeted pass.</small>
+              <small>Beauty preset color can preview live. Smooth, Acne, Redness, Brighten, and Glow are applied to the captured photo and in Develop so the moving selfie preview stays smooth and artifact-free.</small>
             </div>
           </details>
           <label class="camera-roll-control"><span>Shooting into</span><select id="cameraRollSelect" class="mini-select" aria-label="Active roll"></select></label>
@@ -522,6 +522,6 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=1.0.4"></script>
+  <script src="./app.js?v=1.0.5"></script>
 </body>
 </html>
