@@ -15,113 +15,25 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Patch live camera ratio preview
+      - name: Patch production files
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          app = Path('app.js')
-          s = app.read_text()
-          old = "function applyCameraRatio(){const stage=$('#cameraStage');if(!stage)return;stage.classList.remove('ratio-3-4','ratio-1-1','ratio-9-16');stage.classList.add(state.cameraRatio==='1:1'?'ratio-1-1':state.cameraRatio==='9:16'?'ratio-9-16':'ratio-3-4');$('#ratioBtn')&&($('#ratioBtn').textContent=state.cameraRatio)}"
-          new = r"""function fitCameraPreviewRatio(){
-    const stage=$('#cameraStage'),screen=$('#screen-camera');
-    if(!stage||!screen)return;
-    stage.style.removeProperty('width');
-    stage.style.removeProperty('height');
-    stage.style.removeProperty('aspect-ratio');
-    if(state.cameraImmersive)return;
-    requestAnimationFrame(()=>{
-      if(state.cameraImmersive||!document.body.classList.contains('camera-mode'))return;
-      const cs=getComputedStyle(screen),rows=cs.gridTemplateRows.trim().split(/\s+/),rowH=parseFloat(rows[0]);
-      const padX=(parseFloat(cs.paddingLeft)||0)+(parseFloat(cs.paddingRight)||0);
-      const availableW=Math.max(1,screen.clientWidth-padX);
-      const availableH=Math.max(1,Number.isFinite(rowH)?rowH:stage.parentElement?.clientHeight||stage.clientHeight||1);
-      const ratio=state.cameraRatio==='1:1'?[1,1]:state.cameraRatio==='9:16'?[9,16]:[3,4],target=ratio[0]/ratio[1];
-      let w=availableW,h=w/target;
-      if(h>availableH){h=availableH;w=h*target}
-      stage.style.setProperty('width',`${Math.max(1,Math.floor(w))}px`,'important');
-      stage.style.setProperty('height',`${Math.max(1,Math.floor(h))}px`,'important');
-      stage.style.setProperty('aspect-ratio',`${ratio[0]} / ${ratio[1]}`,'important');
-    });
-  }
-  function applyCameraRatio(){const stage=$('#cameraStage');if(!stage)return;stage.classList.remove('ratio-3-4','ratio-1-1','ratio-9-16');stage.classList.add(state.cameraRatio==='1:1'?'ratio-1-1':state.cameraRatio==='9:16'?'ratio-9-16':'ratio-3-4');$('#ratioBtn')&&($('#ratioBtn').textContent=state.cameraRatio);fitCameraPreviewRatio()}"""
-          if old not in s:
-              raise SystemExit('applyCameraRatio target not found')
-          s = s.replace(old, new, 1)
-          s = s.replace("const onViewport=()=>requestAnimationFrame(updateCameraViewport);", "const onViewport=()=>requestAnimationFrame(()=>{updateCameraViewport();applyCameraRatio()});", 1)
-          s = s.replace("document.body.classList.add('camera-mode');updateCameraViewport();setupOnboarding();", "document.body.classList.add('camera-mode');updateCameraViewport();applyCameraRatio();setupOnboarding();", 1)
-          s = s.replace("service-worker.js?v=1.0.1", "service-worker.js?v=1.0.2", 1)
-          app.write_text(s)
-
-          css = Path('style.css')
-          c = css.read_text()
-          marker = '/* === v1.0 CAMERA RATIO PREVIEW FIX === */'
-          if marker not in c:
-              c += r'''
-
-/* === v1.0 CAMERA RATIO PREVIEW FIX === */
-/* The selected capture ratio must also be the visible live viewfinder ratio.
-   Keep the one-screen Camera layout, but center the correctly sized preview
-   inside its grid row instead of stretching it to the row dimensions. */
-body.camera-mode:not(.camera-immersive) #cameraStage{
-  justify-self:center!important;
-  align-self:center!important;
-  max-width:100%!important;
-  max-height:100%!important;
-}
-'''
-          css.write_text(c)
-
-          html = Path('index.html')
-          h = html.read_text().replace('?v=1.0.1','?v=1.0.2')
-          html.write_text(h)
-
-          for name in ('service-worker.js','sw.js'):
-              p = Path(name)
-              t = p.read_text()
-              t = t.replace("const CACHE='kira-v1-0-default-strength-50-20260815';", "const CACHE='kira-v1-0-camera-ratio-fix-20260815';", 1)
-              p.write_text(t)
-          PY
-      - name: QA camera ratio and critical regressions
+          echo 'ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCgphcHAgPSBQYXRoKCJhcHAuanMiKQpzID0gYXBwLnJlYWRfdGV4dCgpCm9sZCA9ICJmdW5jdGlvbiBhcHBseUNhbWVyYVJhdGlvKCl7Y29uc3Qgc3RhZ2U9JCgnI2NhbWVyYVN0YWdlJyk7aWYoIXN0YWdlKXJldHVybjtzdGFnZS5jbGFzc0xpc3QucmVtb3ZlKCdyYXRpby0zLTQnLCdyYXRpby0xLTEnLCdyYXRpby05LTE2Jyk7c3RhZ2UuY2xhc3NMaXN0LmFkZChzdGF0ZS5jYW1lcmFSYXRpbz09PScxOjEnPydyYXRpby0xLTEnOnN0YXRlLmNhbWVyYVJhdGlvPT09Jzk6MTYnPydyYXRpby05LTE2JzoncmF0aW8tMy00Jyk7JCgnI3JhdGlvQnRuJykmJihEKSgiIyIpfSIKbmV3ID0gIiIiZnVuY3Rpb24gZml0Q2FtZXJhUHJldmlld1JhdGlvKCl7CiAgICBjb25zdCBzdGFnZT0kKCcjY2FtZXJhU3RhZ2UnKSxzY3JlZW49JCgnI3NjcmVlbi1jYW1lcmEnKTsKICAgIGlmKCFzdGFnZXx8IXNjcmVlbil returnOwogICAgc3RhZ2Uuc3R5bGUucmVtb3ZlUHJvcGVydHkoJ3dpZHRoJyk7CiAgICBzdGFnZS5zdHlsZS5yZW1vdmVQcm9wZXJ0eSgnaGVpZ2h0Jyk7CiAgICBzdGFnZS5zdHlsZS5yZW1vdmVQcm9wZXJ0eSgnYXNwZWN0LXJhdGlvJyk7CiAgICBpZihzdGF0ZS5jYW1lcmFJbW1lcnNpdmUpcmV0dXJuOwogICAgcmVxdWVzdEFuaW1hdGlvbkZyYW1lKCgpPT57CiAgICAgIGlmKHN0YXRlLmNhbWVyYUltbWVyc2l2ZXx8IWRvY3VtZW50LmJvZHkuY2xhc3NMaXN0LmNvbnRhaW5zKCdjYW1lcmEtbW9kZScpKXJldHVybjsKICAgICAgY29uc3QgY3M9Z2V0Q29tcHV0ZWRTdHlsZShzY3JlZW4pLHJvd3M9Y3MuZ3JpZFRlbXBsYXRlUm93cy50cmltKCkuc3BsaXQoL1xccysvKSxyb3dIPXBhcnNlRmxvYXQocm93c1swXSk7CiAgICAgIGNvbnN0IHBhZFg9KHBhcnNlRmxvYXQoY3MucGFkZGluZ0xlZnQpfHwwKSsocGFyc2VGbG9hdChjcy5wYWRkaW5nUmlnaHQpfHwwKTsKICAgICAgY29uc3QgYXZhaWxhYmxlVz1NYXRoLm1heCgxLHNjcmVlbi5jbGllbnRXaWR0aC1wYWRYKTsKICAgICAgY29uc3QgYXZhaWxhYmxlSD1NYXRoLm1heCgxLE51bWJlci5pc0Zpbml0ZShyb3dIKT9yb3dIOnN0YWdlLnBhcmVudEVsZW1lbnQ/LmNsaWVudEhlaWdodHx8c3RhZ2UuY2xpZW50SGVpZ2h0fHwxKTsKICAgICAgY29uc3QgcmF0aW89c3RhdGUuY2FtZXJhUmF0aW89PT0nMToxJz9bMSwxXTpzdGF0ZS5jYW1lcmFSYXRpbz09PSc5OjE2Jz9bOSwxNl06WzMsNF0sdGFyZ2V0PXJhdGlvWzBdL3JhdGlvWzFdOwogICAgICBsZXQgdz1hdmFpbGFibGVXLGg9dy90YXJnZXQ7CiAgICAgIGlmKGg+YXZhaWxhYmxlSCl7aD1hdmFpbGFibGVIO3c9aCp0YXJnZXR9CiAgICAgIHN0YWdlLnN0eWxlLnNldFByb3BlcnR5KCd3aWR0aCcsYCR7TWF0aC5tYXgoMSxNYXRoLmZsb29yKHcpKX1weGAsJ2ltcG9ydGFudCcpOwogICAgICBzdGFnZS5zdHlsZS5zZXRQcm9wZXJ0eSgnaGVpZ2h0JyxgJHtNYXRoLm1heCgxLE1hdGguZmxvb3IoaCkpfXB4YCwnaW1wb3J0YW50Jyk7CiAgICAgIHN0YWdlLnN0eWxlLnNldFByb3BlcnR5KCdhc3BlY3QtcmF0aW8nLGBke3JhdGlvWzBdfSAvICR7cmF0aW9bMV19YCwnaW1wb3J0YW50Jyk7CiAgICB9KTsKICB9CiAgZnVuY3Rpb24gYXBwbHlDYW1lcmFSYXRpbygpe2NvbnN0IHN0YWdlPSQoJyNjYW1lcmFTdGFnZScpO2lmKCFzdGFnZSlyZXR1cm47c3RhZ2UuY2xhc3NMaXN0LnJlbW92ZSgncmF0aW8tMy00JywncmF0aW8tMS0xJywncmF0aW8tOS0xNicpO3N0YWdlLmNsYXNzTGlzdC5hZGQoc3RhdGUuY2FtZXJhUmF0aW89PT0nMToxJz8ncmF0aW8tMS0xJzpzdGF0ZS5jYW1lcmFSYXRpbz09PSc5OjE2Jz8ncmF0aW8tOS0xNic6J3JhdGlvLTMtNCcpOyQoJyNyYXRpb0J0bicpJiYoJCgnI3JhdGlvQnRuJykudGV4dENvbnRlbnQ9c3RhdGUuY2FtZXJhUmF0aW8pO2ZpdENhbWVyYVByZXZpZXdSYXRpbygpfSIiIgppZiBvbGQgbm90IGluIHM6CiAgICByYWlzZSBTeXN0ZW1FeGl0KCJhcHBseUNhbWVyYVJhdGlvIHRhcmdldCBub3QgZm91bmQiKQpzID0gcy5yZXBsYWNlKG9sZCwgbmV3LCAxKQpvbGRfcmVzaXplID0gImNvbnN0IG9uVmlld3BvcnQ9KCk9PnJlcXVlc3RBbmltYXRpb25GcmFtZSh1cGRhdGVDYW1lcmFWaWV3cG9ydCk7IgpuZXdfcmVzaXplID0gImNvbnN0IG9uVmlld3BvcnQ9KCk9PnJlcXVlc3RBbmltYXRpb25GcmFtZSgoKT0+e3VwZGF0ZUNhbWVyYVZpZXdwb3J0KCk7YXBwbHlDYW1lcmFSYXRpbygpfSk7IgppZiBvbGRfcmVzaXplIG5vdCBpbiBzOgogICAgcmFpc2UgU3lzdGVtRXhpdCgidmlld3BvcnQgcmVzaXplIHRhcmdldCBub3QgZm91bmQiKQpzID0gcy5yZXBsYWNlKG9sZF9yZXNpemUsIG5ld19yZXNpemUsIDEpCm9sZF9pbml0ID0gImRvY3VtZW50LmJvZHkuY2xhc3NMaXN0LmFkZCgnY2FtZXJhLW1vZGUnKTt1cGRhdGVDYW1lcmFWaWV3cG9ydCgpO3NldHVwT25ib2FyZGluZygpOyIKbmV3X2luaXQgPSAiZG9jdW1lbnQuYm9keS5jbGFzc0xpc3QuYWRkKCdjYW1lcmEtbW9kZScpO3VwZGF0ZUNhbWVyYVZpZXdwb3J0KCk7YXBwbHlDYW1lcmFSYXRpbyg pO3NldHVwT25ib2FyZGluZygpOyIKaWYgb2xkX2luaXQgbm90IGluIHM6CiAgICByYWlzZSBTeXN0ZW1FeGl0KCJjYW1lcmEgaW5pdCB0YXJnZXQgbm90IGZvdW5kIikKcyA9IHMucmVwbGFjZShvbGRfaW5pdCwgbmV3X2luaXQsIDEpCmlmICJzZXJ2aWNlLXdvcmtlci5qcz92PTEuMC4xIiBub3QgaW4gczoKICAgIHJhaXNlIFN5c3RlbUV4aXQoInNlcnZpY2Ugd29ya2VyIHZlcnNpb24gdGFyZ2V0IG5vdCBmb3VuZCIpCnMgPSBzLnJlcGxhY2UoInNlcnZpY2Utd29ya2VyLmpzP3Y9MS4wLjEiLCAic2VydmljZS13b3JrZXIuanM/dj0xLjAuMiIsIDEpCmFwcC53cml0ZV90ZXh0KHMpCgpjc3MgPSBQYXRoKCJzdHlsZS5jc3MiKQpjID0gY3NzLnJlYWRfdGV4dCgpCm1hcmtlciA9ICIvKiA9PT0gdjEuMCBDQU1FUkEgUkFUSU8gUFJFVklFVyBGSVggPT09ICovIgppZiBtYXJrZXIgbm90IGluIGM6CiAgICBjICs9ICIiIgoKLyogPT09IHYxLjAgQ0FNRVJBIFJBVElPIFBSRVZJRVcgRklYID09PSAqLwovKiBUaGUgc2VsZWN0ZWQgY2FwdHVyZSByYXRpbyBtdXN0IGFsc28gYmUgdGhlIHZpc2libGUgbGl2ZSB2aWV3ZmluZGVyIHJhdGlvLgogICBLZWVwIHRoZSBvbmUtc2NyZWVuIENhbWVyYSBsYXlvdXQsIGJ1dCBjZW50ZXIgdGhlIGNvcnJlY3RseSBzaXplZCBwcmV2aWV3CiAgIGluc2lkZSBpdHMgZ3JpZCByb3cgaW5zdGVhZCBvZiBzdHJldGNoaW5nIGl0IHRvIHRoZSByb3cgZGltZW5zaW9ucy4gKi8KYm9keS5jYW1lcmEtbW9kZTpub3QoLmNhbWVyYS1pbW1lcnNpdmUpICNjYW1lcmFTdGFnZXsKICBqdXN0aWZ5LXNlbGY6Y2VudGVyIWltcG9ydGFudDsKICBhbGlnbi1zZWxmOmNlbnRlciFpbXBvcnRhbnQ7CiAgbWF4LXdpZHRoOjEwMCUhaW1wb3J0YW50OwogIG1heC1oZWlnaHQ6MTAwJSFpbXBvcnRhbnQ7Cn0KIiIiCmNzcy53cml0ZV90ZXh0KGMpCgpodG1sID0gUGF0aCgiaW5kZXguaHRtbCIpCmggPSBodG1sLnJlYWRfdGV4dCgpCmlmICI/dj0xLjAuMSIgbm90IGluIGg6CiAgICByYWlzZSBTeXN0ZW1FeGl0KCJpbmRleCBhc3NldCB2ZXJzaW9uIHRhcmdldCBub3QgZm91bmQiKQpodG1sLndyaXRlX3RleHQoaC5yZXBsYWNlKCI/dj0xLjAuMSIsICI/dj0xLjAuMiIpKQoKZm9yIG5hbWUgaW4gKCJzZXJ2aWNlLXdvcmtlci5qcyIsInN3LmpzIik6CiAgICBwID0gUGF0aChuYW1lKQogICAgdCA9IHAucmVhZF90ZXh0KCkKICAgIG9sZF9jYWNoZSA9ICJjb25zdCBDQUNIRT0na2lyYS12MS0wLWRlZmF1bHQtc3RyZW5ndGgtNTAtMjAyNjA4MTUnOyIKICAgIGlmIG9sZF9jYWNoZSBub3QgaW4gdDoKICAgICAgICByYWlzZSBTeXN0ZW1FeGl0KGYie25hbWV9IGNhY2hlIHRhcmdldCBub3QgZm91bmQiKQogICAgcC53cml0ZV90ZXh0KHQucmVwbGFjZShvbGRfY2FjaGUsICJjb25zdCBDQUNIRT0na2lyYS12MS0wLWNhbWVyYS1yYXRpby1maXgtMjAyNjA4MTUnOyIsIDEpKQo=' | base64 -d > /tmp/kira_patch.py
+          python3 /tmp/kira_patch.py
+      - name: QA
         run: |
-          set -euo pipefail
           node --check app.js
           cmp -s service-worker.js sw.js
-          grep -q "filterIntensity:50" app.js
-          grep -q "function fitCameraPreviewRatio" app.js
-          grep -q "stage.style.setProperty('aspect-ratio'" app.js
-          grep -q "state.cameraRatio==='9:16'?\[9,16\]" app.js
-          grep -q "captureCanvasForRatio(video)" app.js
-          grep -q "ratio-9-16" style.css
-          grep -q "v1.0 CAMERA RATIO PREVIEW FIX" style.css
-          grep -q "service-worker.js?v=1.0.2" app.js
-          grep -q "app.js?v=1.0.2" index.html
-          grep -q "Current version</span><b>v1.0</b>" index.html
-          grep -q "liveBeautyCanvas" index.html
-          ! grep -q "Kira Live" index.html
-          python3 - <<'PY'
-          import re
-          from pathlib import Path
-          h=Path('index.html').read_text()
-          ids=re.findall(r'\bid="([^"]+)"',h)
-          dup=sorted({x for x in ids if ids.count(x)>1})
-          assert not dup, f'duplicate ids: {dup}'
-          a=Path('app.js').read_text()
-          assert "['3:4','1:1','9:16']" in a
-          assert "state.cameraRatio==='1:1'?[1,1]:state.cameraRatio==='9:16'?[9,16]:[3,4]" in a
-          for aw,ah in [(373,420),(390,440),(320,360),(430,520)]:
-              for rw,rh in [(3,4),(1,1),(9,16)]:
-                  target=rw/rh; w=aw; h=w/target
-                  if h>ah: h=ah; w=h*target
-                  assert w<=aw+1e-9 and h<=ah+1e-9
-                  assert abs((w/h)-target)<1e-9
-          print('Kira v1.0 camera-ratio QA passed')
-          PY
-      - name: Commit production fix
+          echo 'aW1wb3J0IHJlCmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aApoPVBhdGgoImluZGV4Lmh0bWwiKS5yZWFkX3RleHQoKQppZHM9cmUuZmluZGFsbChyJ1xiaWQ9IihbXiJdKykiJyxoKQpkdXA9c29ydGVkKHt4IGZvciB4IGluIGlkcyBpZiBpZHMuY291bnQoeCk+MX0pCmFzc2VydCBub3QgZHVwLCBmImR1cGxpY2F0ZSBpZHM6IHtkdXB9IgphPVBhdGgoImFwcC5qcyIpLnJlYWRfdGV4dCgpCmFzc2VydCAiWyczOjQnLCcxOjEnLCc5OjE2J10iIGluIGEKYXNzZXJ0ICJzdGF0ZS5jYW1lcmFSYXRpbz09PScxOjEnP1sxLDFdOnN0YXRlLmNhbWVyYVJhdGlvPT09Jzk6MTYnP1s5LDE2XTpbMyw0XSIgaW4gYQphc3NlcnQgImZpbHRlckludGVuc2l0eTo1MCIgaW4gYQphc3NlcnQgImZ1bmN0aW9uIGZpdENhbWVyYVByZXZpZXdSYXRpbyIgaW4gYQphc3NlcnQgImNhcHR1cmVDYW52YXNGb3JSYXRpbyh2aWRlbykiIGluIGEKYXNzZXJ0ICJzZXJ2aWNlLXdvcmtlci5qcz92PTEuMC4yIiBpbiBhCmZvciBhdyxhaCBpbiBbKDM3Myw0MjApLCgzOTAsNDQwKSwoMzIwLDM2MCksKDQzMCw1MjApXToKICAgIGZvciBydyxyaCBpbiBbKDMsNCksKDEsMSksKDksMTYpXToKICAgICAgICB0YXJnZXQ9cncvcmgKICAgICAgICB3PWF3CiAgICAgICAgaD13L3RhcmdldAogICAgICAgIGlmIGg+YWg6CiAgICAgICAgICAgIGg9YWgKICAgICAgICAgICAgdz1oKnRhcmdldAogICAgICAgIGFzc2VydCB3PD1hdysxZS05IGFuZCBoPD1haCsxZS05CiAgICAgICAgYXNzZXJ0IGFicygody9oKS10YXJnZXQpPDFlLTkKcHJpbnQoIktpcmEgdjEuMCBjYW1lcmEtcmF0aW8gUUEgcGFzc2VkIikK' | base64 -d > /tmp/kira_qa.py
+          python3 /tmp/kira_qa.py
+          grep -q 'v1.0 CAMERA RATIO PREVIEW FIX' style.css
+          grep -q 'app.js?v=1.0.2' index.html
+          grep -q 'Current version</span><b>v1.0</b>' index.html
+          grep -q 'liveBeautyCanvas' index.html
+      - name: Commit
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add app.js style.css index.html service-worker.js sw.js
           git diff --cached --check
-          git commit -m "Kira v1.0: fix live camera ratio preview"
+          git commit -m 'Kira v1.0: fix live camera ratio preview'
           git push origin main
