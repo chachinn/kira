@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   patch:
-    if: github.actor != 'github-actions[bot]'
+    if: ${{ github.actor != 'github-actions[bot]' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -109,7 +109,6 @@ body.camera-mode:not(.camera-immersive) #cameraStage{
           a=Path('app.js').read_text()
           assert "['3:4','1:1','9:16']" in a
           assert "state.cameraRatio==='1:1'?[1,1]:state.cameraRatio==='9:16'?[9,16]:[3,4]" in a
-          # Model representative Camera grid cells: fitted preview must retain exact ratio and stay bounded.
           for aw,ah in [(373,420),(390,440),(320,360),(430,520)]:
               for rw,rh in [(3,4),(1,1),(9,16)]:
                   target=rw/rh; w=aw; h=w/target
