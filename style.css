@@ -1167,3 +1167,12 @@ body.camera-mode:not(.camera-immersive) #cameraStage{
 /* Do not composite delayed processed face pixels over a moving selfie feed.
    Face-targeted Beauty is rendered from the exact captured still / Develop image. */
 .live-beauty-canvas{display:none!important;opacity:0!important}
+
+
+/* === v1.0 MEDIA DETAILS BROWSE === */
+.photo-detail-media-wrap{position:relative;display:grid;place-items:center;overflow:hidden;border-radius:18px;background:#171414;touch-action:pan-y}
+.photo-detail-media-wrap .photo-detail-image{width:100%;margin:0;border-radius:0}
+.photo-browse-btn{position:absolute;z-index:5;top:50%;transform:translateY(-50%);width:38px;height:52px;border:1px solid rgba(255,255,255,.32);border-radius:999px;background:rgba(32,25,26,.48);backdrop-filter:blur(10px);color:#fff;font-size:32px;line-height:1;padding:0;display:grid;place-items:center;box-shadow:0 5px 16px rgba(0,0,0,.16)}
+.photo-browse-btn.prev{left:8px}.photo-browse-btn.next{right:8px}.photo-browse-btn:disabled{opacity:0;pointer-events:none}
+.photo-browse-count{position:absolute;z-index:5;left:50%;bottom:9px;transform:translateX(-50%);padding:5px 9px;border-radius:999px;background:rgba(30,23,24,.52);backdrop-filter:blur(9px);color:#fff;font-size:9px;font-weight:800;letter-spacing:.04em;pointer-events:none}
+@media(max-width:430px){.photo-browse-btn{width:34px;height:46px;font-size:28px}.photo-browse-btn.prev{left:6px}.photo-browse-btn.next{right:6px}}

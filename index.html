@@ -8,12 +8,12 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=1.0.5" />
+  <link rel="manifest" href="./manifest.json?v=1.0.6" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=1.0.5" />
+  <link rel="stylesheet" href="./style.css?v=1.0.6" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -421,8 +421,13 @@
   <div class="modal-backdrop hidden" id="photoModal">
     <div class="modal-card photo-detail-card">
       <div class="modal-title-row"><h3>Media Details</h3><button class="modal-close" data-close-modal="photoModal">×</button></div>
-      <img id="photoModalImage" class="photo-detail-image" alt="Kira photo">
-      <video id="photoModalVideo" class="photo-detail-image hidden" controls playsinline preload="metadata"></video>
+      <div class="photo-detail-media-wrap" id="photoMediaSwipeZone">
+        <button type="button" class="photo-browse-btn prev" id="photoPrevBtn" aria-label="Previous media">‹</button>
+        <img id="photoModalImage" class="photo-detail-image" alt="Kira photo">
+        <video id="photoModalVideo" class="photo-detail-image hidden" controls playsinline preload="metadata"></video>
+        <button type="button" class="photo-browse-btn next" id="photoNextBtn" aria-label="Next media">›</button>
+        <div class="photo-browse-count" id="photoBrowseCount" aria-live="polite"></div>
+      </div>
       <div class="photo-detail-meta" id="photoDetailMeta"></div>
       <div class="media-memory-fields">
         <label class="modal-label">Title<input id="photoTitleInput" class="filter-search-input" maxlength="60" placeholder="Give this moment a title"></label>
@@ -522,6 +527,6 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=1.0.5"></script>
+  <script src="./app.js?v=1.0.6"></script>
 </body>
 </html>
