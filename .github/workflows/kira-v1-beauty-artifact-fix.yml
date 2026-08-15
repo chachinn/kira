@@ -1,0 +1,116 @@
+name: Kira v1.0 live Beauty artifact fix
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch Beauty compositing safety
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('app.js')
+          s=p.read_text()
+
+          old="const od=orig.data,sd=softData.data,hd=healData.data,out=lctx.createImageData(tw,th),dd=out.data,face=detectBeautyFaceBox(od,tw,th)||{cx:tw*.5,cy:th*.44,rx:tw*.33,ry:th*.40};"
+          new="const od=orig.data,sd=softData.data,hd=healData.data,out=lctx.createImageData(tw,th),dd=out.data,face=detectBeautyFaceBox(od,tw,th);if(!face)return null;const effectPeak=Math.max(sm,bl,red,bright,glow);"
+          if old not in s:
+              raise SystemExit('Beauty fallback target not found')
+          s=s.replace(old,new,1)
+
+          old="dd[i]=clamp(rr,0,255);dd[i+1]=clamp(gg,0,255);dd[i+2]=clamp(bbb,0,255);dd[i+3]=Math.round(clamp(.52+.46*mask,0,.98)*255)"
+          new="dd[i]=clamp(rr,0,255);dd[i+1]=clamp(gg,0,255);dd[i+2]=clamp(bbb,0,255);dd[i+3]=Math.round(clamp(mask*(.30+.62*effectPeak),0,.92)*255)"
+          if old not in s:
+              raise SystemExit('Beauty alpha target not found')
+          s=s.replace(old,new,1)
+
+          old="if(!state.cameraReady||!liveBeautyActive()){if(canvas)canvas.style.opacity='0';return}"
+          new="if(!state.cameraReady||state.cameraFacing!=='user'||!liveBeautyActive()){if(canvas)canvas.style.opacity='0';return}"
+          if old not in s:
+              raise SystemExit('Live Beauty schedule guard target not found')
+          s=s.replace(old,new,1)
+
+          old="if(!video||!canvas||!stage||!state.cameraReady||!liveBeautyActive()){if(canvas)canvas.style.opacity='0';return}"
+          new="if(!video||!canvas||!stage||!state.cameraReady||state.cameraFacing!=='user'||!liveBeautyActive()){if(canvas)canvas.style.opacity='0';return}"
+          if old not in s:
+              raise SystemExit('Live Beauty render guard target not found')
+          s=s.replace(old,new,1)
+
+          old="service-worker.js?v=1.0.2"
+          if old not in s:
+              raise SystemExit('service worker version target not found')
+          s=s.replace(old,"service-worker.js?v=1.0.3",1)
+          p.write_text(s)
+
+          h=Path('index.html')
+          t=h.read_text()
+          if '?v=1.0.2' not in t:
+              raise SystemExit('index asset version target not found')
+          t=t.replace('?v=1.0.2','?v=1.0.3')
+          old_help='Smooth and Acne target the detected face/skin region. The live preview uses a low-resolution face layer; saved photos use the stronger full-resolution pass.'
+          new_help='Smooth and Acne only render when Kira finds a face. Live Beauty previews on the front camera only to prevent false skin masks on objects and backgrounds; saved photos use the stronger face-targeted pass.'
+          if old_help in t:
+              t=t.replace(old_help,new_help,1)
+          h.write_text(t)
+
+          for name in ('service-worker.js','sw.js'):
+              q=Path(name)
+              u=q.read_text()
+              old_cache="const CACHE='kira-v1-0-camera-ratio-fix-20260815';"
+              if old_cache not in u:
+                  raise SystemExit(f'{name} cache target not found')
+              q.write_text(u.replace(old_cache,"const CACHE='kira-v1-0-beauty-mask-safety-20260815';",1))
+          PY
+      - name: QA Beauty artifact regression
+        run: |
+          set -euo pipefail
+          node --check app.js
+          cmp -s service-worker.js sw.js
+          grep -q "filterIntensity:50" app.js
+          grep -q "face=detectBeautyFaceBox(od,tw,th);if(!face)return null" app.js
+          ! grep -q "detectBeautyFaceBox(od,tw,th)||{cx:tw\*.5" app.js
+          grep -q "mask\*(.30+.62\*effectPeak)" app.js
+          ! grep -q "clamp(.52+.46\*mask" app.js
+          test "$(grep -o "state.cameraFacing!=='user'" app.js | wc -l)" -ge 2
+          grep -q "service-worker.js?v=1.0.3" app.js
+          grep -q "app.js?v=1.0.3" index.html
+          grep -q "style.css?v=1.0.3" index.html
+          grep -q "Current version</span><b>v1.0</b>" index.html
+          ! grep -q "Kira Live" index.html
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          a=Path('app.js').read_text()
+          h=Path('index.html').read_text()
+          ids=re.findall(r'\bid="([^"]+)"',h)
+          dup=sorted({x for x in ids if ids.count(x)>1})
+          assert not dup, f'duplicate ids: {dup}'
+          assert a.count('navigator.mediaDevices.getUserMedia') == 1, 'camera stream count changed'
+          assert 'liveBeautyCanvas' in h
+          assert "state.cameraFacing!=='user'" in a
+          assert "if(!face)return null" in a
+          for mask in (.045,.1,.5,1.0):
+              alpha=max(0,min(.92,mask*(.30+.62*1.0)))
+              if mask==.045: assert alpha < .05
+              if mask==1.0: assert .89 < alpha <= .92
+          print('Beauty mask alpha and fail-closed invariants passed')
+          PY
+          git diff --check
+      - name: Commit production fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js index.html service-worker.js sw.js
+          git commit -m "Kira v1.0: fix live Beauty mask artifacts"
+          git push origin main
