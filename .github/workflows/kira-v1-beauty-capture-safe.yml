@@ -1,0 +1,108 @@
+name: Kira v1.0 capture-safe Beauty
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch capture-safe Beauty
+        run: python3 .github/scripts/kira_v1_beauty_capture_safe_patch.py
+
+      - name: QA capture-safe Beauty and critical regressions
+        run: |
+          set -euo pipefail
+          node --check app.js
+          cmp -s service-worker.js sw.js
+          git diff --check
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, re
+
+          a=Path('app.js').read_text()
+          h=Path('index.html').read_text()
+          css=Path('style.css').read_text()
+          sw=Path('service-worker.js').read_text()
+
+          # Root cause must be removed, not hidden behind another timer.
+          banned=[
+            'LIVE_BEAUTY_INTERVAL',
+            'renderLiveBeautyFrame',
+            'stabilizeLiveBeautyFace',
+            'liveBeautyFaceTrack',
+            'buildBeautyLayer(source,liveBeauty',
+            'requestAnimationFrame(renderLiveBeautyFrame)'
+          ]
+          for token in banned:
+            assert token not in a, f'live Beauty renderer residue: {token}'
+          assert "function scheduleLiveBeautyPreview(){stopLiveBeautyPreview()}" in a
+          assert '.live-beauty-canvas{display:none!important;opacity:0!important}' in css
+
+          # Beauty must still exist on exact still frames in both Develop and camera save.
+          assert a.count('applyBeautyPass(ctx,w,h,state.beauty);') >= 2
+          assert "buildBeautyLayer(ctx.canvas,beauty,920,'still')" in a
+          assert 'function drawCameraShotFast' in a and 'function processContinuousPhoto' in a
+          assert 'withVisualSnapshot(task.snapshot,()=>drawCameraShotFast(c,source,p))' in a
+          assert 'function drawVideoCrop' in a
+          assert 'detectBeautyFaceBox' in a and 'beautyFaceWeight' in a
+          assert 'blur(' in a  # still-processing blur remains; no whole-video Beauty blur is introduced
+          assert 'cameraVideo.style.filter' not in a
+
+          # Camera architecture / recently added functionality.
+          assert a.count('navigator.mediaDevices.getUserMedia(constraints)') == 1
+          assert a.count('navigator.mediaDevices.getUserMedia({audio:') == 1
+          assert 'cameraFlashMode' in a and 'prepareCaptureFlash' in a
+          assert 'id="cameraFlashBtn"' in h
+          assert 'deleteSelectedBulk' in a and 'id="bulkDeleteSelectedBtn"' in h
+          assert 'filterIntensity:50' in a
+          assert 'Kira Live' not in a and 'Kira Live' not in h
+
+          # PWA / public version.
+          assert '?v=1.0.5' in h
+          assert "service-worker.js?v=1.0.5" in a
+          assert "kira-v1-0-capture-safe-beauty-20260815" in sw
+          assert 'Current version</span><b>v1.0</b>' in h
+          json.loads(Path('manifest.json').read_text())
+
+          # No duplicate DOM ids.
+          ids=re.findall(r'\bid="([^"]+)"',h)
+          dup=sorted({x for x in ids if ids.count(x)>1})
+          assert not dup, f'duplicate ids: {dup}'
+
+          # Preserve the full built-in filter library.
+          block=a.split('const builtins=[',1)[1].split('].map(([name,cat,c,p])',1)[0]
+          filters=re.findall(r'^\s*\[\'([^\']+)\',\'[^\']+\',',block,re.M)
+          assert len(filters)==233, f'expected 233 built-in filters, found {len(filters)}'
+          assert len(filters)==len(set(filters)), 'duplicate built-in filter names'
+
+          # 1989 Sparkle regression coverage: digits + both alphabets remain mapped/assets present.
+          assert 'const kira1989GlyphManifest=' in a
+          for code in list(range(48,58))+list(range(65,91))+list(range(97,123)):
+            assert Path(f'assets/fonts1989/{code}.png').is_file(), f'missing 1989 glyph {code}.png'
+          for sample in ('1989','0123456789','ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'):
+            for ch in sample:
+              assert f'"{ch}"' in a, f'1989 mapping missing {ch}'
+
+          # Copy and UI explain the intentional capture-safe behavior.
+          assert 'moving selfie preview stays smooth and artifact-free' in h
+          assert 'actual photo' in a and 'captured still' in a
+          print('Kira v1.0 capture-safe Beauty QA PASS')
+          PY
+
+      - name: Commit production update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js index.html style.css service-worker.js sw.js
+          git commit -m "Kira v1.0: remove glitching live Beauty overlay"
+          git push origin main
