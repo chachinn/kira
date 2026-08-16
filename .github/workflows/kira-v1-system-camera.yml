@@ -1,0 +1,126 @@
+name: Kira v1.0 Best Quality system camera
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Apply hybrid camera production patch
+        run: python .github/scripts/kira_v1_system_camera.py
+      - name: QA hybrid system camera and critical regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          cmp -s service-worker.js sw.js
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          app=Path('app.js').read_text()
+          idx=Path('index.html').read_text()
+          css=Path('style.css').read_text()
+          sw=Path('service-worker.js').read_text()
+
+          def need(value,msg):
+              if not value: raise SystemExit(msg)
+
+          # Release/cache coherence. Public product stays v1.0.
+          need('v1.0' in idx,'public v1.0 label missing')
+          for ref in ['manifest.json?v=1.0.9','style.css?v=1.0.9','app.js?v=1.0.9']:
+              need(ref in idx,f'missing {ref}')
+          need('service-worker.js?v=1.0.9' in app,'service-worker registration mismatch')
+          need("kira-v1-0-system-camera-20260817" in sw,'system-camera cache key missing')
+
+          # Best Quality is first-class and default.
+          need("photoCaptureSource:'system'" in app,'Best Quality is not the default photo source')
+          need('id="cameraSourceBtn"' in idx and '>Best Quality</button>' in idx,'Camera Best Quality toggle missing')
+          need('id="settingPhotoCaptureSource"' in idx,'photo-capture setting missing')
+          need('value="system">Best Quality • iPhone camera</option>' in idx,'Best Quality settings option missing')
+          need('value="live">Live Filter • inside Kira</option>' in idx,'Live Filter settings option missing')
+          need('function currentPhotoCaptureSource' in app and 'function setPhotoCaptureSource' in app and 'function togglePhotoCaptureSource' in app,'photo-source controller incomplete')
+          need("btn.hidden=!photo" in app,'source button is not photo-only')
+          need("flash.disabled=photo&&system" in app and "timer.disabled=photo&&system" in app,'Kira flash/timer are not delegated to system camera')
+          need('updatePhotoCaptureSourceUI();' in app.split('function setCaptureMode',1)[1].split('function recorderMime',1)[0],'capture-mode source UI sync missing')
+
+          # System camera handoff and frozen Kira look.
+          need('function beginSystemCameraCapture' in app,'system-camera opener missing')
+          need("input.setAttribute('capture',state.cameraFacing==='user'?'user':'environment')" in app,'front/rear system capture selection missing')
+          need('pendingSystemCapture={snapshot:editSnapshot(),filter:state.activeFilter,rollId:state.activeNamedRollId,ratio:state.cameraRatio,facing:state.cameraFacing,stamp:Date.now()}' in app,'exact Kira look/roll/ratio snapshot missing')
+          need('function handleCameraInput' in app,'system-camera return handler missing')
+          need("handleCameraInput(file).finally(()=>{input.value=''})" in app,'system-camera return binding missing')
+          need("if(currentPhotoCaptureSource()==='system'){beginSystemCameraCapture();return}captureLivePhoto()" in app,'photo shutter does not route between Best Quality and Live Filter')
+          need("photoQuality:'system'" in app and 'systemCapture:true' in app,'Best Quality queue metadata missing')
+          need("if(mode==='system')return {maxSide:4096,jpeg:.98,label:'Best Quality'}" in app,'Best Quality processing profile missing')
+          need("mirror:Object.prototype.hasOwnProperty.call(meta,'mirror')?!!meta.mirror:undefined" in app,'mirror override metadata missing')
+          need("mirror=task.mirror===undefined?task.facing==='user':!!task.mirror" in app,'system selfie mirror guard missing')
+          need('mirror:false' in app.split('async function handleCameraInput',1)[1].split('async function captureOrRecord',1)[0],'system camera selfie may be double-mirrored')
+          need('withVisualSnapshot(task.snapshot' in app,'frozen look is not applied during processing')
+          need('filter:task.filter' in app and 'snapshot:task.snapshot' in app and 'rollId:task.rollId' in app,'frozen capture metadata not stored')
+          need("systemCapture:!!task.systemCapture" in app,'system capture marker not stored')
+          need('queueRollIdForPhotos(id)' in app,'processed Best Quality photo is not queued for Photos')
+          need('state.settings.keepOriginal' in app.split('async function handleCameraInput',1)[1].split('async function captureOrRecord',1)[0],'Keep Original is not honored for system camera')
+
+          # Return/cancel resilience: avoid reopening getUserMedia before file-input return settles.
+          need('function scheduleSystemCaptureCancelCheck' in app and "window.addEventListener('focus',scheduleSystemCaptureCancelCheck" in app,'system-camera cancel/focus handling missing')
+          need('if(state.pendingSystemCapture)scheduleSystemCaptureCancelCheck();else bootCameraSafely()' in app,'visibility-return handoff guard missing')
+          need('function resumeCameraAfterSystemCapture' in app,'camera resume helper missing')
+
+          # Existing high-quality Live Filter path remains intact.
+          need("typeof ImageCapture==='function'" in app and 'new ImageCapture(track)' in app and '.takePhoto()' in app,'Live Filter high-quality still path regressed')
+          for token in ['maxSide:2048','maxSide:3072','maxSide:3840','jpeg:.93','jpeg:.96','jpeg:.97']:
+              need(token in app,f'photo-quality tier regressed: {token}')
+          proc=app.split('async function processContinuousPhoto',1)[1].split('async function runPhotoProcessQueue',1)[0]
+          need('const maxSide=1920' not in proc,'old 1920 continuous-save cap returned')
+
+          # One actual video-camera stream remains; optional microphone is separate.
+          need(app.count('getUserMedia(constraints)')==1,'video camera stream count changed')
+          need(app.count('getUserMedia({audio:')==1,'optional audio-only stream count changed')
+
+          # Filter library and earlier physical-bug fixes stay intact.
+          block=app.split('const builtins=[',1)[1].split('].map(([name,cat,c,p])',1)[0]
+          names=re.findall(r"\['([^']+)'\s*,\s*'([^']+)'",block)
+          need(len(names)==233,f'expected 233 filters, got {len(names)}')
+          need(len({n for n,c in names})==233,'duplicate filter names')
+          need(sum(1 for n,c in names if c=='Mono')==10,'Mono category changed')
+          need("filterIntensity:50" in app,'50% default filter strength regressed')
+          mono=app.split('function applyFinalMono',1)[1].split('function applyPresetCast',1)[0]
+          need('getImageData' in mono and 'putImageData' in mono,'deterministic saved Mono regressed')
+          need(".live-beauty-canvas{display:none!important;opacity:0!important}" in css,'capture-safe Beauty regressed')
+          need('applyBeautyPass(ctx,w,h,state.beauty)' in app,'captured Beauty missing')
+          need('cameraFlashBtn' in idx and 'prepareCaptureFlash' in app,'Live Filter flash regressed')
+          need('bulkDeleteSelectedBtn' in idx and 'function deleteSelectedBulk' in app,'Rolls bulk delete regressed')
+          need('photoMediaSwipeZone' in idx and 'function navigatePhotoModal' in app,'Media Details browsing regressed')
+
+          # Hybrid UI remains compact/mobile safe.
+          need('#cameraSourceBtn' in css and '.camera-heading-actions' in css,'Best Quality mobile UI styles missing')
+          need('.mini-pill:disabled' in css,'delegated system controls lack disabled styling')
+          ids=re.findall(r'\bid="([^"]+)"',idx)
+          dup=[x for x in set(ids) if ids.count(x)>1]
+          need(not dup,f'duplicate DOM ids: {dup}')
+          need('maximum-scale=1' in idx and 'user-scalable=no' in idx,'zoom viewport protection missing')
+          need('function preventZoom' in app,'programmatic zoom protection missing')
+          need('assets/fonts1989/manifest.json' in sw,'1989 Sparkle shell asset missing')
+          need('kira.livePhoto' in app and 'motionBlob' in app,'retired Kira Live cleanup missing')
+
+          print('QA PASS: Best Quality system-camera handoff, frozen Kira look, 233 filters, critical regressions')
+          PY
+          git diff --check
+      - name: Commit production update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js index.html style.css service-worker.js sw.js
+          git commit -m "Kira v1.0: add Best Quality system camera mode"
+          git push origin main
