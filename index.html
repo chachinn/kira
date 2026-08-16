@@ -8,12 +8,12 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=1.0.7" />
+  <link rel="manifest" href="./manifest.json?v=1.0.8" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=1.0.7" />
+  <link rel="stylesheet" href="./style.css?v=1.0.8" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -268,6 +268,13 @@
             <label class="setting-row"><span>Grid overlay</span><input type="checkbox" id="settingGrid" /></label>
             <label class="setting-row"><span>Haptic feedback</span><input type="checkbox" id="settingHaptics" checked /></label>
             <label class="setting-row"><span>Record sound with video</span><input type="checkbox" id="settingVideoAudio" checked /></label>
+            <label class="setting-row setting-select-row"><span>Photo quality</span>
+              <select id="settingPhotoQuality" class="mini-select">
+                <option value="standard">Standard • faster</option>
+                <option value="high">High • recommended</option>
+                <option value="max">Max detail • slower</option>
+              </select>
+            </label>
             <label class="setting-row setting-select-row"><span>Video quality</span>
               <select id="settingVideoQuality" class="mini-select">
                 <option value="smooth">Smooth • recommended</option>
@@ -280,7 +287,7 @@
                 <option value="video">Video</option>
               </select>
             </label>
-            <div class="notice">Smooth mode uses a lower video bitrate and is the recommended setting for iPhone. Kira records the original camera stream for video so recording stays responsive.</div>
+            <div class="notice">Photo quality affects still captures only: High is recommended, while Max keeps more detail but takes longer to process and uses more local storage. Video quality stays separate so recording remains responsive.</div>
           </div>
         </details>
 
@@ -527,6 +534,6 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=1.0.7"></script>
+  <script src="./app.js?v=1.0.8"></script>
 </body>
 </html>
