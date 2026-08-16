@@ -8,12 +8,12 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=1.0.8" />
+  <link rel="manifest" href="./manifest.json?v=1.0.9" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=1.0.8" />
+  <link rel="stylesheet" href="./style.css?v=1.0.9" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -65,6 +65,7 @@
             <div><strong>Looks</strong><small>tap a look before you shoot</small></div>
             <div class="camera-heading-actions">
               <button class="photos-queue-btn hidden" id="photosQueueBtn" title="Save captured photos to iPhone Photos">Photos <b id="photosQueueCount">0</b></button>
+              <button class="soft-icon-btn camera-source-btn active" id="cameraSourceBtn" aria-pressed="true" title="Best Quality uses the iPhone system camera, then Kira adds your selected look.">Best Quality</button>
               <button class="soft-icon-btn" id="cameraControlsBtn" aria-expanded="false">Controls⌄</button>
             </div>
           </div>
@@ -268,6 +269,12 @@
             <label class="setting-row"><span>Grid overlay</span><input type="checkbox" id="settingGrid" /></label>
             <label class="setting-row"><span>Haptic feedback</span><input type="checkbox" id="settingHaptics" checked /></label>
             <label class="setting-row"><span>Record sound with video</span><input type="checkbox" id="settingVideoAudio" checked /></label>
+            <label class="setting-row setting-select-row"><span>Photo capture</span>
+              <select id="settingPhotoCaptureSource" class="mini-select">
+                <option value="system">Best Quality • iPhone camera</option>
+                <option value="live">Live Filter • inside Kira</option>
+              </select>
+            </label>
             <label class="setting-row setting-select-row"><span>Photo quality</span>
               <select id="settingPhotoQuality" class="mini-select">
                 <option value="standard">Standard • faster</option>
@@ -287,7 +294,7 @@
                 <option value="video">Video</option>
               </select>
             </label>
-            <div class="notice">Photo quality affects still captures only: High is recommended, while Max keeps more detail but takes longer to process and uses more local storage. Video quality stays separate so recording remains responsive.</div>
+            <div class="notice">Best Quality opens the iPhone/system camera for the actual shot, then Kira automatically applies the look you selected and saves the result to Rolls. Live Filter keeps shooting inside Kira so you can see the look while composing. Kira cannot place its live filter inside the iPhone system camera. Standard / High / Max apply to Live Filter captures; Best Quality keeps a larger system-camera still for processing.</div>
           </div>
         </details>
 
@@ -501,12 +508,12 @@
     <div class="modal-card info-modal-card">
       <div class="modal-title-row"><h3>What’s New</h3><button class="modal-close" data-close-modal="whatsNewModal">×</button></div>
       <div class="release-badge">v1.0</div>
-      <h4>Stronger looks — every filter has more personality.</h4>
+      <h4>Best Quality camera mode — iPhone capture, Kira finish.</h4>
       <div class="info-list">
-        <div><b>✦</b><span>100% strength is now intentionally bolder. Kira, Film, Vintage, CCD, Y2K, Dream, Japan and the other collections receive category-calibrated identity boosts instead of sharing one timid intensity curve.</span></div>
-        <div><b>🎞</b><span>The 0–100 strength slider still works normally: Kira starts at a balanced 50%, 0 stays neutral, and 100 shows the full intended character of the selected look.</span></div>
-        <div><b>♡</b><span>Kira Original and Beauty Only remain neutral by design. Beauty processing itself is not artificially boosted by this color/filter change.</span></div>
-        <div><b>✓</b><span>Kira is now labeled v1.0 for its first public release line. Filter names, Favorites, recipes, Rolls, Camera, Beauty, and saved-media references remain compatible.</span></div>
+        <div><b>📷</b><span>Best Quality is now the default photo path. Kira hands the actual shot to the iPhone/system camera, then automatically applies the look and strength you selected when the photo returns.</span></div>
+        <div><b>🎞</b><span>Live Filter is still one tap away when you want to compose and shoot entirely inside Kira with the selected look visible before capture.</span></div>
+        <div><b>♡</b><span>Best Quality preserves the selected Beauty, frame, Date Cam, Roll, and other Kira settings for post-capture processing. System-camera selfies are not mirrored a second time.</span></div>
+        <div><b>✓</b><span>Kira remains v1.0. All 233 looks, 50% default strength, Mono, Flash, Rolls, Media Details browsing, and the existing high-quality Live Filter path stay intact.</span></div>
       </div>
     </div>
   </div>
@@ -515,7 +522,7 @@
     <div class="modal-card info-modal-card">
       <div class="modal-title-row"><h3>Help & Tips</h3><button class="modal-close" data-close-modal="helpModal">×</button></div>
       <div class="help-grid">
-        <div><strong>Camera permission</strong><p>Kira only requests camera access after you tap Start Camera unless iPhone already reports permission as granted.</p></div>
+        <div><strong>Best Quality vs Live Filter</strong><p>Best Quality uses the iPhone/system camera for the shot and applies your selected Kira look afterward. Live Filter stays inside Kira so you can preview the look while composing.</p></div>
         <div><strong>Saving to Photos</strong><p>iPhone does not let a web app silently insert media into Photos. Kira can queue your captures so you can send a batch to the native save/share sheet.</p></div>
         <div><strong>Where is my media?</strong><p>Everything captured in Kira is stored locally in Rolls. New installs start with no named rolls; media goes to Unfiled until you create one.</p></div>
         <div><strong>Keep Kira smooth</strong><p>Use Smooth video quality, keep the camera in continuous-shoot mode, and avoid filling device storage completely.</p></div>
@@ -534,6 +541,6 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=1.0.8"></script>
+  <script src="./app.js?v=1.0.9"></script>
 </body>
 </html>
