@@ -1,0 +1,107 @@
+name: Kira v1.0 Filtered Rolls and Continuous Best Quality
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/kira_v1_filtered_continuous.py'
+      - '.github/workflows/kira-v1-filtered-continuous.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Apply production patch
+        run: python .github/scripts/kira_v1_filtered_continuous.py
+      - name: JavaScript syntax
+        run: node --check app.js
+      - name: QA Filtered Rolls, repeated Best Quality, and critical regressions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          app=Path('app.js').read_text()
+          index=Path('index.html').read_text()
+          style=Path('style.css').read_text()
+          sw=Path('service-worker.js').read_text()
+          swa=Path('sw.js').read_text()
+
+          def need(cond,msg):
+              if not cond: raise SystemExit(msg)
+
+          # New Rolls behavior.
+          need(index.count('data-roll-filter="filtered"')==1,'Filtered tab missing/duplicated')
+          need('function isKiraFilteredItem(x)' in app,'Filtered predicate missing')
+          need("state.activeRollFilter==='filtered'&&isKiraFilteredItem(x)" in app,'Filtered query path missing')
+          need("x.kind==='edited'&&!!x.filter&&x.filter!=='Original'" in app,'Filtered predicate does not exclude source originals')
+
+          # Best Quality now stores one processed result, not an extra source original.
+          need('Kira system original:' not in app,'Best Quality original-copy save still present')
+          need("systemCapture:true})}catch" not in app,'System original storage branch still present')
+          need('Keep originals when importing to Develop' in index,'Keep-original scope not clarified')
+
+          # Repeated system-camera session must be explicit and user-gesture driven.
+          for token in ['bestQualitySessionActive','bestQualitySessionShots','bestQualitySessionBar','bestQualityShootAgainBtn','bestQualityDoneBtn','function updateBestQualitySessionUI()','function finishBestQualitySession(','function beginSystemCameraCapture()']:
+              need(token in app or token in index, f'missing Best Quality session token: {token}')
+          need("state.pendingSystemCapture)return" in app,'double-open guard missing')
+          need("state.bestQualitySessionShots++" in app,'shot counter missing')
+          need("tap Shoot Again for the next photo" in app,'Shoot Again return cue missing')
+          need("$('#bestQualityShootAgainBtn').onclick=beginSystemCameraCapture" in app,'Shoot Again binding missing')
+          need("$('#bestQualityDoneBtn').onclick=()=>finishBestQualitySession()" in app,'Done binding missing')
+          need("input.value=''" in app,'file input is not re-armed for repeated shots')
+          need("state.photoProcessQueue.length>=8" in app,'processing queue guard missing')
+          need('iPhone requires one tap for each new system-camera photo.' in index,'PWA gesture limitation not explained in UI')
+
+          # Frozen Kira look and safe system selfie orientation retained.
+          need("snapshot:editSnapshot(),filter:state.activeFilter,rollId:state.activeNamedRollId,ratio:state.cameraRatio,facing:state.cameraFacing" in app,'frozen Best Quality snapshot missing')
+          need("mirror:false,photoQuality:'system',systemCapture:true" in app,'system capture mirror/quality metadata changed')
+          need("if(mode==='system')return {maxSide:4096,jpeg:.98,label:'Best Quality'}" in app,'Best Quality processing profile changed')
+
+          # Core library/filter invariants.
+          builtins=app.split('const builtins=[',1)[1].split('];',1)[0]
+          need(len(re.findall(r"^\s*\['",builtins,re.M))==233,'built-in filter count changed')
+          need(len(re.findall(r",'Mono',",builtins))==10,'Mono filter count changed')
+          need('function applyFinalMono(' in app,'deterministic Mono missing')
+          need('function scheduleLiveBeautyPreview(){stopLiveBeautyPreview()}' in app,'capture-safe Beauty changed')
+          need("$('#bulkDeleteSelectedBtn').onclick=deleteSelectedBulk" in app,'Rolls bulk delete missing')
+          need('function bindPhotoModalBrowsing()' in app,'Media Details browsing missing')
+          need('cameraFlashMode' in app and 'prepareCaptureFlash' in app,'Flash path missing')
+
+          # Camera/PWA invariants.
+          need(app.count('navigator.mediaDevices.getUserMedia(')==2,'expected one camera video stream plus one optional audio-only stream')
+          need("video:{facingMode:{ideal:state.cameraFacing}" in app,'single camera-video constraint missing')
+          need("video:false" in app,'audio-only microphone constraint missing')
+          need('1.0.10' in index and '1.0.10' in app,'asset version not bumped')
+          need("kira-v1-0-filtered-continuous-best-quality-20260817" in sw,'cache key not bumped')
+          need(sw==swa,'service-worker.js and sw.js differ')
+          need('maximum-scale=1' in index and 'user-scalable=no' in index,'zoom guard meta missing')
+          need('1989 Sparkle' in app,'1989 Sparkle renderer/reference missing')
+          need('/* === v1.0 FILTERED ROLLS + CONTINUOUS BEST QUALITY === */' in style,'session CSS missing')
+
+          # HTML IDs should remain unique.
+          ids=re.findall(r'id="([^"]+)"',index)
+          dup=sorted({x for x in ids if ids.count(x)>1})
+          need(not dup,f'duplicate DOM ids: {dup}')
+
+          print('QA PASS: Filtered Rolls + repeated Best Quality + critical regressions')
+          PY
+      - name: Diff hygiene
+        run: git diff --check
+      - name: Commit production update
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.js index.html style.css service-worker.js sw.js
+          git diff --cached --quiet && exit 0
+          git commit -m 'Kira v1.0: add Filtered Rolls and repeated Best Quality shots'
+          git push origin HEAD:main
