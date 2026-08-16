@@ -8,12 +8,12 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kira" />
-  <link rel="manifest" href="./manifest.json?v=1.0.9" />
+  <link rel="manifest" href="./manifest.json?v=1.0.10" />
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./icons/icon-180.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
   <link rel="shortcut icon" type="image/png" href="./icons/icon-32.png" />
-  <link rel="stylesheet" href="./style.css?v=1.0.9" />
+  <link rel="stylesheet" href="./style.css?v=1.0.10" />
   <title>Kira — Retro Film Camera</title>
 </head>
 <body>
@@ -116,6 +116,11 @@
             <button data-capture-mode="video">Video</button>
           </div>
         </div>
+        <div class="best-quality-session hidden" id="bestQualitySessionBar" aria-live="polite">
+          <div><strong id="bestQualitySessionCount">Best Quality session</strong><small>iPhone requires one tap for each new system-camera photo.</small></div>
+          <button class="secondary-btn compact-btn" id="bestQualityShootAgainBtn">Shoot Again</button>
+          <button class="text-btn" id="bestQualityDoneBtn">Done</button>
+        </div>
       </section>
 
       <section class="screen clean-develop-screen" id="screen-develop" data-screen="develop">
@@ -216,6 +221,7 @@
           <div class="roll-tabs compact-roll-tabs">
             <button class="chip active" data-roll-filter="all">All</button>
             <button class="chip" data-roll-filter="favorites">Favorites</button>
+            <button class="chip" data-roll-filter="filtered">Filtered</button>
             <button class="chip" data-roll-filter="edited">Edited</button>
             <button class="chip" data-roll-filter="videos">Videos</button>
           </div>
@@ -302,7 +308,7 @@
           <summary><span>Editing</span><small>remember your workflow</small></summary>
           <div class="settings-group-body">
             <label class="setting-row"><span>Remember last filter</span><input type="checkbox" id="settingRememberFilter" checked /></label>
-            <label class="setting-row"><span>Keep originals in Kira Rolls</span><input type="checkbox" id="settingKeepOriginal" /></label>
+            <label class="setting-row"><span>Keep originals when importing to Develop</span><input type="checkbox" id="settingKeepOriginal" /></label>
           </div>
         </details>
 
@@ -310,9 +316,9 @@
           <summary><span>Saving</span><small>exports & Photos</small></summary>
           <div class="settings-group-body">
             <label class="setting-row"><span>Auto-download when Save is tapped</span><input type="checkbox" id="settingAutoSave" /></label>
-            <label class="setting-row"><span>Continuous shooting — stay on Camera</span><input type="checkbox" id="settingContinuousShoot" checked /></label>
+            <label class="setting-row"><span>Continuous shooting — stay ready for another shot</span><input type="checkbox" id="settingContinuousShoot" checked /></label>
             <label class="setting-row"><span>Queue new captures for iPhone Photos</span><input type="checkbox" id="settingAutoPhotos" checked /></label>
-            <div class="notice">Kira saves each shot immediately to Kira Rolls and keeps the camera open. iPhone does not allow a web app to silently insert files into Photos, so queued shots can be sent to Photos together with one tap on the Photos button in Camera.</div>
+            <div class="notice">Kira saves each shot to Kira Rolls. Best Quality stores only the Kira-processed photo and never creates a second system-camera Original. Existing originals are never deleted automatically. With Continuous shooting on, Kira stays ready for the next Best Quality shot; iPhone requires one tap for each new system-camera capture. Queued shots can be sent to Photos together from Camera.</div>
           </div>
         </details>
 
@@ -541,6 +547,6 @@
   </div>
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=1.0.9"></script>
+  <script src="./app.js?v=1.0.10"></script>
 </body>
 </html>
