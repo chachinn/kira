@@ -20,6 +20,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Correct release-script binding matcher
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('.github/scripts/kira_v1_filtered_continuous.py')
+          s=p.read_text()
+          old="old_bind_source = \"$('#cameraImmersiveBtn')&&($('#cameraImmersiveBtn').onclick=toggleCameraImmersive);$('#cameraSourceBtn')&&($('#cameraSourceBtn').onclick=togglePhotoCaptureSource);$('#cameraFlashBtn')\"\nnew_bind_source = \"$('#cameraImmersiveBtn')&&($('#cameraImmersiveBtn').onclick=toggleCameraImmersive);$('#cameraSourceBtn')&&($('#cameraSourceBtn').onclick=togglePhotoCaptureSource);$('#bestQualityShootAgainBtn')&&($('#bestQualityShootAgainBtn').onclick=beginSystemCameraCapture);$('#bestQualityDoneBtn')&&($('#bestQualityDoneBtn').onclick=()=>finishBestQualitySession());$('#cameraFlashBtn')\""
+          new="old_bind_source = \"$('#shutterBtn').onclick=captureOrRecord;$$('[data-capture-mode]').forEach(b=>b.onclick=()=>setCaptureMode(b.dataset.captureMode));$('#cameraSourceBtn')&&($('#cameraSourceBtn').onclick=togglePhotoCaptureSource);$('#flipCameraBtn').onclick=flipCamera\"\nnew_bind_source = \"$('#shutterBtn').onclick=captureOrRecord;$$('[data-capture-mode]').forEach(b=>b.onclick=()=>setCaptureMode(b.dataset.captureMode));$('#cameraSourceBtn')&&($('#cameraSourceBtn').onclick=togglePhotoCaptureSource);$('#bestQualityShootAgainBtn')&&($('#bestQualityShootAgainBtn').onclick=beginSystemCameraCapture);$('#bestQualityDoneBtn')&&($('#bestQualityDoneBtn').onclick=()=>finishBestQualitySession());$('#flipCameraBtn').onclick=flipCamera\""
+          if old not in s:
+              raise SystemExit('expected old binding matcher not found in temp patch script')
+          p.write_text(s.replace(old,new,1))
+          print('release binding matcher corrected')
+          PY
       - name: Apply production patch
         run: python .github/scripts/kira_v1_filtered_continuous.py
       - name: JavaScript syntax
@@ -39,18 +52,15 @@ jobs:
           def need(cond,msg):
               if not cond: raise SystemExit(msg)
 
-          # New Rolls behavior.
           need(index.count('data-roll-filter="filtered"')==1,'Filtered tab missing/duplicated')
           need('function isKiraFilteredItem(x)' in app,'Filtered predicate missing')
           need("state.activeRollFilter==='filtered'&&isKiraFilteredItem(x)" in app,'Filtered query path missing')
           need("x.kind==='edited'&&!!x.filter&&x.filter!=='Original'" in app,'Filtered predicate does not exclude source originals')
 
-          # Best Quality now stores one processed result, not an extra source original.
           need('Kira system original:' not in app,'Best Quality original-copy save still present')
           need("systemCapture:true})}catch" not in app,'System original storage branch still present')
           need('Keep originals when importing to Develop' in index,'Keep-original scope not clarified')
 
-          # Repeated system-camera session must be explicit and user-gesture driven.
           for token in ['bestQualitySessionActive','bestQualitySessionShots','bestQualitySessionBar','bestQualityShootAgainBtn','bestQualityDoneBtn','function updateBestQualitySessionUI()','function finishBestQualitySession(','function beginSystemCameraCapture()']:
               need(token in app or token in index, f'missing Best Quality session token: {token}')
           need("state.pendingSystemCapture)return" in app,'double-open guard missing')
@@ -62,12 +72,10 @@ jobs:
           need("state.photoProcessQueue.length>=8" in app,'processing queue guard missing')
           need('iPhone requires one tap for each new system-camera photo.' in index,'PWA gesture limitation not explained in UI')
 
-          # Frozen Kira look and safe system selfie orientation retained.
           need("snapshot:editSnapshot(),filter:state.activeFilter,rollId:state.activeNamedRollId,ratio:state.cameraRatio,facing:state.cameraFacing" in app,'frozen Best Quality snapshot missing')
           need("mirror:false,photoQuality:'system',systemCapture:true" in app,'system capture mirror/quality metadata changed')
           need("if(mode==='system')return {maxSide:4096,jpeg:.98,label:'Best Quality'}" in app,'Best Quality processing profile changed')
 
-          # Core library/filter invariants.
           builtins=app.split('const builtins=[',1)[1].split('];',1)[0]
           need(len(re.findall(r"^\s*\['",builtins,re.M))==233,'built-in filter count changed')
           need(len(re.findall(r",'Mono',",builtins))==10,'Mono filter count changed')
@@ -77,7 +85,6 @@ jobs:
           need('function bindPhotoModalBrowsing()' in app,'Media Details browsing missing')
           need('cameraFlashMode' in app and 'prepareCaptureFlash' in app,'Flash path missing')
 
-          # Camera/PWA invariants.
           need(app.count('navigator.mediaDevices.getUserMedia(')==2,'expected one camera video stream plus one optional audio-only stream')
           need("video:{facingMode:{ideal:state.cameraFacing}" in app,'single camera-video constraint missing')
           need("video:false" in app,'audio-only microphone constraint missing')
@@ -88,7 +95,6 @@ jobs:
           need('1989 Sparkle' in app,'1989 Sparkle renderer/reference missing')
           need('/* === v1.0 FILTERED ROLLS + CONTINUOUS BEST QUALITY === */' in style,'session CSS missing')
 
-          # HTML IDs should remain unique.
           ids=re.findall(r'id="([^"]+)"',index)
           dup=sorted({x for x in ids if ids.count(x)>1})
           need(not dup,f'duplicate DOM ids: {dup}')
